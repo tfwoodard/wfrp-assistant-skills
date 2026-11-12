@@ -195,6 +195,8 @@ skills/wfrp-import/scripts/pdf_outline.py     PDF bookmarks -> chapter list with
 skills/wfrp-import/scripts/pdf_layout.py      PDF pages -> lines (by baseline and column) with style, icons
 skills/wfrp-import/scripts/check_coverage.py  check converted entries lost no words of the pages
 skills/wfrp-import/scripts/convert_careers.py  career pages -> career entries (scheme, career path)
+skills/wfrp-import/scripts/convert_rules.py    rules prose -> rules, disease and table entries, with sidebars and tables
+skills/wfrp-import/scripts/entry_text.py      text helpers the converters share (styles, hyphens, lists, table data)
 skills/wfrp-import/scripts/render_entry.py    entry .json -> Markdown
 skills/wfrp-import/scripts/merge_import.py    merge index records, log, chapter status
 skills/wfrp-import/scripts/import_journal.py  progress journal for resuming an import
