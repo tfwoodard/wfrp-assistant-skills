@@ -76,6 +76,10 @@ allows an exception, record it in `notes` and in `changelog`.
 
 ## Play-time changes
 
+Between adventures, Earning money tests the current career's
+`earning_skill` (from the career entry) at the career level's status, as the
+library's rules for Earning say.
+
 Wounds, Fortune and Resolve spent, Corruption points, mutations, conditions
 that last between sessions, Critical Wounds, insanities, trappings gained or
 lost, and money: write each to the record when the player or GM says so, with

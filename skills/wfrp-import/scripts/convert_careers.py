@@ -31,9 +31,14 @@ four levels as a `career_levels` block) and <slug>.md (render_entry.py), and
 for the chapter `_records.json` (index records) and `_report.json`:
 
 - `errors`: anything that doesn't read as expected (a missing scheme or level, a
-  level icon that doesn't match its level). Exit status 1 when there are any.
+  level icon that doesn't match its level, a first level without exactly one
+  skill in italics). Exit status 1 when there are any.
 - `questions`: things to settle with the Librarian (a scheme that isn't 3/1/1/1,
-  italic items, line-end hyphens joined).
+  a skill in italics after level 1, line-end hyphens joined, empty list items).
+
+The one skill of level 1 printed in italics (all its words but "or") is the
+skill tested when Earning money; it is the career's `earning_skill`. Italics
+elsewhere (an "or" between choices) are kept as printed.
 - `left_out`: the printed words the entries don't hold as text (the scheme's
   title and header labels, the "Career Path" heading, and the Skills:, Talents:
   and Trappings: labels the `career_levels` block holds as keys), so check_coverage.py can
@@ -79,7 +84,16 @@ def marked(line):
         elif sp['bold']:
             t = f'**{t}**'
         out.append(t + tail)
-    return ' '.join(out)
+    # Neighbouring italic runs ("*Trade* *(Apothecary)*") are one run.
+    return re.sub(r'(?<!\*)\*(\s+)\*(?!\*)', r'\1', ' '.join(out))
+
+
+def all_italic(item):
+    """True when every word of a printed item but "or" is in italics: the career's skill for
+    Earning money is printed so ("*Melee (Basic)*", and "*Stealth (Rural* or *Urban)*")."""
+    t = re.sub(r'\*?\bor\b\*?', ' ', item)
+    t = re.sub(r'\*\s*\*', ' ', t).strip()
+    return bool(re.fullmatch(r'\*[^*]+\*', t))
 
 
 def plain(s):
@@ -279,7 +293,7 @@ def convert(layout, plan, taken=()):
             content.append({'type': 'paragraph', 'text': marked(species_line)})
         content += paragraphs(rest, report, name)
 
-        lv_blocks, advances, italics = [], {}, []
+        lv_blocks, advances = [], {}
         for n, lv in enumerate(levels, 1):
             raw = lv.pop('_raw')
             block = {'title': lv['title'], 'status': lv['status'],
@@ -297,18 +311,24 @@ def convert(layout, plan, taken=()):
                     items = [x for x in items if x]
                 block[lab.lower()] = items
                 adv[lab.lower()] = [plain(x) for x in items]
-                italics += [plain(x) for x in items if '*' in x]
             lv_blocks.append(block)
             advances[str(n)] = adv
         content.append({'type': 'career_levels', 'levels': lv_blocks})
-        if italics:
-            report['questions'].append({'career': name, 'kind': 'italic-items', 'text': ', '.join(italics)})
+        earning = [plain(x) for x in (lv_blocks[0].get('skills', []) if lv_blocks else []) if all_italic(x)]
+        if len(earning) != 1:
+            report['errors'].append({'career': name, 'error': f'{len(earning)} level 1 skills in italics '
+                                     '(the skill for Earning money), not 1', 'got': earning})
+        later = [f'level {n}: {plain(x)}' for n, l in enumerate(lv_blocks[1:], 2)
+                 for x in l.get('skills', []) if all_italic(x)]
+        if later:
+            report['questions'].append({'career': name, 'kind': 'italic-skill-after-level-1', 'text': ', '.join(later)})
 
         slug = slugify(name)
         if slug in taken:
             slug = f'{slug}-{plan["source"].lower()}'
         fields = {'class': c.get('class'), 'species': species,
                   'levels': [l['title'] for l in lv_blocks], 'status': [l['status'] for l in lv_blocks],
+                  'earning_skill': earning[0] if len(earning) == 1 else None,
                   'advances': advances}
         if not c.get('class'):
             report['errors'].append({'career': name, 'error': 'the plan gives no class'})
@@ -320,7 +340,7 @@ def convert(layout, plan, taken=()):
         entries.append(entry)
         rec = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
                'section': name, 'page': page, 'class': fields['class'], 'species': species,
-               'levels': fields['levels'], 'status': fields['status']}
+               'levels': fields['levels'], 'status': fields['status'], 'earning_skill': fields['earning_skill']}
         if rel:
             rec['relations'] = rel
         records.append(rec)

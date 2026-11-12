@@ -42,7 +42,7 @@ LEVELS = [
 SCHEME = {'WS': 1, 'T': 1, 'Fel': 1, 'Dex': 2, 'S': 3, 'WP': 4}     # characteristic -> level
 
 
-def draw_career(path, swap_icons=False, missing_level=False):
+def draw_career(path, swap_icons=False, missing_level=False, earning_italic=True):
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     c.setFont('Helvetica', 7)
@@ -121,7 +121,7 @@ def draw_career(path, swap_icons=False, missing_level=False):
                 if 'Melee (Basic)' in part:      # one item set in italics by slanting the roman font
                     before, after = part.split('Melee (Basic)')
                     x = text(x + 3, py, before) if before else x + 3
-                    x = text(x, py, 'Melee (Basic)', slant=True)
+                    x = text(x, py, 'Melee (Basic)', slant=earning_italic)
                     text(x, py, after)
                 else:
                     text(x + 3 if k == 0 else x, py, part)
@@ -176,16 +176,18 @@ class ConvertCareersTest(unittest.TestCase):
         block = e['content'][-1]
         self.assertEqual(block['type'], 'career_levels')
         self.assertIn('*Melee (Basic)*', block['levels'][0]['skills'])                    # italics kept as printed
+        self.assertEqual(f['earning_skill'], 'Melee (Basic)')        # the level 1 skill in italics
         self.assertEqual(e['content'][0], {'type': 'paragraph', 'text': 'Dwarf, Halfling, Human'})
         paras = [b['text'] for b in e['content'] if b['type'] == 'paragraph']
         self.assertTrue(paras[1].startswith('Lamp Wardens keep') and paras[1].endswith('oil and wick.'))
         self.assertTrue(paras[3].startswith('*‘Mind the oil'))                            # right column after left
         kinds = {q['kind'] for q in report['questions']}
-        self.assertEqual(kinds, {'italic-items', 'hyphen-join'})
+        self.assertEqual(kinds, {'hyphen-join'})
         with open(os.path.join(out, '_records.json')) as fh:
             rec = json.load(fh)
         self.assertEqual(rec[0]['slug'], 'lamp-warden')
         self.assertEqual(rec[0]['page'], 1)
+        self.assertEqual(rec[0]['earning_skill'], 'Melee (Basic)')
         with open(os.path.join(out, 'lamp-warden.md')) as fh:
             self.assertIn('| 2 | Lamplighter | Brass 4 | Dex |', fh.read())
         cov = run('check_coverage.py', layout, out)
@@ -196,6 +198,12 @@ class ConvertCareersTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         errors = [e['error'] for e in report['errors']]
         self.assertIn("level 2 line 'Lamplighter' has the icon of level 3", errors)
+
+    def test_no_skill_in_italics_at_level_1_is_an_error(self):
+        r, out, layout, report = self.convert(earning_italic=False)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn('0 level 1 skills in italics (the skill for Earning money), not 1',
+                      [e['error'] for e in report['errors']])
 
     def test_a_missing_level_is_an_error(self):
         r, out, layout, report = self.convert(missing_level=True)
