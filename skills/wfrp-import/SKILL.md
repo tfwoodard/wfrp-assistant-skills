@@ -90,18 +90,28 @@ PDF or anything read from it into the repo.
 4. Convert with the converter for that kind of chapter, then check coverage:
 
    ```
-   python3 scripts/convert_<kind>.py scratch/ch3-layout.json --plan PLAN.json --source CRB --chapter ch3 \
+   python3 scripts/convert_<kind>.py scratch/ch3-layout.json --plan PLAN.json \
        --out scratch/out-ch3 --taken careers=<careers/_index.json> ...
    python3 scripts/check_coverage.py scratch/ch3-layout.json scratch/out-ch3
    ```
+
+   Read only the pages the converter handles into the layout you check
+   coverage against: a chapter's career pages, say, and not its pages of rules
+   prose, which another converter imports.
+
+   Converters so far:
+
+   | Kind | Script | Plan says |
+   |---|---|---|
+   | Careers (one per page: advance scheme, career path) | `convert_careers.py` | each career's name, page and class; the level icons (a glyph font, or a drawn shape's point count, from `pdf_layout.py`'s `marks` and `shapes`); the scheme's header labels. Run `pdf_layout.py` with the plan's `--icon-fonts`. |
 
    **If there's no converter for this kind of chapter yet** and it has more
    than about ten entries, stop and build one first (see Rules): a script
    that reads the layout JSON and a plan and writes each entry's `.json` and
    `.md` (`render_entry.py`), `_records.json` (index records) and
    `_report.json` (errors, left-out text, questions), with tests on an invented
-   PDF in `tests/`, in its own pull request. The kinds the Rulebook needs:
-   careers (the four-level advance scheme), species, skills, talents, spells
+   PDF in `tests/`, in its own pull request. The kinds the Rulebook still needs:
+   species, skills, talents, spells
    and prayers, trappings (weapon and armour tables with qualities), creatures
    (characteristic lines and traits), and chapters of rules prose.
 5. The report must have no errors, and `check_coverage.py` must account for
@@ -192,8 +202,12 @@ ready.
 (layout §1), write straight into it, over the old files, and let Drive sync. In
 a cloud session linked to the Librarian's computer, connect the folder once,
 stage the files in the session's outputs folder, and copy them over in batches
-with the device tools. Then list the folder and check every file's size
-against the local copy.
+with the device tools. Give every staged file a path not used before in the
+session (a new folder per batch): writing a changed file from a path already
+written once has been seen to send the earlier copy while reporting success.
+Then list the folder and check every file's size against the local copy, and
+stage each bookkeeping file (`library.json`, indexes, the log) back and compare
+it byte for byte (`cmp`).
 
 **Through the connector** (only when the folder can't be reached): print files
 with `scripts/print_upload.py <files> --list`, then `--part 1`, `--part 2`…,

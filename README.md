@@ -192,8 +192,9 @@ docs/agents/           settings for agent skills (issues, labels, domain docs)
 shared/                reference files shared by all skills (edit here)
 skills/<name>/         SKILL.md + references/ (references are synced copies)
 skills/wfrp-import/scripts/pdf_outline.py     PDF bookmarks -> chapter list with printed pages
-skills/wfrp-import/scripts/pdf_layout.py      PDF pages -> lines with font, size, weight, column
+skills/wfrp-import/scripts/pdf_layout.py      PDF pages -> lines (by baseline and column) with style, icons
 skills/wfrp-import/scripts/check_coverage.py  check converted entries lost no words of the pages
+skills/wfrp-import/scripts/convert_careers.py  career pages -> career entries (scheme, career path)
 skills/wfrp-import/scripts/render_entry.py    entry .json -> Markdown
 skills/wfrp-import/scripts/merge_import.py    merge index records, log, chapter status
 skills/wfrp-import/scripts/import_journal.py  progress journal for resuming an import

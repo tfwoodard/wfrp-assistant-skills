@@ -144,6 +144,52 @@ class PdfToolsTest(unittest.TestCase):
                          [('Skills:', True), ('Climb, Endurance', False)])
         self.assertEqual(by['Oil Carrier']['column'], 'right')
 
+    def test_layout_narrow_gutter_running_head_small_caps_slant_and_icons(self):
+        pdf = os.path.join(self.d, 'tight.pdf')
+        c = canvas.Canvas(pdf, pagesize=A4)
+        w, h = A4
+        c.setFont('Helvetica', 7)
+        c.drawString(w / 2 - 60, h - 25, 'LAMPS AND WICKS - KEEPERS')    # running head across the middle
+        y = h - 80
+        c.setFont('Helvetica-Bold', 18)                                   # large and small capitals, one baseline
+        c.drawString(50, y, 'C')
+        c.setFont('Helvetica-Bold', 12.6)
+        c.drawString(50 + c.stringWidth('C', 'Helvetica-Bold', 18), y, 'AREER')
+        gutter_l, gutter_r = w / 2 - 5, w / 2 + 5                         # a 10-point gutter
+        for i in range(12):
+            yy = y - 20 - i * 11
+            c.setFont('Helvetica', 9)
+            s = 'left words fill the column here'
+            c.drawString(gutter_l - c.stringWidth(s, 'Helvetica', 9), yy, s)
+            c.drawString(gutter_r, yy, 'right words fill this column too')
+        t = c.beginText()
+        t.setFont('Helvetica', 9)
+        t.setTextTransform(1, 0, 0.25, 1, 60, y - 170)
+        t.textOut('Slanted')
+        c.drawText(t)
+        c.setFont('ZapfDingbats', 7)
+        c.drawString(120, y - 170, 'n')
+        p = c.beginPath()
+        p.moveTo(140, y - 170); p.lineTo(146, y - 170); p.lineTo(143, y - 164); p.close()
+        c.drawPath(p, fill=1, stroke=0)
+        c.showPage()
+        c.save()
+        out = os.path.join(self.d, 'tight.json')
+        r = run('pdf_layout.py', pdf, '--pages', '1', '--icon-fonts', 'Zapf', '--out', out)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(out) as f:
+            doc = json.load(f)
+        self.assertIsNotNone(doc['gutters']['1'])
+        body = [l for l in doc['lines'] if not l['furniture']]
+        self.assertEqual(body[0]['text'], 'CAREER')
+        self.assertEqual(body[0]['size'], 18.0)
+        cols = [l['column'] for l in body if 'words' in l['text']]
+        self.assertEqual(cols, ['left'] * 12 + ['right'] * 12)
+        slant = next(l for l in body if l['text'] == 'Slanted')
+        self.assertTrue(slant['italic'])
+        self.assertEqual([(m['font'], m['text']) for m in doc['marks']], [('ZapfDingbats', 'n')])
+        self.assertEqual([s['pts'] for s in doc['shapes']], [4])
+
     def test_layout_refuses_pages_outside_the_pdf(self):
         r = run('pdf_layout.py', self.pdf, '--pages', '3-9', '--page-offset', '1')
         self.assertNotEqual(r.returncode, 0)
