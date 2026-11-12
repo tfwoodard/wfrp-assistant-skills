@@ -184,7 +184,7 @@ Each category folder in a `library-data/` holds:
   | rules      | `kind` (condition, psychology, procedure, glossary), `aliases` |
   | tables     | `about` (one line), `roll` (`d100`, `d10`…, when it is a roll table); `kind: cross-reference` on a cross-reference |
   | species    | `aliases` (e.g. "Halfling" for "Halflings") |
-  | careers    | `class` (Academics, Burghers, Courtiers, Peasants, Rangers, Riverfolk, Rogues, Warriors), `species` (who may roll it), `levels` (the four level titles), `status` (the four statuses, e.g. "Brass 3") |
+  | careers    | `class` (Academics, Burghers, Courtiers, Peasants, Rangers, Riverfolk, Rogues, Warriors), `species` (who may roll it), `levels` (the four level titles), `status` (the four statuses, e.g. "Brass 3"), `earning_skill` (the level 1 skill printed in italics, tested when Earning money) |
   | skills     | `characteristic`, `advanced` (true/false), `grouped` (true/false) |
   | talents    | `max` (as printed, e.g. "Initiative Bonus"), `tests` |
   | spells     | `kind` (petty, arcane, lore, blessing, miracle), `lore` (lore or god), `cn`, `range`, `target`, `duration` |
@@ -246,7 +246,8 @@ the source's words:
 
 - a career's `advances`: per level, the `characteristics` advanced (`["WS",
   "T", "WP"]`), `skills`, `talents` and `trappings`, as printed, and `status`;
-  its `career_path` text;
+  and its `earning_skill` (the level 1 skill the book prints in italics, the
+  one tested when Earning money; the `career_levels` block keeps the italics);
 - a species' `characteristics` (the `2d10+20` formulas per characteristic as
   printed), `fate`, `resilience`, `extra_points`, `movement`, `skills` and
   `talents` choices, and random-talent rolls;
