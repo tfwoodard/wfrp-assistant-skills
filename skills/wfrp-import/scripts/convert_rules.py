@@ -26,6 +26,8 @@ PLAN.json (kept in Drive beside the source, never in the repo):
         "174.1": {"slug": "head-critical-wounds", "title": "Head Critical Wounds", "roll_column": 0,
                   "continued_in": ["175.1"]}
       },
+      "text_tables": [{"page": 160, "header": "Wicks Owned Oil Cost", "columns": ["Wicks Owned", "Oil Cost"],
+                       "rows": 4, "title": "Oil Costs"}],
       "relations": {"tests": [{"role": "adds-to", "to": "rules/tests"}]}
     }
 
@@ -54,7 +56,10 @@ of its own in tables/ (when it gives a "slug"), with `about` and, when it is a
 roll table, its roll column's values as {"min", "max"}. The plan can also give
 a table's "title", say its read header is a "banner" printed across the
 columns, or that its first row is its "header_row"; "continued_in" lists boxes
-on later pages holding the rest of its rows, which join it.
+on later pages holding the rest of its rows, which join it. A table printed without rules is
+listed under "text_tables": its header line (the columns' words, together), its columns and how
+many rows follow; each row is split at its widest gaps, and a row without a clear gap is an
+error.
 
 Writes per entry <slug>.json and <slug>.md (render_entry.py), with `_category`
 in `_records.json` (rules or tables), and `_report.json`:
@@ -79,7 +84,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_entry import render  # noqa: E402
-from entry_text import blocks_from_lines, fix_case, norm, plain, slugify, table_data, vocabulary  # noqa: E402
+from entry_text import (blocks_from_lines, fix_case, merge_lines, norm, plain, slugify, split_row,  # noqa: E402
+                        table_data, vocabulary)
 
 
 def heading_runs(lines):
@@ -136,6 +142,45 @@ def table_block(region, title, plan_t, report, where):
     return block
 
 
+def text_tables(lines, plans, report):
+    """Tables printed without rules, as the plan describes them: the header line (its words, which
+    must be the columns' words), then `rows` lines, each split into cells at its widest gaps. The
+    lines are replaced by one carrying the table block. A row whose gap is no wider than the gaps
+    between its words is not a table row: an error."""
+    for t in plans:
+        where = f'text table {t["header"]!r} on page {t["page"]}'
+        i = next((k for k, l in enumerate(lines) if l['page'] == t['page'] and not l.get('block') and
+                  norm(plain(l['text'])) == norm(t['header'])), None)
+        if i is None:
+            report['errors'].append({'error': f'{where}: no such line'})
+            continue
+        if norm(' '.join(t['columns'])) != norm(t['header']):
+            report['errors'].append({'error': f'{where}: the columns {t["columns"]} are not its words'})
+            continue
+        run = lines[i:i + 1 + t['rows']]
+        rows = []
+        for l in run[1:]:
+            w = l['words']
+            gaps = sorted(w[k + 1][1] - w[k][2] for k in range(len(w) - 1))
+            cells = split_row(l, len(t['columns']))
+            wide = gaps[-(len(t['columns']) - 1):] if gaps else []
+            if (not cells or l['page'] != t['page'] or l['column'] != run[0]['column'] or
+                    min(wide or [0]) < 3 * gaps[len(gaps) // 2]):
+                report['errors'].append({'error': f'{where}: {l["text"]!r} is not a row of it'})
+                rows = None
+                break
+            rows.append(cells)
+        if rows is None:
+            continue
+        cols = t['columns']
+        block = {'type': 'table', 'title': t.get('title', ''), 'columns': cols, 'rows': rows,
+                 'data': table_data(cols, rows, report, where, t.get('roll_column'))}
+        report['tables_to_confirm'].append({'entry': where, 'region': 'text', 'page': t['page'],
+                                            'title': block['title'], 'columns': len(cols), 'rows': len(rows)})
+        lines = lines[:i] + [merge_lines(run, block)] + lines[i + len(run):]
+    return lines
+
+
 def convert(layout, plan, taken=()):
     report = {'errors': [], 'questions': [], 'left_out': [], 'tables_to_confirm': [], 'diagrams': [], 'sizes': {}}
     regions = {r['id']: dict(r) for r in layout.get('regions', [])}
@@ -149,6 +194,7 @@ def convert(layout, plan, taken=()):
                 plan.setdefault('_missing', []).append(cont)
     lines = [l for l in layout['lines'] if not l['furniture']]
     vocab = vocabulary(lines)
+    lines = text_tables(lines, plan.get('text_tables', []), report)
     boxes_plan = plan.get('boxes', {})
     tables_plan = plan.get('tables', {})
     for cont in plan.pop('_missing', []):
@@ -348,23 +394,28 @@ def main(argv=None):
             with open(path, encoding='utf-8') as f:
                 taken |= {r['slug'] for r in json.load(f) if r.get('source') != plan['source']}
     entries, records, report = convert(layout, plan, taken)
-    os.makedirs(a.out, exist_ok=True)
+    return write_outputs(entries, records, report, a.out)
+
+
+def write_outputs(entries, records, report, out):
+    """Write each entry's .json and .md (rules entries by slug, others as <category>--<slug>),
+    `_records.json` and `_report.json`; print the counts. Returns the exit status."""
+    os.makedirs(out, exist_ok=True)
     for cat, e in entries:
         for ext, text in (('json', json.dumps(e, ensure_ascii=False, indent=1) + '\n'), ('md', render(e))):
             name = f'{e["slug"]}.{ext}' if cat == 'rules' else f'{cat}--{e["slug"]}.{ext}'
-            with open(os.path.join(a.out, name), 'w', encoding='utf-8') as f:
+            with open(os.path.join(out, name), 'w', encoding='utf-8') as f:
                 f.write(text)
             report['sizes'][name] = len(text.encode('utf-8'))
-    with open(os.path.join(a.out, '_records.json'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(out, '_records.json'), 'w', encoding='utf-8') as f:
         f.write('[\n' + ',\n'.join(json.dumps(r, ensure_ascii=False) for r in records) + '\n]\n')
-    with open(os.path.join(a.out, '_report.json'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(out, '_report.json'), 'w', encoding='utf-8') as f:
         json.dump(report, f, ensure_ascii=False, indent=1)
         f.write('\n')
     counts = ', '.join(f'{sum(1 for c, _ in entries if c == k)} {k}' for k in sorted({c for c, _ in entries}))
     print(f'{counts}; {len(report["errors"])} errors, {len(report["questions"])} questions, '
-          f'{len(report["tables_to_confirm"])} tables to confirm -> {a.out}', file=sys.stderr)
+          f'{len(report["tables_to_confirm"])} tables to confirm -> {out}', file=sys.stderr)
     return 1 if report['errors'] else 0
-
 
 if __name__ == '__main__':
     sys.exit(main())

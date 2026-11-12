@@ -50,7 +50,7 @@ SMALL_WORDS = {'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'from', 'in', '
 def fix_case(text):
     """Display type set in small capitals reads back in a jumble of cases ("CharaCteristiC and
     skill"). Such a heading is title-cased; the words stay the same. Anything else is unchanged."""
-    if not re.search(r'[a-z][A-Z]|\b[a-z]+[A-Z]|^[a-z]', text):
+    if not re.search(r'[a-z][A-Z]|\b[a-z]+[A-Z]|^[a-z]|\b[A-Z]{2}[a-z]', text):
         return text
     out = []
     for i, orig in enumerate(text.split(' ')):
@@ -130,16 +130,26 @@ def join_lines(parts, report, where, vocab=None):
     return out
 
 
+def runs_on(prev, l):
+    """A sentence carried into the next column or page: the line before stops without closing
+    punctuation and this one starts in lower case."""
+    return (not re.search(r'[.!?:;]["”’)]*$', plain(prev['text'])) and
+            bool(re.match(r'^[a-z]', plain(l['text']))))
+
+
 def new_paragraph(l, prev):
-    return (prev is None or l['column'] != prev['column'] or l['page'] != prev['page'] or
-            l.get('box') != prev.get('box') or l['baseline'] - prev['baseline'] > 1.6 * prev['size'] or
-            l['baseline'] < prev['baseline'])
+    if prev is None or l.get('box') != prev.get('box'):
+        return True
+    if l['column'] != prev['column'] or l['page'] != prev['page'] or l['baseline'] < prev['baseline']:
+        return not runs_on(prev, l)
+    return l['baseline'] - prev['baseline'] > 1.6 * prev['size']
 
 
 def blocks_from_lines(lines, report, where, vocab=None, base_level=None):
     """Lines -> content blocks: headings (lines marked `heading` by pdf_layout.py, at a smaller size
     than the entry's own when `base_level` is given), bulleted lists (lines starting "•"), and
-    paragraphs (a new one at a column, page or box change or a wider gap)."""
+    paragraphs (a new one at a column, page or box change or a wider gap). A line carrying a
+    `block` (merge_lines()) is that block, and ends the paragraph before it."""
     blocks, buf, items, prev, bullet_x0 = [], [], [], None, None
 
     def flush():
@@ -152,6 +162,11 @@ def blocks_from_lines(lines, report, where, vocab=None, base_level=None):
         buf, items = [], []
 
     for l in lines:
+        if l.get('block'):            # lines a converter already read as one block (a table, fields)
+            flush()
+            blocks.append(l['block'])
+            prev = None
+            continue
         text = marked(l)
         if l.get('heading') and (base_level is None or l['heading'] > base_level):
             flush()
@@ -222,3 +237,26 @@ def table_data(columns, rows, report, where, roll_column=None):
             above[i] = obj[k]
         data.append(obj)
     return data
+
+
+def merge_lines(run, block):
+    """A run of lines -> one line that carries `block` in their place: it keeps the first line's
+    position, so placement by position still works, and all their text, for the vocabulary."""
+    first = run[0]
+    return dict(first, text=' '.join(x['text'] for x in run), block=block,
+                spans=[s for x in run for s in x['spans']],
+                x1=max(x['x1'] for x in run), baseline=run[-1]['baseline'])
+
+
+def split_row(line, n):
+    """A line of an unruled table -> its n cells, split at the n-1 widest gaps between words."""
+    words = line['words']
+    if len(words) < n:
+        return None
+    gaps = sorted(range(len(words) - 1), key=lambda i: words[i + 1][1] - words[i][2], reverse=True)[:n - 1]
+    cells, start = [], 0
+    for g in sorted(gaps):
+        cells.append(' '.join(w[0] for w in words[start:g + 1]))
+        start = g + 1
+    cells.append(' '.join(w[0] for w in words[start:]))
+    return cells

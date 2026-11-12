@@ -188,8 +188,12 @@ def segments(raw, gutter):
     if left and right:
         # A space between two words of one full-width line can fall on the gutter too; the
         # gap between columns is wider than a word space.
-        size = max(c['size'] for c in left[-1]['chars'] + right[0]['chars'])
-        if right[0]['x0'] - left[-1]['x1'] < max(4.0, 0.6 * size):
+        # But two columns' lines can share a baseline, so a jump in type size across the gutter
+        # (a quote in one column, a heading in the other) is two lines.
+        sl = max(c['size'] for c in left[-1]['chars'])
+        sr = max(c['size'] for c in right[0]['chars'])
+        size = max(sl, sr)
+        if right[0]['x0'] - left[-1]['x1'] < max(4.0, 0.6 * size) and max(sl, sr) < 1.25 * min(sl, sr):
             return [('full', raw)]
     return [(c, ws) for c, ws in (('left', left), ('right', right)) if ws]
 
@@ -456,7 +460,15 @@ def assign_headings(lines):
     larger = sorted((s for s in sizes if s > body + 0.4 and sizes[s] < max(HEADING_SHARE * sizes[body], 200)), reverse=True)
     level = {s: i + 1 for i, s in enumerate(larger)}
     for l in lines:
-        if not l['furniture'] and l['size'] in level:
+        if l['furniture']:
+            continue
+        # A heading that runs on in smaller type ("Bell Ringing (Str) basic") is set by its lead:
+        # a bold span at a heading size, a word or more long (not a drop capital).
+        lead = l['spans'][0] if l['spans'] else None
+        if (lead and lead['bold'] and lead['size'] in level and lead['size'] > l['size'] and
+                len(re.findall(r'[^\W\d_]', lead['text'])) >= 3):
+            l['size'] = lead['size']
+        if l['size'] in level:
             l['heading'] = level[l['size']]
     return sizes, body
 
