@@ -1,0 +1,9 @@
+{
+  "$comment": "Copy to wfrp-library.config.json (gitignored) and fill in. See README > Configuration.",
+  "drive_folder_id": "PASTE_DRIVE_FOLDER_ID_HERE",
+  "drive_folder_name": "WFRP Assistant",
+  "drive_local_path": "",
+  "default_campaign": "",
+  "edition": "4e",
+  "layout_version": 1
+}
