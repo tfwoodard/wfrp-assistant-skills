@@ -1,7 +1,7 @@
 {
   "name": "wfrp-assistant",
   "description": "Warhammer Fantasy Roleplay (4e) table assistant: imports game material from your own PDFs and homebrew into a private Google Drive library, then answers rules questions, builds and advances characters, and keeps searchable campaign session notes.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "tfwoodard"
   },

@@ -104,6 +104,12 @@ PDF or anything read from it into the repo.
    | Kind | Script | Plan says |
    |---|---|---|
    | Careers (one per page: advance scheme, career path) | `convert_careers.py` | each career's name, page and class; the level icons (a glyph font, or a drawn shape's point count, from `pdf_layout.py`'s `marks` and `shapes`); the scheme's header labels. Run `pdf_layout.py` with the plan's `--icon-fonts`. |
+   | Rules prose (sections, conditions, psychology, symptoms; diseases with their labelled fields; boxed sidebars and ruled tables) | `convert_rules.py` | the entries in order, by name and page (and `heading` when the book prints more than the name), their `kind`, or another `category` with `field_labels`; an `intro` entry for text before the first; boxes to send elsewhere (`to`), make entries, or leave out as `diagram`s; tables to write to `tables/` too, with title, `about`, `roll_column`, `banner`/`header_row` fixes and the boxes they're `continued_in`. Run `pdf_layout.py` with `--boxes`, and `--icon-text` for icons printed in the text. |
+
+   `convert_rules.py` names the files for other categories `<category>--<slug>`
+   (`tables--outcomes.json`): write those to that category's folder without
+   the prefix. Before writing, read its report's `box_placement` (which entry
+   each sidebar went to) and fix any that read wrong with the plan's `to`.
 
    **If there's no converter for this kind of chapter yet** and it has more
    than about ten entries, stop and build one first (see Rules): a script
@@ -157,7 +163,12 @@ list and import only after they confirm it; each match becomes an
 `updated-by` relation.
 
 **Tables.** Show each table to the importer and write it only after they
-confirm it. Take every number from the source, never from memory.
+confirm it. Take every number from the source, never from memory. The
+converter lists them in its report's `tables_to_confirm`; show each one's rows
+(or, for a long table, its size and first and last rows, offering the rest) and
+compare its row count with the page image. A table printed as a flowchart or
+picture is a `diagram`: transcribe it by hand, keeping every word, show it, and
+note it in the chapter's notes.
 
 **Grouped skills and talents.** `Lore (Any)`, `Melee (Basic)`: one entry for
 the group, with its specialisations listed in `fields`, as layout §4 says.

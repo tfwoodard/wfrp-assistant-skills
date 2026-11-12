@@ -7,7 +7,8 @@ Counts every word of the chapter's lines in LAYOUT.json (from pdf_layout.py;
 page furniture left out) and every word in the entries a converter wrote to
 OUT_DIR (each <slug>.json's name and content), plus the strings its
 `_report.json` lists under `left_out` (art credits, captions, anything left out
-on purpose). A word the pages have more often than the output is listed with
+on purpose) and the words it joined across a line end (`dehyphenated`). A word
+the pages have more often than the output is listed with
 the line it came from. Exit status 1 when any word is missing.
 
 `--ignore` excuses a word, and the output says every word it excused and how
@@ -79,6 +80,8 @@ def main(argv=None):
         if name == '_report.json':
             for s in data.get('left_out', []):
                 got.update(words(s if isinstance(s, str) else s.get('text', '')))
+            for d in data.get('dehyphenated', []):     # printed split over two lines, joined in the entry
+                got.update(words(d['from']))
         elif not name.startswith('_'):
             for s in strings({'name': data.get('name', ''), 'content': data.get('content', [])}):
                 got.update(words(s))

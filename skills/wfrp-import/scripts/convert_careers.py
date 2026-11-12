@@ -54,38 +54,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_entry import render  # noqa: E402
+from entry_text import join_lines, marked, new_paragraph, norm, plain, slugify, split_items  # noqa: E402
 
 LEVEL_LINE = re.compile(r'^(?P<title>.+?)\s*[—–]\s*(?P<status>(?:Brass|Silver|Gold)\s+\d+)$')
 LABELS = ('Skills', 'Talents', 'Trappings')
-
-
-def slugify(s):
-    s = s.lower().replace('’', '').replace("'", '')
-    return re.sub(r'[^a-z0-9]+', '-', s).strip('-')
-
-
-def norm(s):
-    return re.sub(r'\s+', ' ', s.replace('’', "'")).strip().lower()
-
-
-def marked(line):
-    """A line's text with italic and bold spans marked as Markdown."""
-    out = []
-    for sp in line['spans']:
-        m = re.match(r'^(.*?)([,;:.]*)$', sp['text'], re.S)
-        t, tail = m.group(1), m.group(2)          # punctuation after a styled run stays outside its marks
-        if not t:
-            out.append(sp['text'])
-            continue
-        if sp['italic'] and sp['bold']:
-            t = f'***{t}***'
-        elif sp['italic']:
-            t = f'*{t}*'
-        elif sp['bold']:
-            t = f'**{t}**'
-        out.append(t + tail)
-    # Neighbouring italic runs ("*Trade* *(Apothecary)*") are one run.
-    return re.sub(r'(?<!\*)\*(\s+)\*(?!\*)', r'\1', ' '.join(out))
 
 
 def all_italic(item):
@@ -94,47 +66,6 @@ def all_italic(item):
     t = re.sub(r'\*?\bor\b\*?', ' ', item)
     t = re.sub(r'\*\s*\*', ' ', t).strip()
     return bool(re.fullmatch(r'\*[^*]+\*', t))
-
-
-def plain(s):
-    return re.sub(r'\*+', '', s).strip()
-
-
-def split_items(s):
-    """Split a printed list at commas outside parentheses."""
-    items, depth, cur = [], 0, ''
-    for ch in s:
-        if ch == '(':
-            depth += 1
-        elif ch == ')':
-            depth -= 1
-        if ch == ',' and depth == 0:
-            items.append(cur.strip())
-            cur = ''
-        else:
-            cur += ch
-    if cur.strip():
-        items.append(cur.strip())
-    return items
-
-
-def join_lines(parts, report, where):
-    """Join a run of line texts into one string. A line that ends with a hyphen joins the next with
-    no space, and each such join is listed as a question."""
-    out = ''
-    for p in parts:
-        end = re.search(r'-(\*{0,3})$', out)
-        if not out:
-            out = p
-        elif end:
-            marks = end.group(1)
-            if marks and p.startswith(marks) and not p.startswith(marks + '*'):
-                out, p = out[:-len(marks)], p[len(marks):]     # one styled run across the line break
-            report['questions'].append({'career': where, 'kind': 'hyphen-join', 'text': (out[-20:] + p[:20])})
-            out += p
-        else:
-            out += ' ' + p
-    return out
 
 
 def icon_level(plan_icons, marks, shapes):
@@ -235,9 +166,7 @@ def paragraphs(lines, report, career):
     """Description lines -> paragraph blocks: a new paragraph at a column change or a wider gap."""
     blocks, buf, prev = [], [], None
     for l in lines:
-        if prev is not None and (l['column'] != prev['column'] or l['page'] != prev['page'] or
-                                 l['baseline'] - prev['baseline'] > 1.6 * prev['size'] or
-                                 l['baseline'] < prev['baseline']):
+        if prev is not None and new_paragraph(l, prev):
             blocks.append({'type': 'paragraph', 'text': join_lines(buf, report, career)})
             buf = []
         buf.append(marked(l))
