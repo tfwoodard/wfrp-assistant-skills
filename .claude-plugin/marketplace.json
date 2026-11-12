@@ -1,0 +1,13 @@
+{
+  "name": "wfrp-assistant-skills",
+  "owner": {
+    "name": "tfwoodard"
+  },
+  "plugins": [
+    {
+      "name": "wfrp-assistant",
+      "source": "./",
+      "description": "Warhammer Fantasy Roleplay (4e) table assistant backed by your own rulebook library in Google Drive."
+    }
+  ]
+}
