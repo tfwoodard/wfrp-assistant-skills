@@ -149,6 +149,20 @@ class ConvertRulesTest(unittest.TestCase):
         with open(os.path.join(out, name)) as f:
             return json.load(f)
 
+    def test_a_table_entry_carries_its_relations(self):
+        plan = dict(PLAN, relations={'tables/wick-lengths': [{'role': 'adds-to', 'to': 'rules/trimming-wicks'}],
+                                     'rules/smoked': [{'role': 'distinct-from', 'to': 'rules/smoke'}]})
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(plan, f)
+        r, out, layout, report = self.convert()
+        self.assertEqual(r.returncode, 0, report['errors'])
+        rel = self.load(out, 'tables--wick-lengths.json')['relations']
+        self.assertEqual(rel, [{'role': 'adds-to', 'to': 'rules/trimming-wicks'}])
+        recs = {(x['_category'], x['slug']): x for x in self.load(out, '_records.json')}
+        self.assertEqual(recs[('tables', 'wick-lengths')]['relations'], rel)
+        self.assertEqual(recs[('rules', 'smoked')]['relations'][0]['role'], 'distinct-from')
+        self.assertNotIn('relations', recs[('rules', 'trimming-wicks')])
+
     def test_a_box_sent_to_several_entries_is_copied_into_each(self):
         plan = dict(PLAN, boxes={'1.1': {'to': ['Trimming Wicks', 'Smoked']}})
         with open(os.path.join(self.d, 'plan.json'), 'w') as f:
