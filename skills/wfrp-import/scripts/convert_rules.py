@@ -28,8 +28,12 @@ PLAN.json (kept in Drive beside the source, never in the repo):
       },
       "text_tables": [{"page": 160, "header": "Wicks Owned Oil Cost", "columns": ["Wicks Owned", "Oil Cost"],
                        "rows": 4, "title": "Oil Costs"}],
-      "relations": {"tests": [{"role": "adds-to", "to": "rules/tests"}]}
+      "relations": {"tests": [{"role": "adds-to", "to": "rules/tests"}],
+                    "tables/oil-costs": [{"role": "adds-to", "to": "rules/oil-costs"}]}
     }
+
+"relations" is keyed by slug, or by <category>/<slug> where two entries share a slug; a table's
+can also go in its "tables" plan as "relations".
 
 Entries. Each planned entry starts at a heading on its page whose words match
 its name (or its "heading", when the book prints more: "Fear (Rating)"), and
@@ -383,7 +387,7 @@ def convert(layout, plan, taken=()):
             entry['aliases'] = spec['aliases']
         if spec.get('heading') and norm(spec['heading']) != norm(name):
             report['left_out'].append(spec['heading'])     # printed as the heading of the entry it names
-        rel = plan.get('relations', {}).get(slug)
+        rel = plan.get('relations', {}).get(f'{cat}/{slug}') or plan.get('relations', {}).get(slug)
         if rel:
             entry['relations'] = rel
         out.append((cat, entry))
@@ -412,10 +416,14 @@ def convert(layout, plan, taken=()):
         entry = {'slug': t['slug'], 'name': t['title'], 'source': plan['source'], 'chapter': plan['chapter'],
                  'section': host or t['title'], 'page': region['page'], 'level': 1,
                  'fields': {'about': t.get('about', ''), 'roll': t.get('roll')}, 'content': [block]}
+        rec = {'slug': t['slug'], 'name': t['title'], 'source': plan['source'], 'chapter': plan['chapter'],
+               'section': entry['section'], 'page': region['page'], 'about': t.get('about', ''),
+               'roll': t.get('roll'), '_category': 'tables'}
+        rel = t.get('relations') or plan.get('relations', {}).get(f'tables/{t["slug"]}')
+        if rel:
+            entry['relations'] = rec['relations'] = rel
         out.append(('tables', entry))
-        records.append({'slug': t['slug'], 'name': t['title'], 'source': plan['source'], 'chapter': plan['chapter'],
-                        'section': entry['section'], 'page': region['page'], 'about': t.get('about', ''),
-                        'roll': t.get('roll'), '_category': 'tables'})
+        records.append(rec)
     return out, records, report
 
 
