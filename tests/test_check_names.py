@@ -14,6 +14,8 @@ class CheckNamesTest(unittest.TestCase):
     def test_names_match_across_plurals_brackets_and_punctuation(self):
         self.assertEqual(name_key('Lamplighter!'), name_key('Lamplighters'))
         self.assertEqual(name_key('The Wick (Hemp)'), name_key('wick'))
+        self.assertEqual(name_key('Lamp Class'), name_key('Lamp Classes'))
+        self.assertEqual(name_key('Keeper'), name_key('Keepers'))
 
     def test_a_shared_name_needs_a_relation(self):
         with tempfile.TemporaryDirectory() as d:

@@ -17,10 +17,18 @@ import sys
 
 
 def name_key(name):
+    """A name's comparable form: lower case, no leading "The", brackets or punctuation, and its
+    singular ("classes" -> "class", "witches" -> "witch", "careers" -> "career")."""
     n = re.sub(r'\([^)]*\)', '', name.lower())
     n = re.sub(r'^\s*the\s+', '', n)
     n = re.sub(r'[^\w ]', '', n).strip()
-    return re.sub(r'(es|s)$', '', n)
+    if re.search(r'(ss|sh|ch|x|z)es$', n):
+        return n[:-2]
+    if n.endswith('ies'):
+        return n[:-3] + 'y'
+    if n.endswith('s') and not n.endswith('ss'):
+        return n[:-1]
+    return n
 
 
 def check(library_dir, record_files):
