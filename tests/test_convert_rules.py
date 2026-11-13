@@ -229,3 +229,36 @@ class ConvertRulesTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TableShapesTest(unittest.TestCase):
+    """Tables read from a layout written by hand (no PDF): side-by-side halves and unruled columns."""
+
+    def test_a_table_printed_in_two_halves_is_read_down_each(self):
+        sys.path.insert(0, SCRIPTS)
+        from convert_rules import table_block
+        region = {'id': '1.1', 'page': 1, 'columns': ['Roll', 'Wick', 'Roll', 'Wick'],
+                  'rows': [['1-2', 'Cotton', '6-7', 'Rush'], ['3-5', 'Hemp', '8-10', '']]}
+        report = {'errors': [], 'tables_to_confirm': []}
+        block = table_block(region, 'Wicks', {'fold': 2, 'roll_column': 0}, report, 'Lamps')
+        self.assertEqual(block['columns'], ['Roll', 'Wick'])
+        self.assertEqual(block['rows'], [['1-2', 'Cotton'], ['3-5', 'Hemp'], ['6-7', 'Rush'], ['8-10', '']])
+        self.assertEqual(report['errors'], [])
+        table_block(dict(region, columns=['Roll', 'Wick', 'Die', 'Oil']), 'Wicks', {'fold': 2}, report, 'Lamps')
+        self.assertEqual(len(report['errors']), 1)                     # halves that don't match
+
+    def test_a_boxs_unruled_columns_become_a_table(self):
+        sys.path.insert(0, SCRIPTS)
+        from convert_rules import column_tables
+
+        def line(text, column):
+            return {'text': text, 'column': column, 'box': '1.1', 'page': 1}
+        lines = [dict(line('Lamp Table', 'full'), heading=3)] + \
+            [line(t, 'left') for t in ('Roll', '1-6', '7-10')] + [line(t, 'right') for t in ('Lamp', 'Tin', 'Brass')]
+        regions = {'1.1': {'id': '1.1', 'page': 1, 'kind': 'box'}}
+        report = {'errors': []}
+        column_tables(lines, regions, {'1.1': {'from_columns': 2}}, report)
+        self.assertEqual(regions['1.1']['kind'], 'table')
+        self.assertEqual(regions['1.1']['columns'], ['Roll', 'Lamp'])
+        self.assertEqual(regions['1.1']['rows'], [['1-6', 'Tin'], ['7-10', 'Brass']])
+        self.assertTrue(all(l.get('table') for l in lines[1:]))

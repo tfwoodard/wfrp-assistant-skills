@@ -47,7 +47,7 @@ SMALL_WORDS = {'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'from', 'in', '
                'to', 'with'}
 
 
-ACRONYMS = {'XP', 'SL', 'GM', 'GMS', 'NPC', 'NPCS', 'WFRP'}   # kept in capitals in a capitals title
+ACRONYMS = {'XP', 'SL', 'GM', 'GMS', 'NPC', 'NPCS', 'WFRP', 'WS', 'BS', 'WP'}   # kept in capitals
 
 
 def fix_case(text):
@@ -62,9 +62,9 @@ def fix_case(text):
     for i, orig in enumerate(text.split(' ')):
         w = orig.lower()
         core = re.sub(r'[^A-Za-z]', '', orig)
-        if (core.upper() in ACRONYMS if all_caps else re.fullmatch(r'[A-Z]{2,3}', orig)):
-            out.append(orig)                                # an acronym (XP, SL) stays as printed
-        elif i and w in SMALL_WORDS:
+        if core.upper() in ACRONYMS:
+            out.append(orig.upper())                        # an acronym (XP, SL) in capitals
+        elif i and w in SMALL_WORDS and not out[-1].endswith(':'):
             out.append(w)
         else:
             k = next((j for j, ch in enumerate(w) if ch.isalpha()), 0)   # "(elves)" -> "(Elves)"
