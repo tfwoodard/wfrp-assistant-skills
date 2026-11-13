@@ -48,7 +48,9 @@ gets its own column check, its lines come after the page's body lines and carry
 outside them. A box with ruled rows (rules, or shaded row bands) is read as a
 table: `regions` lists each box ({"id", "kind": "box" | "table", "page",
 "bbox"}), and a table adds "columns" (the header cells) and "rows" (cells as
-plain text); its lines carry `table` too.
+plain text); its lines carry `table` too. An illustration cut out with a soft mask
+(mostly see-through) is not a panel, even where its rectangle runs over text;
+`image_notes` lists each one set aside, and any mask that couldn't be read.
 
 The output is the book's text: write it to scratch outside the repo, never
 commit it. Needs pdfplumber.
@@ -60,6 +62,26 @@ import re
 import sys
 
 import pdfplumber
+from pdfminer.pdffont import PDFSimpleFont
+
+# Some fonts' character maps send a capital's code to its lower-case letter (code 84, "T" in the
+# font's standard encoding, read as "t"), so the text loses its capitals though the page shows
+# them. In a simple font a code in A-Z stands for that capital: read it so, and count each fix by
+# font (`case_fixed` in the output). Small-caps fonts ("-SC" in the name) are left alone: they set
+# their small capitals at those codes too, and entry_text.fix_case() restores those words.
+CASE_FIXED = collections.Counter()
+_to_unichr = PDFSimpleFont.to_unichr
+
+
+def _to_unichr_keeping_capitals(self, cid):
+    u = _to_unichr(self, cid)
+    if 65 <= cid <= 90 and u == chr(cid + 32) and 'SC' not in str(getattr(self, 'basefont', '')):
+        CASE_FIXED[str(getattr(self, 'basefont', '?'))] += 1
+        return chr(cid)
+    return u
+
+
+PDFSimpleFont.to_unichr = _to_unichr_keeping_capitals
 
 BOLD = re.compile(r'bold|black|heavy|semibold|demi', re.I)
 ITALIC = re.compile(r'italic|oblique', re.I)
@@ -69,6 +91,7 @@ WORD_GAP = 0.18                          # a gap wider than this x the type size
 GUTTER_ZONE = (0.38, 0.62)               # where to look for a gutter, as fractions of the width
 SHAPE_MAX = 20                           # points: larger drawings aren't icons
 BOX_MIN = (100, 24)                      # points: a smaller image isn't a boxed panel
+PANEL_OPAQUE = 0.75                      # a masked image less opaque than this is an illustration
 HEADING_SHARE = 0.08                     # a larger size used for more than this share of the body's characters is text
 
 
@@ -251,9 +274,36 @@ def order_lines(words, gutter, page_no, height):
     return out
 
 
-def find_boxes(page):
+def mask_opacity(im):
+    """The share of an image its soft mask leaves opaque (0-1), or None: no mask, or one that can't
+    be read (then the caller says so)."""
+    mask = im['stream'].attrs.get('SMask')
+    if mask is None:
+        return None
+    try:
+        import io
+        from PIL import Image
+        m = mask.resolve()
+        filters = m.attrs.get('Filter')
+        filters = [f.name if hasattr(f, 'name') else str(f) for f in
+                   (filters if isinstance(filters, list) else [filters])]
+        if any(f.strip('/').strip("'") in ('DCTDecode', 'JPXDecode') for f in filters):
+            img = Image.open(io.BytesIO(m.get_rawdata())).convert('L')
+        else:
+            w, h = m.attrs['Width'], m.attrs['Height']
+            img = Image.frombytes('L', (w, h), m.get_data()[:w * h])
+        hist = img.histogram()
+        return sum(hist[128:]) / max(1, sum(hist))
+    except Exception:  # noqa: BLE001 - reported by the caller
+        return None
+
+
+def find_boxes(page, page_no, notes=None):
     """Boxed panels: background images that don't fill the page (sidebars, tables), clipped to the
-    page, largest first-inside-out; a box inside another is dropped."""
+    page, largest first-inside-out; a box inside another is dropped. A picture cut out with a soft
+    mask (an illustration: mostly see-through outside the figure) is not a panel, though its
+    rectangle may run over the text beside it; a panel is opaque. Each image set aside, and each
+    mask that couldn't be read (kept as a box), goes in `notes`."""
     area = page.width * page.height
     boxes = []
     for im in page.images:
@@ -262,6 +312,16 @@ def find_boxes(page):
         w, h = x1 - x0, bottom - top
         if w < BOX_MIN[0] or h < BOX_MIN[1] or w * h > 0.8 * area:
             continue
+        where = {'page': page_no, 'bbox': [round(v, 1) for v in (x0, top, x1, bottom)]}
+        if 'SMask' in im['stream'].attrs:
+            opaque = mask_opacity(im)
+            if opaque is None:
+                if notes is not None:
+                    notes.append(dict(where, note='image mask could not be read: kept as a box'))
+            elif opaque < PANEL_OPAQUE:
+                if notes is not None:
+                    notes.append(dict(where, note=f'illustration ({opaque:.0%} opaque): not a box'))
+                continue
         boxes.append((x0, top, x1, bottom))
     boxes = [b for b in boxes if not any(o != b and o[0] <= b[0] and o[1] <= b[1] and o[2] >= b[2] and
                                          o[3] >= b[3] for o in boxes)]
@@ -383,7 +443,8 @@ def icon_words(page, words, icon_text, marks_here, shapes_here):
     return out
 
 
-def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=None, icon_text=None):
+def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=None, icon_text=None,
+               notes=None):
     """One page -> (lines in reading order, gutter x or None). Icon glyphs go to `marks`, small
     drawings to `shapes`, when those lists are given. With `regions` (a list), boxed panels are
     read as regions of their own: their lines follow the page's body lines, tagged with the box,
@@ -409,7 +470,7 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
     words = make_words(chars, page.height)
     if icon_text:
         words += icon_words(page, words, icon_text, marks_here, shapes_here)
-    boxes = find_boxes(page) if regions is not None else []
+    boxes = find_boxes(page, page_no, notes) if regions is not None else []
     in_box = {}
     for w in words:
         cx, cy = (w['x0'] + w['x1']) / 2, (w['top'] + w['bottom']) / 2
@@ -474,15 +535,16 @@ def assign_headings(lines):
 
 
 def read(pdf_path, first, last, offset, icon_fonts=(), boxes=False, icon_text=None):
+    CASE_FIXED.clear()
     with pdfplumber.open(pdf_path) as pdf:
         n = len(pdf.pages)
         if first + offset < 1 or last + offset > n:
             sys.exit(f'printed pages {first}-{last} with offset {offset} are PDF pages '
                      f'{first + offset}-{last + offset}, outside the PDF\'s 1-{n}')
-        lines, marks, shapes, empty, gutters, regions = [], [], [], [], {}, []
+        lines, marks, shapes, empty, gutters, regions, notes = [], [], [], [], {}, [], []
         for p in range(first, last + 1):
             got, gutter = page_lines(pdf.pages[p + offset - 1], p, icon_fonts, marks, shapes,
-                                     regions if boxes else None, icon_text)
+                                     regions if boxes else None, icon_text, notes)
             gutters[str(p)] = None if gutter is None else round(gutter, 1)
             if not got:
                 empty.append(p)
@@ -492,7 +554,7 @@ def read(pdf_path, first, last, offset, icon_fonts=(), boxes=False, icon_text=No
             'icon_fonts': list(icon_fonts),
             'fonts': [{'size': s, 'chars': c} for s, c in sorted(sizes.items(), reverse=True)],
             'gutters': gutters, 'pages_without_text': empty, 'lines': lines, 'marks': marks, 'shapes': shapes,
-            'regions': regions}
+            'regions': regions, 'image_notes': notes, 'case_fixed': dict(CASE_FIXED)}
 
 
 def text_view(doc):
@@ -532,6 +594,11 @@ def main(argv=None):
             f.write('\n')
         print(f'{len(doc["lines"])} lines, {len(doc["marks"])} marks, {len(doc["shapes"])} shapes, '
               f'body size {doc["body_size"]} -> {a.out}', file=sys.stderr)
+        for font, k in doc['case_fixed'].items():
+            print(f'font {font}: {k} capitals its character map read as lower case, kept as capitals',
+                  file=sys.stderr)
+        for n in doc['image_notes']:
+            print(f'p{n["page"]} image {n["bbox"]}: {n["note"]}', file=sys.stderr)
     else:
         json.dump(doc, sys.stdout, ensure_ascii=False, indent=0)
         sys.stdout.write('\n')

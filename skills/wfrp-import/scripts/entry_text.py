@@ -47,20 +47,28 @@ SMALL_WORDS = {'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'from', 'in', '
                'to', 'with'}
 
 
+ACRONYMS = {'XP', 'SL', 'GM', 'GMS', 'NPC', 'NPCS', 'WFRP'}   # kept in capitals in a capitals title
+
+
 def fix_case(text):
     """Display type set in small capitals reads back in a jumble of cases ("CharaCteristiC and
-    skill"). Such a heading is title-cased; the words stay the same. Anything else is unchanged."""
-    if not re.search(r'[a-z][A-Z]|\b[a-z]+[A-Z]|^[a-z]|\b[A-Z]{2}[a-z]', text):
+    skill"), and titles set in capitals read back all in capitals. Such a heading is title-cased;
+    the words stay the same. Anything else is unchanged."""
+    letters = re.sub(r'[^A-Za-z]', '', text)
+    all_caps = len(letters) >= 4 and letters.isupper()
+    if not all_caps and not re.search(r'[a-z][A-Z]|\b[a-z]+[A-Z]|^[a-z]|\b[A-Z]{2}[a-z]', text):
         return text
     out = []
     for i, orig in enumerate(text.split(' ')):
         w = orig.lower()
-        if re.fullmatch(r'[A-Z]{2,3}', orig):            # an acronym (XP, SL) stays as printed
-            out.append(orig)
+        core = re.sub(r'[^A-Za-z]', '', orig)
+        if (core.upper() in ACRONYMS if all_caps else re.fullmatch(r'[A-Z]{2,3}', orig)):
+            out.append(orig)                                # an acronym (XP, SL) stays as printed
         elif i and w in SMALL_WORDS:
             out.append(w)
         else:
-            out.append(w[:1].upper() + w[1:])
+            k = next((j for j, ch in enumerate(w) if ch.isalpha()), 0)   # "(elves)" -> "(Elves)"
+            out.append(w[:k] + w[k:k + 1].upper() + w[k + 1:])
     return ' '.join(out)
 
 
@@ -145,6 +153,14 @@ def new_paragraph(l, prev):
     return l['baseline'] - prev['baseline'] > 1.6 * prev['size']
 
 
+def strip_bullet(text):
+    """An item's text without its bullet, keeping the marks it shares with the words after it
+    ("**• Name**: ..." -> "**Name**: ..."); marks around the bullet alone go with it."""
+    t = re.sub(r'^\s*(\**)\s*[•●▪]\s*', r'\1', text)
+    m = re.match(r'^(\*{1,3})\1(?=\s)\s*', t)          # "**•** Name" left an empty pair
+    return t[m.end():] if m else t
+
+
 def blocks_from_lines(lines, report, where, vocab=None, base_level=None):
     """Lines -> content blocks: headings (lines marked `heading` by pdf_layout.py, at a smaller size
     than the entry's own when `base_level` is given), bulleted lists (lines starting "•"), and
@@ -181,7 +197,7 @@ def blocks_from_lines(lines, report, where, vocab=None, base_level=None):
         if bullet:
             if buf:
                 flush()
-            items.append([re.sub(r'^\s*\**\s*[•●▪]\s*', '', text)])
+            items.append([strip_bullet(text)])
             bullet_x0 = l['x0']
         elif items and prev is not None and not new_paragraph(l, prev) and l['x0'] > bullet_x0 + 1:
             items[-1].append(text)
