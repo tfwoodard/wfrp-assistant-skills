@@ -104,9 +104,11 @@ PDF or anything read from it into the repo.
    | Kind | Script | Plan says |
    |---|---|---|
    | Careers (one per page: advance scheme, career path) | `convert_careers.py` | each career's name, page and class; the level icons (a glyph font, or a drawn shape's point count, from `pdf_layout.py`'s `marks` and `shapes`); the scheme's header labels. Run `pdf_layout.py` with the plan's `--icon-fonts`. |
-   | Rules prose (sections, conditions, psychology, symptoms; diseases with their labelled fields; boxed sidebars and ruled tables) | `convert_rules.py` | the entries in order, by name and page (and `heading` when the book prints more than the name), their `kind`, or another `category` with `field_labels`; an `intro` entry for text before the first; boxes to send elsewhere (`to`), make entries, or leave out as `diagram`s; tables to write to `tables/` too, with title, `about`, `roll_column`, `banner`/`header_row` fixes and the boxes they're `continued_in`. Run `pdf_layout.py` with `--boxes`, and `--icon-text` for icons printed in the text. |
+   | Rules prose (sections, conditions, psychology, symptoms; diseases with their labelled fields; boxed sidebars and ruled tables) | `convert_rules.py` | the entries in order, by name and page (and `heading` when the book prints more than the name), their `kind`, or another `category` with `field_labels`; an `intro` entry for text before the first; boxes to send elsewhere (`to`), make entries, or leave out as `diagram`s; tables to write to `tables/` too, with title, `about`, `roll_column`, `banner`/`header_row` fixes and the boxes they're `continued_in`; `text_tables` for tables printed without rules (the header line, its `columns`, and how many `rows`). Run `pdf_layout.py` with `--boxes`, and `--icon-text` for icons printed in the text. |
+   | Skills and talents ("Name (Char) basic" headings; talents with Max and Tests lines) | `convert_skills_talents.py` | a `convert_rules.py` plan for the chapter's rules sections, boxes and tables, plus the `skills` and `talents` page ranges and their `section`. The skills and talents themselves are found by their headings, not listed; a heading at their level that doesn't read as one is an error. Check the report's `field_lines_joined` and `labels_as_printed`. Run `pdf_layout.py` with `--boxes`. |
 
-   `convert_rules.py` names the files for other categories `<category>--<slug>`
+   `convert_rules.py` and `convert_skills_talents.py` name the files for other
+   categories `<category>--<slug>`
    (`tables--outcomes.json`): write those to that category's folder without
    the prefix. Before writing, read its report's `box_placement` (which entry
    each sidebar went to) and fix any that read wrong with the plan's `to`.
@@ -117,12 +119,15 @@ PDF or anything read from it into the repo.
    `.md` (`render_entry.py`), `_records.json` (index records) and
    `_report.json` (errors, left-out text, questions), with tests on an invented
    PDF in `tests/`, in its own pull request. The kinds the Rulebook still needs:
-   species, skills, talents, spells
-   and prayers, trappings (weapon and armour tables with qualities), creatures
+   species, spells and prayers, trappings (weapon and armour tables with qualities), creatures
    (characteristic lines and traits), and chapters of rules prose.
 5. The report must have no errors, and `check_coverage.py` must account for
    every word: in an entry, or on the report's `left_out` list. Look at
    anything it reports missing.
+   Then `check_names.py <library-data> <out>/_records.json` must find a
+   relation (layout §4) on every new entry that shares a name with another,
+   in any category; propose the role in the plan's `relations`, and the
+   Librarian confirms.
 
 When a table or stat line can't be read from the text (drawn as art, or its
 cells out of order), transcribe it from the page image, keeping every word,

@@ -149,6 +149,18 @@ class ConvertRulesTest(unittest.TestCase):
         with open(os.path.join(out, name)) as f:
             return json.load(f)
 
+    def test_a_box_sent_to_several_entries_is_copied_into_each(self):
+        plan = dict(PLAN, boxes={'1.1': {'to': ['Trimming Wicks', 'Smoked']}})
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(plan, f)
+        r, out, layout, report = self.convert()
+        self.assertEqual(r.returncode, 0, report['errors'])
+        self.assertEqual([b['entry'] for b in report['box_placement']], ['Trimming Wicks', 'Smoked'])
+        for slug in ('trimming-wicks', 'smoked'):
+            self.assertEqual(sum(b['type'] == 'sidebar' for b in self.load(out, slug + '.json')['content']), 1)
+        names = os.listdir(out)
+        self.assertEqual(names.count('tables--wick-lengths.json'), 1)              # its table entry: once
+
     def test_layout_reads_boxes_and_a_continued_table(self):
         pdf = os.path.join(self.d, 'chapter.pdf')
         draw_chapter(pdf)
