@@ -45,6 +45,8 @@ def draw_page(path):
     c.drawString(320, h - 570, 'Storm Lamps')
     c.setFont('Helvetica', 9)
     c.drawString(320, h - 585, 'Light both lamps when the bell rings.')
+    c.drawString(320, h - 600, '99')                                        # a table's number, mid-page
+    c.drawString(w / 2, 30, '1')                                            # the page number
     c.showPage()
     c.save()
 
@@ -64,8 +66,10 @@ class IllustrationTest(unittest.TestCase):
         self.assertEqual(len(doc['regions']), 1)                                  # the panel only
         self.assertEqual(len(doc['image_notes']), 1)
         boxed = [l['text'] for l in doc['lines'] if l.get('box')]
-        self.assertEqual(boxed, ['Storm Lamps', 'Light both lamps when the bell rings.'])
-        right = [l['text'] for l in doc['lines'] if l['column'] == 'right' and not l.get('box')]
+        self.assertEqual(boxed, ['Storm Lamps', 'Light both lamps when the bell rings.', '99'])
+        furniture = {l['text']: l['furniture'] for l in doc['lines'] if l['text'] in ('1', '99')}
+        self.assertEqual(furniture, {'1': True, '99': False})          # only the page's own number
+        right = [l['text'] for l in doc['lines'] if l['column'] == 'right' and not l.get('box') and not l['furniture']]
         self.assertEqual(right, ['Gulls circle the tower all day.'] * 20)         # no words lost to the picture
 
 
@@ -92,6 +96,28 @@ class CapitalsTest(unittest.TestCase):
         self.assertEqual(entry_text.fix_case('OPTIONS: STORM LAMPS (TOWER)'), 'Options: Storm Lamps (Tower)')
         self.assertEqual(entry_text.fix_case('OIL COSTS IN XP'), 'Oil Costs in XP')
         self.assertEqual(entry_text.fix_case('Who Trims the Wick?'), 'Who Trims the Wick?')
+
+
+class HeadingSizeTest(unittest.TestCase):
+    def test_a_boxs_body_size_is_never_a_heading_size(self):
+        def line(text, size, box=None):
+            return {'text': text, 'size': size, 'furniture': False, 'box': box,
+                    'spans': [{'text': text, 'size': size, 'bold': size > 9}]}
+        body = [line('Keepers keep the lamps lit through every storm of the year.', 9.0) for _ in range(60)]
+        title = line('Storm Lamps', 15.0, 'b1')
+        boxed = [line('Light both lamps when the bell rings, and trim them at dawn.', 10.0, 'b1') for _ in range(5)]
+        head = line('Wicks', 12.0)
+        pdf_layout.assign_headings(body + [head, title] + boxed)
+        self.assertIn('heading', head)
+        self.assertIn('heading', title)
+        self.assertFalse(any('heading' in l for l in boxed))    # rare on the pages, but the box's text
+
+
+class TitleCaseTest(unittest.TestCase):
+    def test_after_a_colon_and_known_acronyms(self):
+        self.assertEqual(entry_text.fix_case('optIons: on the deFensIve'), 'Options: On the Defensive')
+        self.assertEqual(entry_text.fix_case('roll FOr wIcks!'), 'Roll for Wicks!')
+        self.assertEqual(entry_text.fix_case('CharaCteristiC Xp'), 'Characteristic XP')
 
 
 class BulletTest(unittest.TestCase):

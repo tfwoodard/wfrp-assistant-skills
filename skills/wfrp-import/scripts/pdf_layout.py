@@ -243,8 +243,9 @@ def make_line(ws, page_no, column, height):
     (size, font), _ = weights.most_common(1)[0]
     top = min(w['top'] for w in ws)
     bottom = max(w['bottom'] for w in ws)
+    # A bare number is furniture when it is the page's own number (a table's "99" is not).
     furniture = top < height * MARGIN_TOP or bottom > height * (1 - MARGIN_BOTTOM) or \
-        bool(re.fullmatch(r'\d{1,4}', text))
+        text.strip() == str(page_no)
     return {'page': page_no, 'column': column, 'top': round(top, 1), 'baseline': ws[0]['baseline'],
             'x0': round(min(w['x0'] for w in ws), 1), 'x1': round(max(w['x1'] for w in ws), 1),
             'text': text, 'size': size, 'bold': all(s['bold'] for s in spans),
@@ -519,6 +520,15 @@ def assign_headings(lines):
     # A size larger than the body's is a heading size only when it is rare: a size set as often as
     # a fifth of the body text (a sidebar's text, a quote) is text, not headings.
     larger = sorted((s for s in sizes if s > body + 0.4 and sizes[s] < max(HEADING_SHARE * sizes[body], 200)), reverse=True)
+    # Nor is the size a box's text is mostly set in (its body), however few boxes the pages have.
+    per_box = collections.defaultdict(collections.Counter)
+    for l in lines:
+        if l.get('box') and not l.get('table') and not l['furniture']:
+            for s in l['spans']:
+                per_box[l['box']][s['size']] += len(s['text'])
+    # (A box holding little but its title, over a table, has no body to go by.)
+    box_bodies = {c.most_common(1)[0][0] for c in per_box.values() if c and c.most_common(1)[0][1] >= 200}
+    larger = [s for s in larger if all(abs(s - b) > 0.4 for b in box_bodies)]
     level = {s: i + 1 for i, s in enumerate(larger)}
     for l in lines:
         if l['furniture']:

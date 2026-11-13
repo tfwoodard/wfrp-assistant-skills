@@ -57,7 +57,9 @@ of its own in tables/ (when it gives a "slug"), with `about` and, when it is a
 roll table, its roll column's values as {"min", "max"}. The plan can also give
 a table's "title", say its read header is a "banner" printed across the
 columns, or that its first row is its "header_row"; "continued_in" lists boxes
-on later pages holding the rest of its rows, which join it. A table printed without rules is
+on later pages holding the rest of its rows, which join it. "fold": 2 reads a table
+printed in two side-by-side halves (the same columns twice) down the left half, then the right;
+"from_columns": N reads a box's unruled lines, set in N columns, as a table. A table printed without rules is
 listed under "text_tables": its header line (the columns' words, together), its columns and how
 many rows follow; each row is split at its widest gaps, and a row without a clear gap is an
 error.
@@ -130,6 +132,16 @@ def table_block(region, title, plan_t, report, where):
         cols = []
     if plan_t.get('header_row'):      # the first row read is the header (printed below a rule)
         cols, rows = rows[0], rows[1:]
+    if plan_t.get('fold'):            # one table printed in side-by-side halves: read down each
+        n = plan_t['fold']
+        k = len(cols) // n
+        if k == 0 or len(cols) != k * n or any(cols[i * k:(i + 1) * k] != cols[:k] for i in range(n)):
+            report['errors'].append({'error': f'{where}: table {region["id"]} is not {n} copies of '
+                                     f'one set of columns: {cols}'})
+        else:
+            rows = [r[i * k:(i + 1) * k] for i in range(n) for r in rows]
+            rows = [r for r in rows if any(c.strip() for c in r)]
+            cols = cols[:k]
     width = max([len(cols)] + [len(r) for r in rows])
     if not any(c.strip() for c in cols):
         cols = []
@@ -165,8 +177,9 @@ def text_tables(lines, plans, report):
             gaps = sorted(w[k + 1][1] - w[k][2] for k in range(len(w) - 1))
             cells = split_row(l, len(t['columns']))
             wide = gaps[-(len(t['columns']) - 1):] if gaps else []
+            one_word_cells = len(w) == len(t['columns'])           # every word a cell: no gap to judge
             if (not cells or l['page'] != t['page'] or l['column'] != run[0]['column'] or
-                    min(wide or [0]) < 3 * gaps[len(gaps) // 2]):
+                    (not one_word_cells and min(wide or [0]) < 3 * gaps[len(gaps) // 2])):
                 report['errors'].append({'error': f'{where}: {l["text"]!r} is not a row of it'})
                 rows = None
                 break
@@ -180,6 +193,28 @@ def text_tables(lines, plans, report):
                                             'title': block['title'], 'columns': len(cols), 'rows': len(rows)})
         lines = lines[:i] + [merge_lines(run, block)] + lines[i + len(run):]
     return lines
+
+
+def column_tables(lines, regions, tables_plan, report):
+    """A box whose table has no rules, set in columns ("from_columns": 2): its lines below the
+    title, read column by column, are the table's columns, a line to a cell, the first line of each
+    being its header. The box becomes a table region and those lines its table lines. Columns of
+    different lengths are an error."""
+    for bid, t in tables_plan.items():
+        if not t.get('from_columns'):
+            continue
+        body = [l for l in lines if l.get('box') == bid and not l.get('heading') and not l.get('table')]
+        cols = {}
+        for l in body:
+            cols.setdefault(l['column'], []).append(plain(l['text']))
+        if bid not in regions or len(cols) != t['from_columns'] or len({len(c) for c in cols.values()}) != 1:
+            report['errors'].append({'error': f'box {bid}: not {t["from_columns"]} columns of equal length: '
+                                     f'{ {k: len(v) for k, v in cols.items()} }'})
+            continue
+        grid = list(zip(*cols.values()))
+        regions[bid] = dict(regions[bid], kind='table', columns=list(grid[0]), rows=[list(r) for r in grid[1:]])
+        for l in body:
+            l['table'] = True
 
 
 def convert(layout, plan, taken=()):
@@ -196,6 +231,7 @@ def convert(layout, plan, taken=()):
     lines = [l for l in layout['lines'] if not l['furniture']]
     vocab = vocabulary(lines)
     lines = text_tables(lines, plan.get('text_tables', []), report)
+    column_tables(lines, regions, plan.get('tables', {}), report)
     boxes_plan = plan.get('boxes', {})
     tables_plan = plan.get('tables', {})
     for cont in plan.pop('_missing', []):
