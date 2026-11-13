@@ -194,6 +194,7 @@ skills/<name>/         SKILL.md + references/ (references are synced copies)
 skills/wfrp-import/scripts/pdf_outline.py     PDF bookmarks -> chapter list with printed pages
 skills/wfrp-import/scripts/pdf_layout.py      PDF pages -> lines (by baseline and column) with style, icons
 skills/wfrp-import/scripts/check_coverage.py  check converted entries lost no words of the pages
+skills/wfrp-import/scripts/check_names.py     check new entries sharing a name have a relation
 skills/wfrp-import/scripts/convert_careers.py  career pages -> career entries (scheme, career path)
 skills/wfrp-import/scripts/convert_rules.py    rules prose -> rules, disease and table entries, with sidebars and tables
 skills/wfrp-import/scripts/convert_skills_talents.py  skill and talent lists -> skill, talent and rules entries

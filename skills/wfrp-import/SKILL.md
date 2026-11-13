@@ -124,6 +124,10 @@ PDF or anything read from it into the repo.
 5. The report must have no errors, and `check_coverage.py` must account for
    every word: in an entry, or on the report's `left_out` list. Look at
    anything it reports missing.
+   Then `check_names.py <library-data> <out>/_records.json` must find a
+   relation (layout §4) on every new entry that shares a name with another,
+   in any category; propose the role in the plan's `relations`, and the
+   Librarian confirms.
 
 When a table or stat line can't be read from the text (drawn as art, or its
 cells out of order), transcribe it from the page image, keeping every word,

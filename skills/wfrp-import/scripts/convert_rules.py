@@ -48,7 +48,8 @@ Boxes (pdf_layout.py --boxes). A box becomes a sidebar, under its own title
 (its heading lines), in the entry whose text runs just above it on its page in
 the columns it spans; with no text above it there, in the entry running into
 the page. The plan
-can send it to another entry ("to"), make it an entry of its own ("entry"),
+can send it to another entry ("to"), or a copy to each of several (a list),
+make it an entry of its own ("entry"),
 or mark it a diagram ("diagram": a flowchart or picture with words, left out
 and listed for transcription by hand). A box read as a ruled table becomes a
 table block; a table the plan lists under "tables" is also written as an entry
@@ -261,11 +262,18 @@ def convert(layout, plan, taken=()):
     # with no text above it there, to the entry running into the page. The plan's "to" overrides.
     owner = {id(x): e for e in entries for x in e['lines']}
     report['box_placement'] = []
-    for bid, target in pending_boxes:
+    expanded = []
+    for bid, target in pending_boxes:          # "to" can name several entries: one copy in each
+        if target[0] == 'to' and isinstance(target[1], list):
+            expanded += [(bid, ('to', name)) for name in target[1]]
+        else:
+            expanded.append((bid, target))
+    for bid, target in expanded:
         if target[0] == 'to':
-            target = next((e for e in entries if norm(e['spec']['name']) == norm(target[1])), None)
+            name = target[1]
+            target = next((e for e in entries if norm(e['spec']['name']) == norm(name)), None)
             if target is None:
-                report['errors'].append({'error': f'box {bid}: the plan sends it to an entry '
+                report['errors'].append({'error': f'box {bid}: the plan sends it to {name!r}, an entry '
                                          'that does not exist'})
                 continue
         elif isinstance(target, tuple):
