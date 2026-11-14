@@ -44,26 +44,13 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from convert_rules import convert, heading_runs, write_outputs  # noqa: E402
-from entry_text import merge_lines, new_paragraph, plain, split_items  # noqa: E402
+from entry_text import field_text, label_of, merge_lines, new_paragraph, plain, split_items, top_fields  # noqa: E402
 
 CHARACTERISTICS = ('WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel')
 SKILL_HEADING = re.compile(r'^(?P<name>.+?)\s+\((?P<char>' + '|'.join(CHARACTERISTICS) +
                            r')\)\s+(?P<kind>basic|advanced)(?P<grouped>,\s*grouped)?\s*$', re.I)
 TALENT_LABELS = {'max': 'max', 'maximum': 'max', 'test': 'tests', 'tests': 'tests'}
 SPECIALISATIONS = ('specialisations', 'specializations', 'specialties')
-
-
-def label_of(line):
-    """The bold label a line starts with ("Max:" -> "Max"), or None."""
-    sp = line['spans'][0] if line['spans'] else None
-    if sp and sp['bold'] and not sp['italic'] and sp['text'].rstrip().endswith(':'):
-        return sp['text'].rstrip()[:-1].strip()
-    return None
-
-
-def field_text(run):
-    """The words after the label, across the run's lines."""
-    return plain(re.sub(r'^\s*\S[^:]*:\s*', '', ' '.join(x['text'] for x in run), count=1))
 
 
 def in_pages(l, pages):
@@ -128,28 +115,10 @@ def take_fields(lines, start, end, cat, report, name):
         key = lab and lab.lower()
         if cat == 'talents' and key in TALENT_LABELS and at_top:
             # Talent field lines sit at the top of the entry, one after another.
-            run = [l]
-            while k + len(run) < len(seg):
-                nxt = seg[k + len(run)]
-                text = field_text(run)
-                if label_of(nxt) or nxt.get('heading') or nxt.get('box') or nxt.get('block'):
-                    break
-                if not (re.match(r'^[a-z]', plain(nxt['text'])) or text.count('(') > text.count(')')):
-                    break
-                run.append(nxt)
-                report.setdefault('field_lines_joined', []).append(
-                    {'entry': name, 'label': lab, 'text': field_text(run)})
-            if lab.lower() not in ('max', 'tests', 'test'):
-                report.setdefault('labels_as_printed', []).append({'entry': name, 'label': lab})
-            fields[TALENT_LABELS[key]] = field_text(run)
-            item = {'label': lab, 'text': field_text(run)}
-            if out and out[-1].get('block', {}).get('type') == 'fields':
-                prev = out.pop()
-                block = dict(prev['block'], items=prev['block']['items'] + [item])
-                out.append(merge_lines([prev] + run, block))
-            else:
-                out.append(merge_lines(run, {'type': 'fields', 'title': '', 'items': [item]}))
-            k += len(run)
+            n, line, got = top_fields(seg[k:], TALENT_LABELS, report, name, usual=('max', 'tests', 'test'))
+            fields.update(got)
+            out.append(line)
+            k += n
             continue
         if cat == 'skills' and key in SPECIALISATIONS:
             run = [l]
