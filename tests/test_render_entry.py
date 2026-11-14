@@ -34,6 +34,12 @@ class RenderEntryTest(unittest.TestCase):
                       '- **Talents:** Night Vision, Sure-footed\n- **Trappings:** Ladder', md)
         self.assertNotIn('**Talents:**', md.split('***Trimmer***')[1])
 
+    def test_a_key_both_in_the_entry_and_its_fields_is_written_once(self):
+        md = render({'slug': 'wick-care', 'name': 'Wick Care', 'source': 'TEST', 'chapter': 'ch1',
+                     'section': 'Wick Care', 'page': 3, 'kind': 'procedure', 'fields': {'kind': 'procedure'},
+                     'content': [{'type': 'paragraph', 'text': 'Trim the wick.'}]})
+        self.assertEqual(md.count('\nkind: procedure\n'), 1)
+
     def test_creature_profile_named_like_the_entry_has_no_heading_of_its_own(self):
         md = render({'slug': 'fog-eel', 'name': 'Fog Eel', 'source': 'TEST', 'chapter': 'ch2', 'section': 'Fog Eel',
                      'content': [{'type': 'profile', 'name': 'Fog Eel',

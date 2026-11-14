@@ -191,3 +191,9 @@ class ColumnsTest(unittest.TestCase):
     def test_a_table_in_a_box_is_not_read_as_three_text_columns(self):
         boxed = [l['text'] for l in self.doc['lines'] if l.get('box')]
         self.assertEqual(boxed, ['Oil Wick Glass', '1 2 3', '4 5 6'])
+
+
+class SlugTest(unittest.TestCase):
+    def test_accents_and_apostrophes_are_dropped(self):
+        self.assertEqual(entry_text.slugify('Lamp-Wright’s Öil'), 'lamp-wrights-oil')
+        self.assertEqual(entry_text.slugify("Gull's Câll"), 'gulls-call')

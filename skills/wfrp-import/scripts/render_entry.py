@@ -20,7 +20,8 @@ def yaml_value(v):
 
 def front(entry):
     lines = ['---']
-    keys = [k for k in FRONT if k in entry] + sorted(k for k in entry.get('fields', {}))
+    keys = [k for k in FRONT if k in entry]
+    keys += sorted(k for k in entry.get('fields', {}) if k not in keys)    # a key once, even if in both
     for k in keys:
         v = entry[k] if k in entry else entry['fields'][k]
         lines.append(f'{k}: {yaml_value(v)}')
