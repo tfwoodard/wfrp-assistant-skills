@@ -194,7 +194,7 @@ Each category folder in a `library-data/` holds:
   | traits     | `rated` (true when it takes a rating, e.g. Armour (2)) |
   | diseases   | `contraction`, `incubation`, `duration` |
   | mutations  | `kind` (physical, mental) |
-  | lore       | `kind` (god, place, organisation, history, other) |
+  | lore       | `kind` (god, place, organisation, history, other); a cult also has `seat_of_power`, `head_of_the_cult`, `primary_orders`, `major_festivals`, `popular_holy_books`, `common_holy_symbols` |
 
 - **`<slug>.json`**: the entry's data, for tools (character builders,
   calculations).
