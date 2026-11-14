@@ -11,14 +11,15 @@ number of PDF pages before printed page 1 (the source's `page_offset`).
 Characters are grouped into lines by their **baseline**, so large and small
 capitals set on one line stay together, and into words by the space between
 them. Each page's **gutter** is found from where its words lie: an x position
-near the middle that (almost) no word crosses. A line is split at the gutter
+near the middle that (almost) no word crosses; a page set in three columns has
+two, one near each third (its columns are left, middle and right). A line is split at the gutter
 into its left and right parts; a line with a word across it is "full" width.
 On a page with no gutter every line is "full". Lines are read in bands: a full
 line ends a band, and within a band the left column is read before the right.
 
 Each line records:
 
-    {"page": 87, "column": "left" | "right" | "full", "top": 112.4, "baseline": 121.1,
+    {"page": 87, "column": "left" | "middle" | "right" | "full", "top": 112.4, "baseline": 121.1,
      "x0": 51.0, "x1": 290.2, "text": "Lamp Warden", "size": 14.0, "bold": true, "italic": false,
      "font": "CaslonAntique-Bold", "spans": [{"text", "size", "bold", "italic"}],
      "words": [["Lamp", 51.0, 70.2], ...], "furniture": false, "heading": 2}
@@ -29,7 +30,7 @@ heads, footers and bare page numbers (lines in the top or bottom margin).
 `heading` is a level (1 = largest type) for lines set larger than the body
 text in a size the chapter uses rarely (a size used as much as a sidebar's
 text is text, not headings). `fonts` lists every size with how many characters use it; `body_size` is
-the commonest. `gutters` gives each page's gutter x (null: one column).
+the commonest. `gutters` gives each page's gutter x positions (null: one column).
 
 Icons. Books mark things with symbol glyphs (a career level's cross) and small
 vector drawings (its shield or skull). Glyphs in a font named by --icon-fonts
@@ -50,6 +51,9 @@ table: `regions` lists each box ({"id", "kind": "box" | "table", "page",
 "bbox"}), and a table adds "columns" (the header cells) and "rows" (cells as
 plain text); its lines carry `table` too. An illustration cut out with a soft mask
 (mostly see-through) is not a panel, even where its rectangle runs over text;
+nor is a rectangle the page's lines run across (a word over its edge, or a line
+carrying on into it, on a quarter of its rows). A box's own lines are read in
+one or two columns, never three: a table's columns aren't text columns.
 `image_notes` lists each one set aside, and any mask that couldn't be read.
 
 The output is the book's text: write it to scratch outside the repo, never
@@ -89,8 +93,12 @@ MARGIN_TOP, MARGIN_BOTTOM = 0.06, 0.06   # fractions of the page height
 BASELINE_TOLERANCE = 1.5                 # points between baselines on one line
 WORD_GAP = 0.18                          # a gap wider than this x the type size splits words
 GUTTER_ZONE = (0.38, 0.62)               # where to look for a gutter, as fractions of the width
+THIRDS_ZONES = ((0.25, 0.42), (0.58, 0.75))   # where a three-column page's two gutters fall
+THIRD_SHARE = 0.2                        # ...and the least share of its words each column holds
 SHAPE_MAX = 20                           # points: larger drawings aren't icons
 BOX_MIN = (100, 24)                      # points: a smaller image isn't a boxed panel
+RUN_ON_GAP = 4.0                         # points: a word this near a box's edge is on the same line
+RUN_OVER_SHARE = 0.25                    # a box with this share of its lines crossing its edges is no panel
 PANEL_OPAQUE = 0.75                      # a masked image less opaque than this is an illustration
 HEADING_SHARE = 0.08                     # a larger size used for more than this share of the body's characters is text
 
@@ -174,11 +182,26 @@ def word_style(w):
     return {'size': max(k[0] for k in counts), 'bold': bold, 'italic': italic, 'font': font}
 
 
-def find_gutter(words, width, left=0.0):
-    """The x of the gutter between `left` and `left + width`, or None. Counts, for each point
-    across the middle, the words that cross it; the gutter is the middle of the widest run that at
-    most a few cross."""
-    lo, hi = int(left + width * GUTTER_ZONE[0]), int(left + width * GUTTER_ZONE[1])
+def find_gutters(words, width, left=0.0, three=True):
+    """The x of each gutter between `left` and `left + width`: two, one near each third, when the
+    page is set in three columns (each holding a good share of the words; not looked for when
+    `three` is false); else one near the middle; else none."""
+    thirds = [find_gutter(words, width, left, z) for z in THIRDS_ZONES] if three else [None]
+    if all(t is not None for t in thirds):
+        edges = [float('-inf')] + thirds + [float('inf')]
+        counts = [sum(1 for w in words if edges[i] <= (w['x0'] + w['x1']) / 2 < edges[i + 1]) for i in range(3)]
+        if min(counts) >= THIRD_SHARE * len(words):
+            return thirds
+    g = find_gutter(words, width, left)
+    return [] if g is None else [g]
+
+
+def find_gutter(words, width, left=0.0, zone=None):
+    """The x of the gutter in `zone` (fractions of the width; default the middle) between `left`
+    and `left + width`, or None. Counts, for each point across the zone, the words that cross it;
+    the gutter is the middle of the widest run that at most a few cross."""
+    zone = zone or GUTTER_ZONE
+    lo, hi = int(left + width * zone[0]), int(left + width * zone[1])
     if len(words) < 12:
         return None
     rows = len({w['baseline'] for w in words})
@@ -200,16 +223,23 @@ def find_gutter(words, width, left=0.0):
     return lo + (best[0] + best[1]) / 2
 
 
-def segments(raw, gutter):
-    """One baseline's words -> [(column, words)], split where the gutter falls between two words."""
-    if gutter is None:
+def column_names(n):
+    return {1: ['left', 'right'], 2: ['left', 'middle', 'right']}.get(n, [])
+
+
+def segments(raw, gutters):
+    """One baseline's words -> [(column, words)], split where the gutters fall between words."""
+    if not gutters:
         return [('full', raw)]
-    left = [w for w in raw if w['x1'] <= gutter]
-    right = [w for w in raw if w['x0'] >= gutter]
-    if len(left) + len(right) < len(raw):          # a word crosses the gutter: a full-width line
+    names = column_names(len(gutters))
+    edges = [float('-inf')] + list(gutters) + [float('inf')]
+    parts = [[w for w in raw if w['x0'] >= edges[i] and w['x1'] <= edges[i + 1]] for i in range(len(names))]
+    if sum(len(p) for p in parts) < len(raw):     # a word crosses a gutter: a full-width line
         return [('full', raw)]
-    if left and right:
-        # A space between two words of one full-width line can fall on the gutter too; the
+    filled = [i for i, p in enumerate(parts) if p]
+    for a, b in zip(filled, filled[1:]):
+        left, right = parts[a], parts[b]
+        # A space between two words of one full-width line can fall on a gutter too; the
         # gap between columns is wider than a word space.
         # But two columns' lines can share a baseline, so a jump in type size across the gutter
         # (a quote in one column, a heading in the other) is two lines.
@@ -218,7 +248,7 @@ def segments(raw, gutter):
         size = max(sl, sr)
         if right[0]['x0'] - left[-1]['x1'] < max(4.0, 0.6 * size) and max(sl, sr) < 1.25 * min(sl, sr):
             return [('full', raw)]
-    return [(c, ws) for c, ws in (('left', left), ('right', right)) if ws]
+    return [(names[i], parts[i]) for i in filled]
 
 
 def glued(prev, w):
@@ -254,21 +284,21 @@ def make_line(ws, page_no, column, height):
             'furniture': furniture}
 
 
-def order_lines(words, gutter, page_no, height):
-    """Words of one region -> lines in reading order: split at the gutter, then read in bands."""
+def order_lines(words, gutters, page_no, height):
+    """Words of one region -> lines in reading order: split at the gutters, then read in bands."""
     rows = collections.defaultdict(list)
     for w in words:
         rows[w['baseline']].append(w)
     segs = []                       # (baseline, column, words)
     for b, raw in rows.items():
-        for col, ws in segments(sorted(raw, key=lambda w: w['x0']), gutter):
+        for col, ws in segments(sorted(raw, key=lambda w: w['x0']), gutters):
             segs.append((b, col, ws))
     segs.sort(key=lambda s: s[0])
-    # A full-width line ends a band; within a band, read the left column, then the right.
+    # A full-width line ends a band; within a band, read the columns left to right.
     bounds = sorted({b for b, c, _ in segs if c == 'full'}) + [float('inf')]
     out, prev = [], float('-inf')
     for bnd in bounds:
-        for side in ('left', 'right'):
+        for side in column_names(len(gutters)):
             out += [make_line(ws, page_no, side, height) for b, c, ws in segs if c == side and prev <= b < bnd]
         out += [make_line(ws, page_no, 'full', height) for b, c, ws in segs if c == 'full' and b == bnd]
         prev = bnd
@@ -297,6 +327,30 @@ def mask_opacity(im):
         return sum(hist[128:]) / max(1, sum(hist))
     except Exception:  # noqa: BLE001 - reported by the caller
         return None
+
+
+def text_runs_over(box, words, page_no, notes):
+    """True when the page's text runs over the box's side edges rather than sitting inside it: a
+    panel's text has a margin, but a picture's rectangle can lie under the text flowing past it.
+    Such a box (a quarter or more of its lines with a word across an edge, or carrying on into it
+    from a word space away) is set aside, and listed in
+    `notes`."""
+    x0, top, x1, bottom = box
+    inside = [w for w in words if top <= (w['top'] + w['bottom']) / 2 <= bottom and
+              x0 <= (w['x0'] + w['x1']) / 2 <= x1]
+    rows = {round(w['baseline']) for w in inside}
+    ids = {id(w) for w in inside}
+    level = [w for w in words if top <= (w['top'] + w['bottom']) / 2 <= bottom]
+    crossing = {round(w['baseline']) for w in level if any(w['x0'] < e - 1 and w['x1'] > e + 1 for e in (x0, x1))}
+    # ...or a line of the page carries on into it, a word space from its edge.
+    crossing |= {round(w['baseline']) for w in words if id(w) not in ids and round(w['baseline']) in rows and
+                 (0 <= x0 - w['x1'] < RUN_ON_GAP or 0 <= w['x0'] - x1 < RUN_ON_GAP)}
+    if rows and len(crossing) >= max(1, RUN_OVER_SHARE * len(rows)):
+        if notes is not None:
+            notes.append({'page': page_no, 'bbox': [round(v, 1) for v in box],
+                          'note': f'text runs over its edges ({len(crossing)} of {len(rows)} lines): not a box'})
+        return True
+    return False
 
 
 def find_boxes(page, page_no, notes=None):
@@ -472,6 +526,7 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
     if icon_text:
         words += icon_words(page, words, icon_text, marks_here, shapes_here)
     boxes = find_boxes(page, page_no, notes) if regions is not None else []
+    boxes = [b for b in boxes if not text_runs_over(b, words, page_no, notes)]
     in_box = {}
     for w in words:
         cx, cy = (w['x0'] + w['x1']) / 2, (w['top'] + w['bottom']) / 2
@@ -484,16 +539,17 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
     body = [w for w in words if id(w) not in in_box]
     sizes = sorted(c['size'] for w in body for c in w['chars'])
     usual = sizes[len(sizes) // 2] * 1.4 if sizes else 0
-    gutter = find_gutter([w for w in body if w['top'] >= page.height * MARGIN_TOP and
-                          w['bottom'] <= page.height * (1 - MARGIN_BOTTOM) and
-                          max(c['size'] for c in w['chars']) <= usual], page.width)
-    out = order_lines(body, gutter, page_no, page.height)
+    gutters = find_gutters([w for w in body if w['top'] >= page.height * MARGIN_TOP and
+                            w['bottom'] <= page.height * (1 - MARGIN_BOTTOM) and
+                            max(c['size'] for c in w['chars']) <= usual], page.width)
+    out = order_lines(body, gutters, page_no, page.height)
     for i, box in enumerate(boxes):
         bw = [w for w in words if in_box.get(id(w)) == i]
         if not bw:
             continue
         bid = f'{page_no}.{i + 1}'
-        bl = order_lines(bw, find_gutter(bw, box[2] - box[0], box[0]), page_no, page.height)
+        # A box is one or two columns; a table's columns inside it are not text columns.
+        bl = order_lines(bw, find_gutters(bw, box[2] - box[0], box[0], three=False), page_no, page.height)
         for l in bl:
             l['box'] = bid
         region = {'id': bid, 'kind': 'box', 'page': page_no, 'bbox': [round(v, 1) for v in box]}
@@ -505,7 +561,7 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
             region.update(kind='table', table_bbox=table['bbox'], columns=table['columns'], rows=table['rows'])
         regions.append(region)
         out += bl
-    return out, gutter
+    return out, gutters
 
 
 def assign_headings(lines):
@@ -553,9 +609,9 @@ def read(pdf_path, first, last, offset, icon_fonts=(), boxes=False, icon_text=No
                      f'{first + offset}-{last + offset}, outside the PDF\'s 1-{n}')
         lines, marks, shapes, empty, gutters, regions, notes = [], [], [], [], {}, [], []
         for p in range(first, last + 1):
-            got, gutter = page_lines(pdf.pages[p + offset - 1], p, icon_fonts, marks, shapes,
+            got, gutters_here = page_lines(pdf.pages[p + offset - 1], p, icon_fonts, marks, shapes,
                                      regions if boxes else None, icon_text, notes)
-            gutters[str(p)] = None if gutter is None else round(gutter, 1)
+            gutters[str(p)] = [round(g, 1) for g in gutters_here] or None
             if not got:
                 empty.append(p)
             lines += got

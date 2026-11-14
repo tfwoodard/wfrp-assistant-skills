@@ -276,3 +276,54 @@ def split_row(line, n):
         start = g + 1
     cells.append(' '.join(w[0] for w in words[start:]))
     return cells
+
+
+def label_of(line):
+    """The bold label a line starts with ("Max:" -> "Max"), or None."""
+    sp = line['spans'][0] if line.get('spans') else None
+    if sp and sp['bold'] and not sp['italic'] and sp['text'].rstrip().endswith(':'):
+        return sp['text'].rstrip()[:-1].strip()
+    return None
+
+
+def field_text(run):
+    """The words after the label, across the run's lines."""
+    return plain(re.sub(r'^\s*\S[^:]*:\s*', '', ' '.join(x['text'] for x in run), count=1))
+
+
+def top_fields(seg, labels, report, name, usual=()):
+    """The field lines an entry opens with ("Max: 2", "Range: Touch"), each a bold label in
+    `labels` (printed label, lower case -> field name). A field runs on to the next line when that
+    line starts in lower case or the field has an unclosed bracket; each run-on is listed under the
+    report's `field_lines_joined`, a label printed other than as in `usual` under
+    `labels_as_printed`, and a label among them not set in bold under `labels_not_bold`. Returns (how many lines were read, one line carrying the fields block or
+    None, {field name: text})."""
+    fields, items, k = {}, [], 0
+    while k < len(seg):
+        lab = label_of(seg[k])
+        if not lab and k and not seg[k].get('block'):
+            # Among the field lines, a label the book forgot to set in bold.
+            m = re.match(r'^\s*([A-Za-z]+):', plain(seg[k]['text']))
+            if m and m.group(1).lower() in labels:
+                lab = m.group(1)
+                report.setdefault('labels_not_bold', []).append({'entry': name, 'label': lab})
+        if not lab or lab.lower() not in labels:
+            break
+        run = [seg[k]]
+        while k + len(run) < len(seg):
+            nxt = seg[k + len(run)]
+            text = field_text(run)
+            if label_of(nxt) or nxt.get('heading') or nxt.get('box') or nxt.get('block'):
+                break
+            if not (re.match(r'^[a-z]', plain(nxt['text'])) or text.count('(') > text.count(')')):
+                break
+            run.append(nxt)
+            report.setdefault('field_lines_joined', []).append({'entry': name, 'label': lab, 'text': field_text(run)})
+        if usual and lab.lower() not in usual:
+            report.setdefault('labels_as_printed', []).append({'entry': name, 'label': lab})
+        fields[labels[lab.lower()]] = field_text(run)
+        items.append({'label': lab, 'text': field_text(run)})
+        k += len(run)
+    if not k:
+        return 0, None, {}
+    return k, merge_lines(seg[:k], {'type': 'fields', 'title': '', 'items': items}), fields

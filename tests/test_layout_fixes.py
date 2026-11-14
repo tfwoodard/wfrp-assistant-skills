@@ -130,3 +130,64 @@ class BulletTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+def draw_columns_page(path):
+    """Page 1: three columns of text. Page 2: two columns, the left one's lines running across an
+    opaque picture rectangle in its lower half; then a sidebar panel in the right column holding a
+    three-column table."""
+    c = canvas.Canvas(path, pagesize=A4)
+    w, h = A4
+    c.setFont('Helvetica', 9)
+    for k in range(30):
+        c.drawString(50, h - 80 - 11 * k, 'Ropes coil on the')
+        c.drawString(225, h - 80 - 11 * k, 'quay where nets')
+        c.drawString(400, h - 80 - 11 * k, 'dry in the wind.')
+    c.showPage()
+    pic = Image.new('RGB', (40, 40), (120, 140, 160))
+    c.drawImage(ImageReader(pic), 130, h - 500, 160, 200)                     # x 130-290, across "wicks"
+    panel = Image.new('RGB', (40, 40), (230, 220, 190))
+    c.drawImage(ImageReader(panel), 310, h - 760, 230, 120)                   # x 310-540
+    c.setFont('Helvetica', 9)
+    for k in range(30):
+        c.drawString(50, h - 120 - 11 * k, 'Keepers trim the wicks at dusk and dawn.')
+        c.drawString(306, h - 120 - 11 * k, 'Gulls circle the tower all day.')
+    for k, row in enumerate((('Oil', 'Wick', 'Glass'), ('1', '2', '3'), ('4', '5', '6'))):
+        for x, cell in zip((320, 395, 470), row):
+            c.drawString(x, h - 660 - 13 * k, cell)
+    c.showPage()
+    c.save()
+
+
+@unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the fixture PDF')
+class ColumnsTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        pdf, out = os.path.join(self.tmp.name, 'page.pdf'), os.path.join(self.tmp.name, 'layout.json')
+        draw_columns_page(pdf)
+        r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'pdf_layout.py'), pdf, '--pages', '1-2',
+                            '--boxes', '--out', out], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(out) as f:
+            self.doc = json.load(f)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_a_page_in_three_columns(self):
+        self.assertEqual(len(self.doc['gutters']['1']), 2)
+        cols = {l['text']: l['column'] for l in self.doc['lines'] if l['page'] == 1}
+        self.assertEqual(cols, {'Ropes coil on the': 'left', 'quay where nets': 'middle',
+                                'dry in the wind.': 'right'})
+
+    def test_text_running_over_a_picture_makes_it_no_box(self):
+        self.assertEqual(len(self.doc['gutters']['2']), 1)
+        self.assertEqual(len(self.doc['regions']), 1)                         # the panel only
+        self.assertTrue(any('text runs over its edges' in n for n in map(str, self.doc['image_notes'])),
+                        self.doc['image_notes'])
+        left = [l['text'] for l in self.doc['lines'] if l['page'] == 2 and l['column'] == 'left']
+        self.assertEqual(left, ['Keepers trim the wicks at dusk and dawn.'] * 30)
+
+    def test_a_table_in_a_box_is_not_read_as_three_text_columns(self):
+        boxed = [l['text'] for l in self.doc['lines'] if l.get('box')]
+        self.assertEqual(boxed, ['Oil Wick Glass', '1 2 3', '4 5 6'])
