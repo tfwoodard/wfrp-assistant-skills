@@ -4,12 +4,15 @@ Pure functions, no I/O. Each takes the converter's `report` where it has somethi
 to say, so nothing is decided silently.
 """
 import re
+import unicodedata
 
 ROLL = re.compile(r'^\s*(\d{1,3})\s*(?:[–—-]\s*(\d{1,3}))?\s*$')
 NUMBER = re.compile(r'^\s*([+−–-]?)\s*(\d{1,3}(?:,\d{3})*|\d+)\s*$')
 
 
 def slugify(s):
+    """'Lamp-Wright’s Öil' -> 'lamp-wrights-oil': accents dropped, apostrophes too."""
+    s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode()
     s = s.lower().replace('’', '').replace("'", '')
     return re.sub(r'[^a-z0-9]+', '-', s).strip('-')
 
