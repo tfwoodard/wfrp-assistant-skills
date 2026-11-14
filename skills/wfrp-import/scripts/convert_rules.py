@@ -70,6 +70,8 @@ in a table of three or more columns, heads the rows below it (a group: `group_ro
 "continued_in" lists boxes
 on later pages holding the rest of its rows, which join it. "fold": 2 reads a table
 printed in two side-by-side halves (the same columns twice) down the left half, then the right;
+with "fold_join" (and "header_row", the parts' labels printed above them) parts that share
+their first column are joined on it instead, each part's other columns named "<label>: <column>";
 "from_columns": N reads a box's unruled lines, set in N columns, as a table. A table printed without rules is
 listed under "text_tables": its header line (the columns' words, together), its columns and how
 many rows follow; each row is split at its widest gaps, and a row without a clear gap is an
@@ -89,6 +91,7 @@ in `_records.json` (rules or tables), and `_report.json`:
 - `diagrams`: boxes left out for transcription by hand.
 - `box_placement`: which entry each box went to, for the Librarian to check.
 - `titles_stripped`, `group_rows`: tables whose title came out of row 1, and their group rows.
+- `folded_keys`: a "fold_join" table's key column as printed in its later parts, kept once.
 - `left_out`: everything printed that no entry holds.
 """
 import argparse
@@ -187,7 +190,9 @@ def table_block(region, title, plan_t, report, where):
         start = next((i for i, c in enumerate(cols) if c.strip()), 0)
         banners.append({'text': text, 'start': start, 'span': len(cols) - start})
         cols = []
+    labels = []
     if plan_t.get('header_row'):      # the first row read is the header (printed below a rule)
+        labels = cols                 # what was read as the header is then each part's label
         cols, rows = rows[0], rows[1:]
     if plan_t.get('fold'):            # one table printed in side-by-side halves: read down each
         n = plan_t['fold']
@@ -195,6 +200,20 @@ def table_block(region, title, plan_t, report, where):
         if k == 0 or len(cols) != k * n or any(cols[i * k:(i + 1) * k] != cols[:k] for i in range(n)):
             report['errors'].append({'error': f'{where}: table {region["id"]} is not {n} copies of '
                                      f'one set of columns: {cols}'})
+        elif plan_t.get('fold_join'):   # parts sharing their first column: one row per key
+            names = [' '.join(c for c in labels[i * k:(i + 1) * k] if c.strip()) or f'Part {i + 1}'
+                     for i in range(n)]
+            if any([r[i * k] for r in rows] != [r[0] for r in rows] for i in range(n)):
+                report['errors'].append({'error': f'{where}: table {region["id"]}: the {n} parts don\'t '
+                                         f'share their first column'})
+            else:
+                # The key column printed once per part is kept once; the copies are listed.
+                report.setdefault('folded_keys', []).append(
+                    {'entry': where, 'region': region['id'],
+                     'cells': [c for i in range(1, n) for c in [cols[i * k]] + [r[i * k] for r in rows]]})
+                vals = cols[1:k]
+                cols = [cols[0]] + [f'{nm}: {v}' for nm in names for v in vals]
+                rows = [[r[0]] + [c for i in range(n) for c in r[i * k + 1:(i + 1) * k]] for r in rows]
         else:
             rows = [r[i * k:(i + 1) * k] for i in range(n) for r in rows]
             rows = [r for r in rows if any(c.strip() for c in r)]

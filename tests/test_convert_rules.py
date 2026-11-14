@@ -269,6 +269,21 @@ class TableShapesTest(unittest.TestCase):
         table_block(dict(region, columns=['Roll', 'Wick', 'Die', 'Oil']), 'Wicks', {'fold': 2}, report, 'Lamps')
         self.assertEqual(len(report['errors']), 1)                     # halves that don't match
 
+    def test_parts_sharing_their_first_column_are_joined_on_it(self):
+        sys.path.insert(0, SCRIPTS)
+        from convert_rules import table_block
+        region = {'id': '5.1', 'page': 5, 'columns': ['Short', 'Watch', 'Long', 'Watch'],
+                  'rows': [['Keeper', 'Oil', 'Keeper', 'Oil'], ['Ada', '1', 'Ada', '3'], ['Bo', '2', 'Bo', '4']]}
+        report = {'errors': [], 'tables_to_confirm': []}
+        block = table_block(region, 'Oil', {'fold': 2, 'header_row': True, 'fold_join': True}, report, 'Lamps')
+        self.assertEqual(block['columns'], ['Keeper', 'Short Watch: Oil', 'Long Watch: Oil'])
+        self.assertEqual(block['rows'], [['Ada', '1', '3'], ['Bo', '2', '4']])
+        self.assertEqual(report['errors'], [])
+        self.assertEqual(report['folded_keys'][0]['cells'], ['Keeper', 'Ada', 'Bo'])
+        bad = dict(region, rows=region['rows'][:2] + [['Bo', '2', 'Cy', '4']])
+        table_block(bad, 'Oil', {'fold': 2, 'header_row': True, 'fold_join': True}, report, 'Lamps')
+        self.assertEqual(len(report['errors']), 1)
+
     def test_a_boxs_unruled_columns_become_a_table(self):
         sys.path.insert(0, SCRIPTS)
         from convert_rules import column_tables
