@@ -197,3 +197,61 @@ class SlugTest(unittest.TestCase):
     def test_accents_and_apostrophes_are_dropped(self):
         self.assertEqual(entry_text.slugify('Lamp-Wright’s Öil'), 'lamp-wrights-oil')
         self.assertEqual(entry_text.slugify("Gull's Câll"), 'gulls-call')
+
+
+def draw_titled_tables(path):
+    """One parchment panel holding two ruled tables, each under its own large title, with
+    different column positions; plus enough body text for the page's columns."""
+    c = canvas.Canvas(path, pagesize=A4)
+    w, h = A4
+    panel = Image.new('RGB', (40, 40), (230, 220, 190))
+    c.drawImage(ImageReader(panel), 60, h - 520, 470, 440)
+    c.setLineWidth(0.5)
+
+    def table(top, title, cols, rows):
+        c.setFont('Helvetica', 16)
+        c.drawString(200, top, title)
+        y = top - 24
+        c.setFont('Helvetica-Bold', 9)
+        for x, name in zip(cols, ('Lamp', 'Oil', 'Keeper')):
+            c.drawString(x + 3, y, name)
+        y -= 5
+        c.setFont('Helvetica', 9)
+        for row in rows:
+            c.line(70, y, 520, y)
+            y -= 12
+            for x, cell in zip(cols, row):
+                c.drawString(x + 3, y, cell)
+            y -= 5
+        c.line(70, y, 520, y)
+        for x in cols[1:]:
+            c.line(x, top - 29, x, y)
+
+    table(h - 110, 'NORTH LAMPS', [70, 170, 330], [('Gull', 'Tallow', 'Ada'), ('Rock', 'Rush', 'Bo')])
+    table(h - 260, 'SOUTH LAMPS', [70, 220, 400], [('Bay', 'Whale', 'Cy'), ('Spit', 'Seal', 'Di'), ('Pier', 'Fish', 'Ed')])
+    c.setFont('Helvetica', 9)
+    for k in range(14):
+        c.drawString(60, h - 560 - 11 * k, 'Keepers trim the wicks at dusk.')
+        c.drawString(310, h - 560 - 11 * k, 'Gulls circle the tower all day.')
+    c.showPage()
+    c.save()
+
+
+@unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the fixture PDF')
+class TitledTablesTest(unittest.TestCase):
+    def test_a_box_of_titled_tables_is_one_region_per_table(self):
+        with tempfile.TemporaryDirectory() as d:
+            pdf, out = os.path.join(d, 'page.pdf'), os.path.join(d, 'layout.json')
+            draw_titled_tables(pdf)
+            r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'pdf_layout.py'), pdf, '--pages', '1',
+                                '--boxes', '--out', out], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            with open(out) as f:
+                doc = json.load(f)
+        regions = {x['id']: x for x in doc['regions']}
+        self.assertEqual(sorted(regions), ['1.1.1', '1.1.2'])
+        self.assertEqual(regions['1.1.1']['columns'], ['Lamp', 'Oil', 'Keeper'])
+        self.assertEqual(regions['1.1.1']['rows'], [['Gull', 'Tallow', 'Ada'], ['Rock', 'Rush', 'Bo']])
+        self.assertEqual([r[0] for r in regions['1.1.2']['rows']], ['Bay', 'Spit', 'Pier'])
+        boxes = {l['text']: l['box'] for l in doc['lines'] if l.get('box')}
+        self.assertEqual((boxes['NORTH LAMPS'], boxes['SOUTH LAMPS']), ('1.1.1', '1.1.2'))

@@ -53,7 +53,9 @@ plain text); its lines carry `table` too. An illustration cut out with a soft ma
 (mostly see-through) is not a panel, even where its rectangle runs over text;
 nor is a rectangle the page's lines run across (a word over its edge, or a line
 carrying on into it, on a quarter of its rows). A box's own lines are read in
-one or two columns, never three: a table's columns aren't text columns.
+one or two columns, never three: a table's columns aren't text columns. A box holding
+several ruled tables, each under its own larger title, is read as one region per table,
+numbered "<box id>.<n>" (216.1.1, 216.1.2).
 `image_notes` lists each one set aside, and any mask that couldn't be read.
 
 The output is the book's text: write it to scratch outside the repo, never
@@ -474,6 +476,31 @@ def read_table(page, box, lines):
             'columns': [' '.join(c) for c in hdr_cells], 'rows': rows, 'line_ids': used}
 
 
+def titled_tables(page, box, lines):
+    """A box holding several ruled tables, each under its own title (a line set well larger than
+    the box's text), split into one part per table: [(sub-box,
+    its lines)]. A box that isn't split this way, or whose parts don't each read as a table, is
+    one part."""
+    sizes = collections.Counter(l['size'] for l in lines)
+    if not sizes:
+        return [(box, lines)]
+    body = sizes.most_common(1)[0][0]
+    titles = sorted((l for l in lines if l['size'] >= body + 3),
+                    key=lambda l: l['top'])
+    cuts = [t['top'] - 2 for t in titles if t['top'] - box[1] > 3 * body]   # not the box's own heading
+    if not cuts or len(titles) < 2:
+        return [(box, lines)]
+    edges = [box[1]] + cuts + [box[3]]
+    parts = []
+    for y0, y1 in zip(edges, edges[1:]):
+        sub = (box[0], y0, box[2], y1)
+        sl = [l for l in lines if y0 <= l['top'] < y1]
+        if not sl or not read_table(page, sub, sl):
+            return [(box, lines)]
+        parts.append((sub, sl))
+    return parts
+
+
 def icon_words(page, words, icon_text, marks_here, shapes_here):
     """Words standing in for icons printed inline in the text, for icons --icon-text names: a glyph
     in a named font, or a drawing with a given number of points ("pts:57"). Each sits on the
@@ -550,17 +577,21 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
         bid = f'{page_no}.{i + 1}'
         # A box is one or two columns; a table's columns inside it are not text columns.
         bl = order_lines(bw, find_gutters(bw, box[2] - box[0], box[0], three=False), page_no, page.height)
-        for l in bl:
-            l['box'] = bid
-        region = {'id': bid, 'kind': 'box', 'page': page_no, 'bbox': [round(v, 1) for v in box]}
-        table = read_table(page, box, bl)
-        if table:
-            for l in bl:
-                if id(l) in table['line_ids']:
-                    l['table'] = bid
-            region.update(kind='table', table_bbox=table['bbox'], columns=table['columns'], rows=table['rows'])
-        regions.append(region)
-        out += bl
+        parts = titled_tables(page, box, bl)
+        for k, (sub, sl) in enumerate(parts):
+            sid = bid if len(parts) == 1 else f'{bid}.{k + 1}'
+            for l in sl:
+                l['box'] = sid
+            region = {'id': sid, 'kind': 'box', 'page': page_no, 'bbox': [round(v, 1) for v in sub]}
+            table = read_table(page, sub, sl)
+            if table:
+                for l in sl:
+                    if id(l) in table['line_ids']:
+                        l['table'] = sid
+                region.update(kind='table', table_bbox=table['bbox'], columns=table['columns'],
+                              rows=table['rows'])
+            regions.append(region)
+            out += sl
     return out, gutters
 
 
