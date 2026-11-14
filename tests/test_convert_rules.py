@@ -220,12 +220,24 @@ class ConvertRulesTest(unittest.TestCase):
 
         d = self.load(out, 'diseases--wick-rot.json')
         self.assertEqual(d['fields'], {'contraction': 'Handling old wicks.', 'duration': '1d10 days'})
+        self.assertIn({'type': 'fields', 'title': '', 'items': [
+            {'label': 'Contraction', 'text': 'Handling old wicks.'}, {'label': 'Duration', 'text': '1d10 days'}]}, d['content'])
         t = self.load(out, 'tables--wick-lengths.json')
         self.assertEqual(t['fields'], {'about': 'How long a wick burns', 'roll': 'd10'})
         self.assertEqual(len(report['tables_to_confirm']), 1)
 
         cov = run('check_coverage.py', layout, out)
         self.assertEqual(cov.returncode, 0, cov.stdout)
+
+    def test_an_entry_of_another_category_keeps_the_plans_kind(self):
+        entries = [dict(e, category='lore', kind='other') if e['name'] == 'Dread' else e for e in PLAN['entries']]
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(dict(PLAN, entries=entries), f)
+        r, out, layout, report = self.convert()
+        self.assertEqual(r.returncode, 0, report['errors'])
+        self.assertEqual(self.load(out, 'lore--dread.json')['fields'], {'kind': 'other'})
+        rec = {x['slug']: x for x in self.load(out, '_records.json')}
+        self.assertEqual(rec['dread']['kind'], 'other')
 
     def test_an_unplanned_heading_at_entry_level_is_an_error(self):
         r, out, layout, report = self.convert(unplanned=True)
@@ -239,10 +251,6 @@ class ConvertRulesTest(unittest.TestCase):
         r, out, layout, report = self.convert()
         self.assertEqual(r.returncode, 1)
         self.assertIn("no heading 'Soot' on page 2", [e['error'] for e in report['errors']])
-
-
-if __name__ == '__main__':
-    unittest.main()
 
 
 class TableShapesTest(unittest.TestCase):
@@ -276,3 +284,50 @@ class TableShapesTest(unittest.TestCase):
         self.assertEqual(regions['1.1']['columns'], ['Roll', 'Lamp'])
         self.assertEqual(regions['1.1']['rows'], [['1-6', 'Tin'], ['7-10', 'Brass']])
         self.assertTrue(all(l.get('table') for l in lines[1:]))
+
+    def test_a_title_read_into_the_first_row_comes_out_and_the_plan_names_the_columns(self):
+        sys.path.insert(0, SCRIPTS)
+        from convert_rules import table_block
+        region = {'id': '3.1', 'page': 3, 'columns': ['', ''],
+                  'rows': [['01-50', 'Lamp Mishaps table Soot: the glass blackens.'], ['51-00', 'Smoke: you cough.']]}
+        report = {'errors': [], 'tables_to_confirm': []}
+        block = table_block(region, '', {'title': 'Lamp Mishaps Table', 'columns': ['d100', 'Result']}, report, 'Lamps')
+        self.assertEqual(block['columns'], ['d100', 'Result'])
+        self.assertEqual(block['rows'][0], ['01-50', 'Soot: the glass blackens.'])
+        self.assertEqual(report['titles_stripped'], [{'entry': 'Lamps', 'region': '3.1', 'title': 'Lamp Mishaps Table'}])
+        table_block(region, '', {'columns': ['d100']}, report, 'Lamps')
+        self.assertEqual(len(report['errors']), 1)                     # the plan names too few columns
+
+    def test_a_title_spread_over_cells_and_one_only_partly_there(self):
+        sys.path.insert(0, SCRIPTS)
+        from convert_rules import strip_title
+        self.assertEqual(strip_title(['Keeper', 'OILS BY Tallow', 'TOWER Rush'], 'Oils by Tower'),
+                         (['Keeper', 'Tallow', 'Rush'], True))
+        self.assertEqual(strip_title(['Oils', 'Tallow'], 'Oils by Tower'), (['Oils', 'Tallow'], False))
+
+    def test_a_row_with_only_its_first_cell_heads_a_group(self):
+        sys.path.insert(0, SCRIPTS)
+        from convert_rules import table_block
+        region = {'id': '4.1', 'page': 4, 'columns': ['Lamp', 'Oil', 'Hours'],
+                  'rows': [['Harbour', '', ''], ['Beacon', 'Tallow', '6'], ['Cliff', '', ''], ['Signal', 'Rush', '2']]}
+        report = {'errors': [], 'tables_to_confirm': []}
+        block = table_block(region, 'Lamps', {}, report, 'Lamps')
+        self.assertEqual(block['rows'], [['Beacon', 'Tallow', '6'], ['Signal', 'Rush', '2']])
+        self.assertEqual(block['groups'], [{'before': 0, 'text': 'Harbour'}, {'before': 1, 'text': 'Cliff'}])
+        self.assertEqual(report['group_rows'][0]['groups'], ['Harbour', 'Cliff'])
+
+    def test_labelled_details_become_a_fields_list(self):
+        sys.path.insert(0, SCRIPTS)
+        from convert_rules import labelled_to_fields
+        content = [{'type': 'paragraph', 'text': 'The keepers of the north.'},
+                   {'type': 'paragraph', 'text': 'Founded long ago. **Seat**: Gull Rock **Head**: The *Old* Keeper'},
+                   {'type': 'paragraph', 'text': 'They trim wicks.'}]
+        out = labelled_to_fields(content, ['Seat', 'Head'])
+        self.assertEqual(out[:2], content[:1] + [{'type': 'paragraph', 'text': 'Founded long ago.'}])
+        self.assertEqual(out[2], {'type': 'fields', 'title': '', 'items': [{'label': 'Seat', 'text': 'Gull Rock'},
+                                                                          {'label': 'Head', 'text': 'The Old Keeper'}]})
+        self.assertEqual(out[3], content[2])
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -39,8 +39,11 @@ Entries. Each planned entry starts at a heading on its page whose words match
 its name (or its "heading", when the book prints more: "Fear (Rating)"), and
 runs until the next planned entry's heading. An entry is a rules entry (its
 "kind": procedure, condition, psychology, glossary) unless it names another
-"category" (diseases, say); "field_labels" read the paragraphs that start with
-those bold labels into the entry's fields, and a missing one is an error. Smaller headings
+"category" (diseases, lore), which keeps the plan's "kind" when it gives one
+(lore: god, place...). "field_labels" read the text after those bold labels
+("**Harbour Master**: ...", run together or a line each) into the entry's fields,
+and a missing one is an error; the paragraph they're printed in becomes a fields
+block, items in printed order, with any text before the first label kept. Smaller headings
 inside it become heading blocks. A heading the plan doesn't place, at the size
 of the current entry's own heading or larger, is an error: it would be a
 sibling entry nobody decided on. Text before the first planned entry (the
@@ -60,7 +63,11 @@ table block; a table the plan lists under "tables" is also written as an entry
 of its own in tables/ (when it gives a "slug"), with `about` and, when it is a
 roll table, its roll column's values as {"min", "max"}. The plan can also give
 a table's "title", say its read header is a "banner" printed across the
-columns, or that its first row is its "header_row"; "continued_in" lists boxes
+columns, or that its first row is its "header_row", and name its "columns" (when the header
+isn't printed or isn't read). A table's title printed inside its frame, read into the first
+row's cells, is taken out of them (`titles_stripped`). A row with only its first cell filled,
+in a table of three or more columns, heads the rows below it (a group: `group_rows`).
+"continued_in" lists boxes
 on later pages holding the rest of its rows, which join it. "fold": 2 reads a table
 printed in two side-by-side halves (the same columns twice) down the left half, then the right;
 "from_columns": N reads a box's unruled lines, set in N columns, as a table. A table printed without rules is
@@ -81,6 +88,7 @@ in `_records.json` (rules or tables), and `_report.json`:
 - `tables_to_confirm`: every table, to show the Librarian before it is written.
 - `diagrams`: boxes left out for transcription by hand.
 - `box_placement`: which entry each box went to, for the Librarian to check.
+- `titles_stripped`, `group_rows`: tables whose title came out of row 1, and their group rows.
 - `left_out`: everything printed that no entry holds.
 """
 import argparse
@@ -125,6 +133,51 @@ def box_parts(box_lines):
     return fix_case(' '.join(title)), body, [l for l in box_lines if l.get('table')]
 
 
+def labelled_to_fields(content, labels):
+    """Each paragraph holding the plan's bold labels ("**Contraction:** ... **Incubation:** ...")
+    becomes a fields block, its items in printed order; text before the first label stays a
+    paragraph. Neighbouring fields blocks join."""
+    out = []
+    for b in content:
+        hits = []
+        if b['type'] == 'paragraph':
+            for lab in labels:
+                m = re.search(r'\*{2,3}' + re.escape(lab) + r':?\*{2,3}:?\s*', b['text'])
+                if m:
+                    hits.append((m.start(), m.end(), lab))
+        if not hits:
+            out.append(b)
+            continue
+        hits.sort()
+        if b['text'][:hits[0][0]].strip():
+            out.append(dict(b, text=b['text'][:hits[0][0]].strip()))
+        items = [{'label': lab, 'text': plain(b['text'][end:(hits[k + 1][0] if k + 1 < len(hits) else None)])}
+                 for k, (_, end, lab) in enumerate(hits)]
+        if out and out[-1]['type'] == 'fields' and not out[-1].get('title'):
+            out[-1]['items'] += items
+        else:
+            out.append({'type': 'fields', 'title': '', 'items': items})
+    return out
+
+
+def strip_title(row, title):
+    """The table's title, when its words lead cells of the first row ("Lamp Mishaps table
+    Soot: ..." or "OILS BY Tallow" / "TOWER Rush"), taken out of them. Returns the row
+    and whether the whole title was found; a title only partly there leaves the row alone."""
+    want = [norm(w) for w in title.split()]
+    out, k = list(row), 0
+    for i, cell in enumerate(out):
+        words = cell.split()
+        n = 0
+        while k < len(want) and n < len(words) and norm(words[n]) == want[k]:
+            n, k = n + 1, k + 1
+        if n:
+            out[i] = ' '.join(words[n:])
+        if k == len(want):
+            return out, True
+    return list(row), False
+
+
 def table_block(region, title, plan_t, report, where):
     cols, rows = list(region.get('columns') or []), [list(r) for r in region['rows']]
     plan_t = plan_t or {}
@@ -147,13 +200,37 @@ def table_block(region, title, plan_t, report, where):
             rows = [r for r in rows if any(c.strip() for c in r)]
             cols = cols[:k]
     width = max([len(cols)] + [len(r) for r in rows])
+    title = plan_t.get('title') or title
+    if title and rows:                # a title printed inside the table's frame, read into row 1
+        rows[0], stripped = strip_title(rows[0], title)
+        if stripped:
+            report.setdefault('titles_stripped', []).append({'entry': where, 'region': region['id'],
+                                                             'title': title})
+    if plan_t.get('columns'):         # the columns' names, when the header isn't printed or read
+        if len(plan_t['columns']) != width:
+            report['errors'].append({'error': f'{where}: table {region["id"]} has {width} columns, '
+                                     f'the plan names {len(plan_t["columns"])}'})
+        else:
+            cols = list(plan_t['columns'])
     if not any(c.strip() for c in cols):
         cols = []
+    groups, kept = [], []
+    for r in rows:                    # a row with only its first cell filled heads the rows below
+        if width > 2 and r and r[0].strip() and not any(c.strip() for c in r[1:]):
+            groups.append({'before': len(kept), 'text': r[0].strip()})
+        else:
+            kept.append(r)
+    if groups:
+        rows = kept
+        report.setdefault('group_rows', []).append({'entry': where, 'region': region['id'],
+                                                    'groups': [g['text'] for g in groups]})
     names = cols if cols else [f'Column {i + 1}' for i in range(width)]
-    block = {'type': 'table', 'title': plan_t.get('title') or title, 'columns': cols or [''] * width,
+    block = {'type': 'table', 'title': title, 'columns': cols or [''] * width,
              'rows': rows, 'data': table_data(names, rows, report, where, plan_t.get('roll_column'))}
     if banners:
         block['banners'] = banners
+    if groups:
+        block['groups'] = groups
     report['tables_to_confirm'].append({'entry': where, 'region': region['id'], 'page': region['page'],
                                         'title': block['title'], 'columns': len(names), 'rows': len(rows)})
     return block
@@ -363,7 +440,8 @@ def convert(layout, plan, taken=()):
             else:
                 content.append({'type': 'sidebar', 'title': title, 'content': inner})
         cat = spec.get('category', 'rules')
-        fields = {} if cat != 'rules' else {'kind': spec.get('kind', 'procedure')}
+        fields = {'kind': spec.get('kind', 'procedure')} if cat == 'rules' else \
+            ({'kind': spec['kind']} if spec.get('kind') else {})
         text = '\n'.join(b['text'] for b in content if b['type'] == 'paragraph')
         for lab in spec.get('field_labels', []):
             # The text after a bold label ("**Contraction:** ..."), up to the next bold label or the
@@ -374,6 +452,8 @@ def convert(layout, plan, taken=()):
                 fields[slugify(lab).replace('-', '_')] = plain(hit.group(1))
             else:
                 report['errors'].append({'error': f'{name}: no {lab!r} line'})
+        if spec.get('field_labels'):
+            content = labelled_to_fields(content, spec['field_labels'])
         slug = spec.get('slug') or slugify(name)
         if slug in taken or slug in used_slugs:
             slug = f'{slug}-{plan["source"].lower()}'
