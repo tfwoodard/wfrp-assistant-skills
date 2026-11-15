@@ -114,6 +114,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_entry import render  # noqa: E402
 import items  # noqa: E402
+import creatures  # noqa: E402
 from entry_text import (blocks_from_lines, fix_case, merge_lines, norm, plain, slugify, split_row,  # noqa: E402
                         table_data, vocabulary)
 
@@ -126,7 +127,8 @@ def split_at_headings(content, lines, spec, report, where):
     blocks under it, becomes an entry of its own (a list of weapon qualities); the text before
     the first stays the entry's. A "dividers" heading ({heading: kind}, "Armour Flaws") is no
     entry: it and its text stay the entry's, and the headings after it take its kind. Returns
-    (the entry's content, the new entries)."""
+    (the entry's content, the new entries). "name_flags" ({field: regex}) gives each new entry a
+    field that is true when its name matches ({"rated": "Rating"} for "Armour (Rating)")."""
     opt = spec['split_headings']
     dividers = {norm(k): v for k, v in opt.get('dividers', {}).items()}
     kind, seen = opt.get('kind'), set()
@@ -150,7 +152,10 @@ def split_at_headings(content, lines, spec, report, where):
             page = lines[hit]['page'] if hit is not None else spec['page']
             after = hit + 1 if hit is not None else after
             subs.append({'name': b['text'], 'category': opt['category'], 'kind': kind,
-                         'page': page, 'section': spec['name'], 'content': []})
+                         'page': page, 'section': spec['name'], 'content': [],
+                         'fields': dict({'kind': kind} if kind else {},
+                                        **{f: bool(re.search(pat, b['text']))
+                                           for f, pat in opt.get('name_flags', {}).items()})})
         elif subs and subs[-1] is None:
             keep.append(b)                            # a divider's own text stays the entry's
         elif subs:
@@ -713,11 +718,16 @@ def convert(layout, plan, taken=()):
         split = []
         if spec.get('split_headings'):
             content, split = split_at_headings(content, e['lines'], spec, report, name)
+        if spec.get('stat_blocks') and not spec.get('category'):
+            report['errors'].append({'error': f'{name}: stat_blocks needs a category (creatures)'})
         if spec.get('describes_items'):
             describers.append((name, content))
         cat = spec.get('category', 'rules')
         fields = {'kind': spec.get('kind', 'procedure')} if cat == 'rules' else \
             ({'kind': spec['kind']} if spec.get('kind') else {})
+        if spec.get('stat_blocks'):
+            content, prof = creatures.stat_blocks(content, report, name)
+            fields.update(prof)
         text = '\n'.join(b['text'] for b in content if b['type'] == 'paragraph')
         for lab in spec.get('field_labels', []):
             # The text after a bold label ("**Contraction:** ..."), up to the next bold label or the

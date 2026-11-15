@@ -258,8 +258,11 @@ the source's words:
   `qualities`; a container's or vehicle's `carries`; every trapping's `price`,
   `enc`, `availability`, its table's `group` when it has one, and the table's
   footnotes that mark it as `notes`;
-- a creature's `characteristics` (`{"M": 4, "WS": 30, …, "W": 12}`), `traits`
-  and `optional_traits`.
+- a creature's `characteristics` (`{"M": 4, "WS": 30, …, "W": 12}`, `null` where
+  the book prints "–"), `traits` and `optional_traits`, each trait as printed
+  with its rating ("Weapon+8", "Size (Large)"); an entry printing two or more
+  named profiles (two Daemon Princes) has `profiles` instead:
+  `[{"name", "characteristics", "traits", "optional_traits"}]`.
 
 `level` is the heading level of the entry's own title on the page.
 
