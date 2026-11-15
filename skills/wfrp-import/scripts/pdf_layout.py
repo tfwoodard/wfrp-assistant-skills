@@ -58,6 +58,9 @@ one or two columns, never three: a table's columns aren't text columns. A box ho
 several ruled tables, each under its own larger title, is read as one region per table,
 numbered "<box id>.<n>" (216.1.1, 216.1.2).
 `image_notes` lists each one set aside, and any mask that couldn't be read.
+A drop capital (a letter twice the size of the text beside it, set into the
+lines below its paragraph's first) is moved to the start of that first line and
+listed under `drop_capitals`.
 
 The output is the book's text: write it to scratch outside the repo, never
 commit it. Needs pdfplumber.
@@ -124,9 +127,35 @@ def baseline(c, height):
     return round(height - m[5], 1) if m else round(c['bottom'], 1)
 
 
-def make_words(chars, height):
+def drop_capitals(rows, page_no=None, notes=None):
+    """A drop capital (a letter at least twice the size of the text beside it, sitting on a lower
+    line of its paragraph) moves to the start of the paragraph's first line: the highest row
+    above it, within its height, that starts just right of it. Each one moved goes in `notes`."""
+    for b, row in rows:
+        row.sort(key=lambda c: c['x0'])
+        if len(row) < 2 or not row[0]['text'].isalpha():
+            continue
+        cap, rest = row[0], row[1:]
+        sizes = sorted(c['size'] for c in rest)
+        if cap['size'] < 2 * sizes[len(sizes) // 2]:
+            continue
+        above = [(b2, r2) for b2, r2 in rows if cap['top'] - 2 <= b2 < b and r2 is not row and
+                 min(c['x0'] for c in r2) >= cap['x1'] - 1 and
+                 min(c['x0'] for c in r2) - cap['x1'] < 3 * sizes[len(sizes) // 2]]
+        if not above:
+            continue
+        b2, first = min(above, key=lambda r: r[0])
+        lead = min(first, key=lambda c: c['x0'])
+        row.remove(cap)
+        first.append(dict(lead, text=cap['text'], x0=lead['x0'] - 0.02, x1=lead['x0'] - 0.01))
+        if notes is not None:
+            notes.append({'page': page_no, 'note': f'drop capital {cap["text"]!r} moved to the line at '
+                                                   f'baseline {b2}'})
+
+
+def make_words(chars, height, page_no=None, notes=None):
     """Characters -> words, each on one baseline, split at space characters and at gaps wider
-    than WORD_GAP x the type size."""
+    than WORD_GAP x the type size. Drop capitals join their paragraph's first line."""
     rows = []
     for c in sorted(chars, key=lambda c: (baseline(c, height), c['x0'])):
         b = baseline(c, height)
@@ -134,6 +163,7 @@ def make_words(chars, height):
             rows[-1][1].append(c)
         else:
             rows.append((b, [c]))
+    drop_capitals(rows, page_no, notes)
     groups = []
     for b, row in rows:
         cur = []
@@ -542,7 +572,7 @@ def icon_words(page, words, icon_text, marks_here, shapes_here):
 
 
 def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=None, icon_text=None,
-               notes=None):
+               notes=None, drops=None):
     """One page -> (lines in reading order, gutter x or None). Icon glyphs go to `marks`, small
     drawings to `shapes`, when those lists are given. With `regions` (a list), boxed panels are
     read as regions of their own: their lines follow the page's body lines, tagged with the box,
@@ -565,7 +595,7 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
         marks += marks_here
     if shapes is not None:
         shapes += shapes_here
-    words = make_words(chars, page.height)
+    words = make_words(chars, page.height, page_no, drops)
     if icon_text:
         words += icon_words(page, words, icon_text, marks_here, shapes_here)
     boxes = find_boxes(page, page_no, notes) if regions is not None else []
@@ -654,10 +684,10 @@ def read(pdf_path, first, last, offset, icon_fonts=(), boxes=False, icon_text=No
         if first + offset < 1 or last + offset > n:
             sys.exit(f'printed pages {first}-{last} with offset {offset} are PDF pages '
                      f'{first + offset}-{last + offset}, outside the PDF\'s 1-{n}')
-        lines, marks, shapes, empty, gutters, regions, notes = [], [], [], [], {}, [], []
+        lines, marks, shapes, empty, gutters, regions, notes, drops = [], [], [], [], {}, [], [], []
         for p in range(first, last + 1):
             got, gutters_here = page_lines(pdf.pages[p + offset - 1], p, icon_fonts, marks, shapes,
-                                     regions if boxes else None, icon_text, notes)
+                                     regions if boxes else None, icon_text, notes, drops)
             gutters[str(p)] = [round(g, 1) for g in gutters_here] or None
             if not got:
                 empty.append(p)
@@ -667,7 +697,7 @@ def read(pdf_path, first, last, offset, icon_fonts=(), boxes=False, icon_text=No
             'icon_fonts': list(icon_fonts),
             'fonts': [{'size': s, 'chars': c} for s, c in sorted(sizes.items(), reverse=True)],
             'gutters': gutters, 'pages_without_text': empty, 'lines': lines, 'marks': marks, 'shapes': shapes,
-            'regions': regions, 'image_notes': notes, 'case_fixed': dict(CASE_FIXED)}
+            'regions': regions, 'image_notes': notes, 'drop_capitals': drops, 'case_fixed': dict(CASE_FIXED)}
 
 
 def text_view(doc):
@@ -712,6 +742,8 @@ def main(argv=None):
                   file=sys.stderr)
         for n in doc['image_notes']:
             print(f'p{n["page"]} image {n["bbox"]}: {n["note"]}', file=sys.stderr)
+        for n in doc['drop_capitals']:
+            print(f'p{n["page"]}: {n["note"]}', file=sys.stderr)
     else:
         json.dump(doc, sys.stdout, ensure_ascii=False, indent=0)
         sys.stdout.write('\n')

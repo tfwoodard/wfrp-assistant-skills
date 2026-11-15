@@ -111,7 +111,8 @@ def join_lines(parts, report, where, vocab=None):
     space. With `vocab` (vocabulary()), the hyphen is dropped when the book prints the joined word
     whole elsewhere and never hyphenated (a word split only to fit the line), and kept when it
     prints the hyphenated form or neither; each case is reported: `dehyphenated` for the ones
-    dropped (check_coverage.py credits them), a question for the ones kept."""
+    dropped (check_coverage.py credits them), a question for the ones kept. A styled run that
+    carries on over the line break is marked once."""
     out = ''
     for p in parts:
         end = re.search(r'-(\*{0,3})$', out)
@@ -137,7 +138,11 @@ def join_lines(parts, report, where, vocab=None):
             report['questions'].append({'entry': where, 'kind': kind, 'text': out[-20:] + p[:20]})
             out += p
         else:
-            out += ' ' + p
+            m = re.search(r'(?<!\*)(\*{1,3})$', out)
+            if m and p.startswith(m.group(1)) and not p.startswith(m.group(1) + '*'):
+                out = out[:-len(m.group(1))] + ' ' + p[len(m.group(1)):]   # one styled run across the break
+            else:
+                out += ' ' + p
     return out
 
 
