@@ -85,7 +85,10 @@ Boxes (pdf_layout.py --boxes). A box becomes a sidebar, under its own title
 the columns it spans; with no text above it there, in the entry running into
 the page. The plan
 can send it to another entry ("to"), or a copy to each of several (a list),
-make it an entry of its own ("entry"), read it as a stat block ("profile": the fields of a
+make it an entry of its own ("entry"), make each heading in it an entry ("entries": the fields
+every one takes, as {"category": "lore", "kind": "other", "audience": "gm"} for a box of adventure
+hooks; lines above its first heading are the page's text set over its edge, and rejoin the line
+above the box: `returned_to_text`), read it as a stat block ("profile": the fields of a
 "stat_blocks" entry, creatures.box_profile(), with skills, talents, spells, trappings, marks
 and other labelled paragraphs; a profile block in any other entry's text),
 read it as the page's own text ("text": a tinted backdrop the layout took for a box),
@@ -702,6 +705,7 @@ def convert(layout, plan, taken=(), library=None):
     current, pending = None, list(planned)
     seen_boxes = set()
     pending_boxes = []
+    split_leads = []      # (box, its lines above its first heading), for boxes split into entries
     i = 0
     while i < len(lines):
         l = lines[i]
@@ -720,6 +724,35 @@ def convert(layout, plan, taken=(), library=None):
                     e = {'spec': dict(bp['entry'], page=l['page']), 'level': None, 'lines': [], 'boxes': [bid],
                          'own_box': True}
                     entries.append(e)
+                elif 'entries' in bp:
+                    # A box of several short pieces, each under its own heading (adventure hooks):
+                    # an entry apiece. Lines above the first heading are the page's own text, set
+                    # over the box's edge; they go back where they were printed (below).
+                    at = [k for k, x in enumerate(lines) if x.get('box') == bid]
+                    box_runs = {}             # heading start -> (text, last index), within the box
+                    for k in at:
+                        x = lines[k]
+                        prev = lines[k - 1] if k - 1 in at else None
+                        if not x.get('heading'):
+                            continue
+                        first = next((f for f, (_, last) in box_runs.items() if last == k - 1), None)
+                        if first is not None and prev.get('heading') == x['heading'] and \
+                                x['baseline'] - prev['baseline'] < 1.6 * x['size']:
+                            box_runs[first] = (box_runs[first][0] + ' ' + plain(x['text']), k)
+                        else:
+                            box_runs[k] = (plain(x['text']), k)
+                    starts = sorted(box_runs)
+                    if not starts:
+                        report['errors'].append({'error': f'box {bid}: the plan splits it into entries, but it '
+                                                          'has no heading'})
+                    else:
+                        split_leads.append((bid, [lines[k] for k in at if k < starts[0]]))
+                        for n, k in enumerate(starts):
+                            text, last = box_runs[k]
+                            end = starts[n + 1] if n + 1 < len(starts) else at[-1] + 1
+                            entries.append({'spec': dict(bp['entries'], name=fix_case(plain(text)), page=lines[k]['page']),
+                                            'level': None, 'lines': [lines[m] for m in at if last < m < end],
+                                            'boxes': []})
                 else:
                     pending_boxes.append((bid, target))
             i += 1
@@ -765,6 +798,24 @@ def convert(layout, plan, taken=(), library=None):
             expanded += [(bid, ('to', name)) for name in target[1]]
         else:
             expanded.append((bid, target))
+    for bid, lead in split_leads:
+        if not lead:
+            continue
+        region = regions.get(bid, {})
+        x0, top, x1, _ = region.get('bbox', (0, 0, 0, 0))
+        above = [x for x in lines if not x.get('box') and id(x) in owner and x['page'] == region.get('page') and
+                 x['baseline'] < top and x['x1'] > x0 and x['x0'] < x1]
+        if not above:
+            report['errors'].append({'error': f'box {bid}: lines above its first heading, but no text above the '
+                                              f'box to return them to: {[x["text"] for x in lead]}'})
+            continue
+        last = max(above, key=lambda x: x['baseline'])
+        home = owner[id(last)]['lines']
+        k = next(n for n, x in enumerate(home) if x is last)
+        # They carry on the line above the box: same column, no box, so they join its paragraph.
+        home[k + 1:k + 1] = [dict(x, box=None, column=last['column']) for x in lead]
+        report.setdefault('returned_to_text', []).append({'box': bid, 'entry': owner[id(last)]['spec']['name'],
+                                                          'text': ' '.join(x['text'] for x in lead)})
     for bid, target in expanded:
         if target[0] == 'to':
             name = target[1]
