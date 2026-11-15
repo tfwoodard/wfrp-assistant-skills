@@ -52,7 +52,9 @@ its page whose text begins with its "starts_at"; every heading inside it is then
 a subheading. "subheadings" names lines inside an entry, printed at body size
 (a letter's bold section names), to read as its deepest subheadings, and
 "not_headings" ([{"page", "text"}]) lines printed large that are body text (a
-signature); a line either names that isn't found is an error. Lines with no
+signature); a line either names that isn't found is an error. An entry's
+"headings_as_rows" ([heading column, text column]) makes its headings and the
+text under each one table (a timeline: dates and events). Lines with no
 letter or digit printed below body size (flourishes) are left out and listed
 under `ornaments`. Text before the first planned entry (the
 chapter's title page) is left out and listed, unless the plan gives an
@@ -118,10 +120,50 @@ from entry_text import (blocks_from_lines, fix_case, merge_lines, norm, plain, s
 SUBHEADING = 99      # the heading level given to a plan's "subheadings": below every printed level
 
 
-def boxes_as_text(lines, boxes_plan, report):
+def headings_to_rows(content, columns, report, where):
+    """An entry's run of headings, each followed by its text (a timeline's dates, a glossary's
+    terms), as one table with `columns` [heading, text]: each heading a row, its paragraphs joined
+    in the second cell. Text before the first heading stays as it is; anything else under a
+    heading (a list, a sidebar) is an error."""
+    head = next((i for i, b in enumerate(content) if b['type'] == 'heading'), None)
+    if head is None:
+        report['errors'].append({'error': f'{where}: headings_as_rows, but the entry has no headings'})
+        return content
+    rows = []
+    for b in content[head:]:
+        if b['type'] == 'heading':
+            rows.append([b['text'], ''])
+        elif b['type'] == 'paragraph':
+            rows[-1][1] = (rows[-1][1] + ' ' + b['text']).strip()
+        else:
+            report['errors'].append({'error': f'{where}: a {b["type"]} under {rows[-1][0]!r} '
+                                              f'can\'t go in a row'})
+    empty = [r[0] for r in rows if not r[1]]
+    if empty:
+        report['errors'].append({'error': f'{where}: no text under {", ".join(map(repr, empty))}'})
+    block = {'type': 'table', 'title': '', 'columns': list(columns), 'rows': rows,
+             'data': table_data(list(columns), rows, report, where, None)}
+    return content[:head] + [block]
+
+
+def page_column(line, gutters):
+    """The column ("left", "middle", "right") a line sits in between a page's gutters, or
+    "full" when it crosses one."""
+    names = {1: ['left', 'right'], 2: ['left', 'middle', 'right']}.get(len(gutters))
+    if not names:
+        return 'full'
+    edges = [float('-inf')] + list(gutters) + [float('inf')]
+    for i, name in enumerate(names):
+        if line['x0'] >= edges[i] and line['x1'] <= edges[i + 1]:
+            return name
+    return 'full'
+
+
+def boxes_as_text(lines, boxes_plan, report, gutters=None):
     """Boxes the plan marks "text" (a tinted backdrop read as a box) are read as the page's
-    columns: their lines lose the box and the page is read again, top to bottom between its
-    full-width lines, left column before right."""
+    columns: their lines lose the box and take the page column (from its `gutters`) they sit
+    in, and the page is read again, top to bottom between its full-width lines, column by
+    column from the left."""
     pages = {}
     for bid, bp in boxes_plan.items():
         if bp.get('text'):
@@ -130,10 +172,11 @@ def boxes_as_text(lines, boxes_plan, report):
                 report['errors'].append({'error': f'the plan reads box {bid} as text, but it has no lines'})
             for l in hit:
                 l['box'] = None
+                l['column'] = page_column(l, (gutters or {}).get(str(l['page'])) or [])
                 pages[l['page']] = True
     if not pages:
         return lines
-    rank = {'full': -1, 'left': 0, 'right': 1}
+    rank = {'full': -1, 'left': 0, 'middle': 1, 'right': 2}
 
     def key(l):
         fulls = [x['baseline'] for x in lines if x['page'] == l['page'] and x['column'] == 'full' and not x.get('box')]
@@ -378,7 +421,7 @@ def convert(layout, plan, taken=()):
         report['ornaments'] = [{'page': l['page'], 'text': l['text']} for l in orn]
         report['left_out'] += [l['text'] for l in orn]
         lines = [l for l in lines if l not in orn]
-    lines = boxes_as_text(lines, plan.get('boxes', {}), report)
+    lines = boxes_as_text(lines, plan.get('boxes', {}), report, layout.get('gutters', {}))
     vocab = vocabulary(lines)
     for nh in plan.get('not_headings', []):           # large lines that are body text
         hit = [l for l in lines if l['page'] == nh['page'] and l.get('heading') and
@@ -531,6 +574,8 @@ def convert(layout, plan, taken=()):
                 content += inner
             else:
                 content.append({'type': 'sidebar', 'title': title, 'content': inner})
+        if spec.get('headings_as_rows'):
+            content = headings_to_rows(content, spec['headings_as_rows'], report, name)
         cat = spec.get('category', 'rules')
         fields = {'kind': spec.get('kind', 'procedure')} if cat == 'rules' else \
             ({'kind': spec['kind']} if spec.get('kind') else {})
@@ -557,6 +602,8 @@ def convert(layout, plan, taken=()):
             entry['kind'] = spec.get('kind', 'procedure')
         if spec.get('aliases'):
             entry['aliases'] = spec['aliases']
+        if spec.get('audience'):
+            entry['audience'] = spec['audience']
         if spec.get('heading') and norm(spec['heading']) != norm(name):
             report['left_out'].append(spec['heading'])     # printed as the heading of the entry it names
         rel = plan.get('relations', {}).get(f'{cat}/{slug}') or plan.get('relations', {}).get(slug)
@@ -568,6 +615,8 @@ def convert(layout, plan, taken=()):
         rec.update(fields)
         if spec.get('aliases'):
             rec['aliases'] = spec['aliases']
+        if spec.get('audience'):
+            rec['audience'] = spec['audience']
         if rel:
             rec['relations'] = rel
         records.append(rec)

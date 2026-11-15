@@ -100,6 +100,7 @@ BASELINE_TOLERANCE = 1.5                 # points between baselines on one line
 WORD_GAP = 0.18                          # a gap wider than this x the type size splits words
 GUTTER_ZONE = (0.38, 0.62)               # where to look for a gutter, as fractions of the width
 THIRDS_ZONES = ((0.25, 0.42), (0.58, 0.75))   # where a three-column page's two gutters fall
+FULL_PAGE_ROWS = 24                      # rows of body text from which a three-column page allows one crossing line
 THIRD_SHARE = 0.2                        # ...and the least share of its words each column holds
 SHAPE_MAX = 20                           # points: larger drawings aren't icons
 BOX_MIN = (100, 24)                      # points: a smaller image isn't a boxed panel
@@ -125,6 +126,28 @@ def font_name(f):
 def baseline(c, height):
     m = c.get('matrix')
     return round(height - m[5], 1) if m else round(c['bottom'], 1)
+
+
+DASHES = '-‐‑–—−'
+
+
+def raised_dashes(chars, height):
+    """{id(char): baseline} for a dash or minus set a little above or below the line it belongs
+    to ("-500", "1053-1115" with a raised dash): one touching a character of the same size whose
+    baseline is within a quarter of the type size takes that character's baseline."""
+    out = {}
+    for c in chars:
+        if c['text'] not in DASHES:
+            continue
+        b = baseline(c, height)
+        for d in chars:
+            if d is c or d['text'] in DASHES or abs(d['size'] - c['size']) > 0.5:
+                continue
+            bd = baseline(d, height)
+            if 0 < abs(bd - b) <= 0.25 * c['size'] and (abs(d['x0'] - c['x1']) < 0.6 or abs(c['x0'] - d['x1']) < 0.6):
+                out[id(c)] = bd
+                break
+    return out
 
 
 def drop_capitals(rows, page_no=None, notes=None):
@@ -155,10 +178,12 @@ def drop_capitals(rows, page_no=None, notes=None):
 
 def make_words(chars, height, page_no=None, notes=None):
     """Characters -> words, each on one baseline, split at space characters and at gaps wider
-    than WORD_GAP x the type size. Drop capitals join their paragraph's first line."""
+    than WORD_GAP x the type size. Drop capitals join their paragraph's first line, and a dash set
+a little off the line joins the line it touches."""
+    base = raised_dashes(chars, height)
     rows = []
-    for c in sorted(chars, key=lambda c: (baseline(c, height), c['x0'])):
-        b = baseline(c, height)
+    for c in sorted(chars, key=lambda c: (base.get(id(c), baseline(c, height)), c['x0'])):
+        b = base.get(id(c), baseline(c, height))
         if rows and abs(b - rows[-1][0]) <= BASELINE_TOLERANCE:
             rows[-1][1].append(c)
         else:
@@ -219,7 +244,9 @@ def find_gutters(words, width, left=0.0, three=True):
     """The x of each gutter between `left` and `left + width`: two, one near each third, when the
     page is set in three columns (each holding a good share of the words; not looked for when
     `three` is false); else one near the middle; else none."""
-    thirds = [find_gutter(words, width, left, z) for z in THIRDS_ZONES] if three else [None]
+    # A three-column find is checked by each column's share of the words, so it may allow one more
+    # crossing line than a single gutter does.
+    thirds = [find_gutter(words, width, left, z, slack=1) for z in THIRDS_ZONES] if three else [None]
     if all(t is not None for t in thirds):
         edges = [float('-inf')] + thirds + [float('inf')]
         counts = [sum(1 for w in words if edges[i] <= (w['x0'] + w['x1']) / 2 < edges[i + 1]) for i in range(3)]
@@ -243,7 +270,7 @@ def body_words(words):
     return [w for w in words if round(word_size(w)) <= body + 1]
 
 
-def find_gutter(words, width, left=0.0, zone=None):
+def find_gutter(words, width, left=0.0, zone=None, slack=0):
     """The x of the gutter in `zone` (fractions of the width; default the middle) between `left`
     and `left + width`, or None. Counts, for each point across the zone, the words that cross it;
     the gutter is the middle of the widest run that at most a few cross."""
@@ -253,7 +280,9 @@ def find_gutter(words, width, left=0.0, zone=None):
     if len(words) < 12:
         return None
     rows = len({w['baseline'] for w in words})
-    allowed = max(0, rows // 50)
+    # A few lines may cross; on a full three-column page (`slack`), one more: a standfirst set
+    # across the columns.
+    allowed = max(slack if rows >= FULL_PAGE_ROWS else 0, rows // 50)
     cover = [0] * (hi - lo + 1)
     for w in words:
         for x in range(max(lo, int(w['x0']) + 1), min(hi, int(w['x1'])) + 1):
