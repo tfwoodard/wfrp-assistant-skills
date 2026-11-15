@@ -25,7 +25,8 @@ import re
 import sys
 
 WORD = re.compile(r"[\w’'+−–-]+")
-PROFILE_FIELDS = {'characteristics', 'traits', 'optional_traits', 'profiles'}
+PROFILE_FIELDS = {'characteristics', 'traits', 'optional_traits', 'profiles', 'skills', 'talents', 'spells',
+                  'trappings', 'marks', 'special', 'title', 'profile_name'}
 SKIP_KEYS = {'slug', 'source', 'chapter', 'section', 'page', 'level', 'type', 'id', 'relations', 'audience',
              'kind', 'edition', 'ordered', 'before', 'start', 'span', 'data', 'fields'}
 
