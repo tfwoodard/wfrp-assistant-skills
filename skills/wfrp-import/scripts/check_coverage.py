@@ -5,7 +5,8 @@
 
 Counts every word of the chapter's lines in LAYOUT.json (from pdf_layout.py;
 page furniture left out) and every word in the entries a converter wrote to
-OUT_DIR (each <slug>.json's name and content), plus the strings its
+OUT_DIR (each <slug>.json's name and content, and a trapping's printed
+fields: its price, damage, group and so on), plus the strings its
 `_report.json` lists under `left_out` (art credits, captions, anything left out
 on purpose), the words it joined across a line end (`dehyphenated`) and the
 copies of a joined table's key column (`folded_keys`, counted and said). A word
@@ -90,7 +91,11 @@ def main(argv=None):
                 for c in d['cells']:
                     got.update(words(c))
         elif not name.startswith('_'):
-            for s in strings({'name': data.get('name', ''), 'content': data.get('content', [])}):
+            # A trapping's values (price, damage, group) are its printed table cells; its kind isn't.
+            printed = {k: v for k, v in data.get('fields', {}).items() if k != 'kind'} \
+                if 'price' in data.get('fields', {}) else {}
+            for s in strings({'name': data.get('name', ''), 'content': data.get('content', []),
+                              'cells': list(printed.values())}):
                 got.update(words(s))
 
     ignored = {w.lower() for w in a.ignore}

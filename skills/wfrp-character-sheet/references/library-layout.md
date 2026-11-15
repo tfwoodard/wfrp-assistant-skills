@@ -189,7 +189,7 @@ Each category folder in a `library-data/` holds:
   | talents    | `max` (as printed, e.g. "Initiative Bonus"), `tests` |
   | spells     | `kind` (petty, arcane, lore, blessing, miracle), `lore` (lore or god), `cn`, `range`, `target`, `duration` |
   | trappings  | `kind` (melee, ranged, ammunition, armour, item, …), `group` (weapon or armour group), `price`, `enc`, `availability` |
-  | qualities  | `kind` (weapon-quality, weapon-flaw, armour-quality, armour-flaw) |
+  | qualities  | `kind` (weapon-quality, weapon-flaw, armour-quality, armour-flaw, item-quality, item-flaw) |
   | creatures  | `kind` (creature, npc), `species_type` (as printed), `traits` (trait names with their ratings) |
   | traits     | `rated` (true when it takes a rating, e.g. Armour (2)) |
   | diseases   | `contraction`, `incubation`, `duration` |
@@ -253,9 +253,11 @@ the source's words:
   `talents` choices, and random-talent rolls;
 - a skill's `characteristic`; a talent's `max` and `tests`;
 - a spell's `cn`, `range`, `target`, `duration`;
-- a weapon's `damage`, `reach` or `range`, `qualities`; an armour's
-  `locations`, `ap`, `qualities`; every trapping's `price`, `enc`,
-  `availability`;
+- a weapon's `damage`, `reach` or `range`, `qualities`, and `two_handed`
+  when it's marked (2H); an armour's `penalty`, `locations`, `armour_points`,
+  `qualities`; a container's or vehicle's `carries`; every trapping's `price`,
+  `enc`, `availability`, its table's `group` when it has one, and the table's
+  footnotes that mark it as `notes`;
 - a creature's `characteristics` (`{"M": 4, "WS": 30, …, "W": 12}`), `traits`
   and `optional_traits`.
 
