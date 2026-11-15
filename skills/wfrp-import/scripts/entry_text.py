@@ -171,16 +171,34 @@ def strip_bullet(text):
     return t[m.end():] if m else t
 
 
-def blocks_from_lines(lines, report, where, vocab=None, base_level=None):
+def ends_fields(run, l, labels):
+    """True when `l` starts the prose after a run of labelled field lines ("Motive: ...", "Aim:
+    ..." under a name, then the biography with no blank line between): the run opens with one of
+    `labels` in bold, its last line stops well short of the run's widest line, and `l` starts a
+    sentence without a label of its own."""
+    if not run or not labels:
+        return False
+    known = {x.lower() for x in labels}
+    if (label_of(run[0]) or '').lower() not in known or (label_of(l) or '').lower() in known:
+        return False
+    last = run[-1]
+    return (last['x1'] < max(x['x1'] for x in run) - 3 * last['size'] and
+            bool(re.match(r'^[A-Z‘“"\'(]', plain(l['text']))))
+
+
+def blocks_from_lines(lines, report, where, vocab=None, base_level=None, field_labels=()):
     """Lines -> content blocks: headings (lines marked `heading` by pdf_layout.py, at a smaller size
     than the entry's own when `base_level` is given), bulleted lists (lines starting "•"), and
-    paragraphs (a new one at a column, page or box change or a wider gap). A line carrying a
+    paragraphs (a new one at a column, page or box change or a wider gap, and, with the entry's
+    `field_labels`, where its labelled field lines end: ends_fields()). A line carrying a
     `block` (merge_lines()) is that block, and ends the paragraph before it."""
     blocks, buf, items, prev, bullet_x0 = [], [], [], None, None
     printed = {}                  # id(heading block) -> its words as printed
+    run = []                      # the lines of the paragraph being read
 
     def flush():
-        nonlocal buf, items
+        nonlocal buf, items, run
+        run = []
         if buf:
             blocks.append({'type': 'paragraph', 'text': join_lines(buf, report, where, vocab)})
         if items:
@@ -217,9 +235,10 @@ def blocks_from_lines(lines, report, where, vocab=None, base_level=None):
         elif items and prev is not None and not new_paragraph(l, prev) and l['x0'] > bullet_x0 + 1:
             items[-1].append(text)
         else:
-            if items or new_paragraph(l, prev):
+            if items or new_paragraph(l, prev) or ends_fields(run, l, field_labels):
                 flush()
             buf.append(text)
+            run.append(l)
         prev = l
     flush()
     return blocks

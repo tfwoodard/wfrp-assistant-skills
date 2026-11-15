@@ -120,6 +120,53 @@ class TitleCaseTest(unittest.TestCase):
         self.assertEqual(entry_text.fix_case('CharaCteristiC Xp'), 'Characteristic XP')
 
 
+class LoneColumnGutterTest(unittest.TestCase):
+    def words(self, x0, x1, rows=30):
+        return [{'x0': x0 + k % 2, 'x1': x1, 'baseline': 100.0 + 12 * k, 'size': 10.0} for k in range(rows)]
+
+    def test_the_gutter_runs_beside_a_lone_column_not_down_the_blank(self):
+        # Body text only in the right column (the left holds a boxed panel, read apart).
+        self.assertEqual(pdf_layout.find_gutter(self.words(319, 551), 609), 319 - pdf_layout.GUTTER_HALF)
+        # ...and only in the left.
+        self.assertEqual(pdf_layout.find_gutter(self.words(50, 292), 609), 293 + pdf_layout.GUTTER_HALF)
+
+    def test_between_two_columns_it_is_still_the_middle_of_the_gap(self):
+        g = pdf_layout.find_gutter(self.words(50, 292) + self.words(319, 551), 609)
+        self.assertEqual(g, 306.0)                     # free from 293 to 319
+
+
+class FieldsThenProseTest(unittest.TestCase):
+    def line(self, baseline, x1, *spans):
+        spans = [{'text': t, 'bold': b, 'italic': False, 'size': 10.0} for t, b in spans]
+        return {'page': 1, 'column': 'left', 'text': ' '.join(s['text'] for s in spans), 'size': 10.0,
+                'baseline': baseline, 'x0': 50.0, 'x1': x1, 'bold': False, 'italic': False, 'spans': spans}
+
+    def lines(self):
+        return [self.line(100, 200, ('Motive:', True), ('Keep the lamp lit.', False)),
+                self.line(113, 290, ('Aim:', True), ('Hand the tower on to a keeper who will', False)),
+                self.line(126, 110, ('stay.', False)),
+                self.line(139, 290, ('Hanne came to the tower as a girl and has', False)),
+                self.line(152, 150, ('never left it.', False))]
+
+    def test_prose_after_the_last_field_is_its_own_paragraph(self):
+        report = {'questions': [], 'dehyphenated': []}
+        blocks = entry_text.blocks_from_lines(self.lines(), report, 'Hanne', field_labels=('Motive', 'Aim'))
+        self.assertEqual([b['text'] for b in blocks],
+                         ['**Motive**: Keep the lamp lit. **Aim**: Hand the tower on to a keeper who will stay.',
+                          'Hanne came to the tower as a girl and has never left it.'])
+
+    def test_without_the_entrys_labels_nothing_changes(self):
+        report = {'questions': [], 'dehyphenated': []}
+        self.assertEqual(len(entry_text.blocks_from_lines(self.lines(), report, 'Hanne')), 1)
+        self.assertEqual(len(entry_text.blocks_from_lines(self.lines(), report, 'Hanne', field_labels=('Rank',))), 1)
+
+    def test_a_field_whose_last_line_is_full_runs_on(self):
+        lines = self.lines()
+        lines[2]['x1'] = 288
+        report = {'questions': [], 'dehyphenated': []}
+        self.assertEqual(len(entry_text.blocks_from_lines(lines, report, 'Hanne', field_labels=('Motive', 'Aim'))), 1)
+
+
 class TwoLineHeadingTest(unittest.TestCase):
     def test_a_heading_in_capitals_over_two_lines_is_title_cased_whole(self):
         def line(text, baseline, heading=None):
