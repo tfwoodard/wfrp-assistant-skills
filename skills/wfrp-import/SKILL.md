@@ -77,7 +77,9 @@ PDF or anything read from it into the repo.
    ```
 
    It orders each page's lines by column, marks page furniture (running heads,
-   page numbers) and gives heading levels from type size. If it reports pages
+   page numbers) and gives heading levels from type size. A boxed panel's lines
+   in the foot margin are content, not furniture. Still, read the left-out list
+   in every report: a body line there is a fault to fix, not a line to leave out. If it reports pages
    with no text layer, look at the page images and ask before running OCR.
 2. Check it's the chapter it should be: its first heading matches the chapter
    list. If not, say so and stop.

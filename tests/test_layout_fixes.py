@@ -319,3 +319,42 @@ class TitledTablesTest(unittest.TestCase):
         self.assertEqual([r[0] for r in regions['1.1.2']['rows']], ['Bay', 'Spit', 'Pier'])
         boxes = {l['text']: l['box'] for l in doc['lines'] if l.get('box')}
         self.assertEqual((boxes['NORTH LAMPS'], boxes['SOUTH LAMPS']), ('1.1.1', '1.1.2'))
+
+
+@unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the invented page')
+class PanelInTheFootMarginTest(unittest.TestCase):
+    """A panel that reaches into the foot margin: its last line is content, the page number is not."""
+
+    def read(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf, out = os.path.join(tmp, 'p.pdf'), os.path.join(tmp, 'l.json')
+            c = canvas.Canvas(pdf, pagesize=A4)
+            w, h = A4
+
+            def text(x, y, s, font='Helvetica', size=9):
+                c.setFont(font, size)
+                c.drawString(x, y, s)
+
+            text(150, h - 70, 'THE LANTERN TRADES', 'Helvetica-Bold', 30)
+            for k in range(20):
+                text(50, h - 110 - 12 * k, 'The keepers trim every wick before the dusk bell rings')
+                text(320, h - 110 - 12 * k, 'and the boats come home by the light of the north lamp')
+            c.drawImage(ImageReader(Image.new('RGB', (40, 40), (230, 220, 190))), 44, 20, 250, 60)
+            text(50, 66, 'Hanne keeps a spare lamp under the stair,')
+            text(50, 54, 'and a second wick beside it,')
+            text(50, 30, 'for the nights the oil runs low.')          # in the foot margin
+            text(320, 42, 'Lantern Trades Almanack')                    # a running foot, outside the panel
+            text(550, 24, '1')
+            c.save()
+            r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'pdf_layout.py'), pdf, '--pages', '1',
+                                '--boxes', '--out', out], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            with open(out) as f:
+                return json.load(f)
+
+    def test_the_panels_last_line_is_kept_and_the_running_foot_is_not(self):
+        lines = {l['text']: l for l in self.read()['lines']}
+        last = lines['for the nights the oil runs low.']
+        self.assertEqual((last.get('box'), last['furniture']), ('1.1', False))
+        self.assertTrue(lines['Lantern Trades Almanack']['furniture'])
+        self.assertTrue(lines['1']['furniture'])

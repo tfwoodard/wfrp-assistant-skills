@@ -764,6 +764,12 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
             sid = bid if len(parts) == 1 else f'{bid}.{k + 1}'
             for l in sl:
                 l['box'] = sid
+                # A panel reaching into the page's foot margin is still content: its last lines
+                # are not a running foot. (The page's own number stays furniture, and so does a
+                # running head a tall panel is drawn behind.)
+                if (l['furniture'] and l['text'].strip() != str(page_no) and
+                        l['top'] >= page.height * MARGIN_TOP):
+                    l['furniture'] = False
             region = {'id': sid, 'kind': 'box', 'page': page_no, 'bbox': [round(v, 1) for v in sub]}
             table = read_table(page, sub, sl)
             if table:
