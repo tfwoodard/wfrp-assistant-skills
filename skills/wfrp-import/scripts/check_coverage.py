@@ -7,7 +7,8 @@ Counts every word of the chapter's lines in LAYOUT.json (from pdf_layout.py;
 page furniture left out) and every word in the entries a converter wrote to
 OUT_DIR (each <slug>.json's name and content), plus the strings its
 `_report.json` lists under `left_out` (art credits, captions, anything left out
-on purpose) and the words it joined across a line end (`dehyphenated`). A word
+on purpose), the words it joined across a line end (`dehyphenated`) and the
+copies of a joined table's key column (`folded_keys`, counted and said). A word
 the pages have more often than the output is listed with
 the line it came from. Exit status 1 when any word is missing.
 
@@ -82,6 +83,12 @@ def main(argv=None):
                 got.update(words(s if isinstance(s, str) else s.get('text', '')))
             for d in data.get('dehyphenated', []):     # printed split over two lines, joined in the entry
                 got.update(words(d['from']))
+            for d in data.get('folded_keys', []):      # a key column printed once per part, kept once
+                n = sum(len(words(c)) for c in d['cells'])
+                print(f'credited: {n} words of {d["region"]} ({d["entry"]}): its key column, printed '
+                      f'once per part, kept once (folded_keys)')
+                for c in d['cells']:
+                    got.update(words(c))
         elif not name.startswith('_'):
             for s in strings({'name': data.get('name', ''), 'content': data.get('content', [])}):
                 got.update(words(s))

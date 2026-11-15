@@ -11,7 +11,8 @@ number of PDF pages before printed page 1 (the source's `page_offset`).
 Characters are grouped into lines by their **baseline**, so large and small
 capitals set on one line stay together, and into words by the space between
 them. Each page's **gutter** is found from where its words lie: an x position
-near the middle that (almost) no word crosses; a page set in three columns has
+near the middle that (almost) no word crosses (words set larger than the body
+text, like a title across both columns, aren't counted); a page set in three columns has
 two, one near each third (its columns are left, middle and right). A line is split at the gutter
 into its left and right parts; a line with a word across it is "full" width.
 On a page with no gutter every line is "full". Lines are read in bands: a full
@@ -198,12 +199,27 @@ def find_gutters(words, width, left=0.0, three=True):
     return [] if g is None else [g]
 
 
+def word_size(w):
+    return max(c['size'] for c in w['chars']) if w.get('chars') else w.get('size', 0)
+
+
+def body_words(words):
+    """The words set at most a point larger than the commonest size: titles and headings set
+    larger, which may run across both columns, left out."""
+    sizes = collections.Counter(round(word_size(w)) for w in words)
+    if not sizes:
+        return words
+    body = sizes.most_common(1)[0][0]
+    return [w for w in words if round(word_size(w)) <= body + 1]
+
+
 def find_gutter(words, width, left=0.0, zone=None):
     """The x of the gutter in `zone` (fractions of the width; default the middle) between `left`
     and `left + width`, or None. Counts, for each point across the zone, the words that cross it;
     the gutter is the middle of the widest run that at most a few cross."""
     zone = zone or GUTTER_ZONE
     lo, hi = int(left + width * zone[0]), int(left + width * zone[1])
+    words = body_words(words)          # a title set across both columns doesn't hide the gutter
     if len(words) < 12:
         return None
     rows = len({w['baseline'] for w in words})
