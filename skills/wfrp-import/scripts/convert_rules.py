@@ -41,7 +41,9 @@ runs until the next planned entry's heading. An entry is a rules entry (its
 "kind": procedure, condition, psychology, glossary) unless it names another
 "category" (diseases, lore), which keeps the plan's "kind" when it gives one
 (lore: god, place...). "field_labels" read the text after those bold labels
-("**Harbour Master**: ...", run together or a line each) into the entry's fields,
+("**Harbour Master**: ...", run together or a line each) into the entry's fields
+(where prose follows the last one with no blank line, the fields end at a line that stops
+well short of the column's width),
 and a missing one is an error; the paragraph they're printed in becomes a fields
 block, items in printed order, with any text before the first label kept. Smaller headings
 inside it become heading blocks. A heading the plan doesn't place, at the size
@@ -851,7 +853,7 @@ def convert(layout, plan, taken=(), library=None):
         spec = e['spec']
         name = spec['name']
         career = read_career(e, entries, lines, layout, plan, report) if spec.get('career') else None
-        content = blocks_from_lines(e['lines'], report, name, vocab, e['level'])
+        content = blocks_from_lines(e['lines'], report, name, vocab, e['level'], spec.get('field_labels', ()))
         # Subheadings take consecutive levels below the entry's own, whatever sizes the book used.
         ranks = sorted({b['level'] for b in content if b['type'] == 'heading'})
         for b in content:

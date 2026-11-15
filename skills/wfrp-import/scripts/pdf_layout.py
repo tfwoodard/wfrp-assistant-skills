@@ -108,6 +108,7 @@ ITALIC = re.compile(r'italic|oblique', re.I)
 MARGIN_TOP, MARGIN_BOTTOM = 0.06, 0.06   # fractions of the page height
 BASELINE_TOLERANCE = 1.5                 # points between baselines on one line
 WORD_GAP = 0.18                          # a gap wider than this x the type size splits words
+GUTTER_HALF = 5.0                        # points from a lone column's text to the gutter beside it
 GUTTER_ZONE = (0.38, 0.62)               # where to look for a gutter, as fractions of the width
 THIRDS_ZONES = ((0.25, 0.42), (0.58, 0.75))   # where a three-column page's two gutters fall
 FULL_PAGE_ROWS = 24                      # rows of body text from which a three-column page allows one crossing line
@@ -392,6 +393,13 @@ def find_gutter(words, width, left=0.0, zone=None, slack=0):
             run = None
     if best is None or best[1] - best[0] < 2:
         return None
+    # A column with no body text in it (only a boxed panel, or nothing) leaves the gap open to the
+    # edge of the zone: the gutter then runs beside the text that is there, not down the middle
+    # of the blank, where it would cut through whatever the empty column does hold.
+    if best[0] == 0 and best[1] < len(cover) - 1:
+        return lo + best[1] - GUTTER_HALF
+    if best[1] >= len(cover) - 1 and best[0] > 0:
+        return lo + best[0] + GUTTER_HALF
     return lo + (best[0] + best[1]) / 2
 
 
