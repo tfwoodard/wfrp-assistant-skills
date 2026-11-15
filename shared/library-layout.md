@@ -190,7 +190,7 @@ Each category folder in a `library-data/` holds:
   | spells     | `kind` (petty, arcane, lore, blessing, miracle, ritual), `lore` (lore or god), `cn`, `range`, `target`, `duration`; a ritual has `cn` (a number, or as printed: "The Daemon’s Willpower"), `type` (as printed: "Lore of Beasts", "Any Lore"; `lore` is the lore it names, or null), `learning_xp`, and in its entry `ingredients`, `conditions`, `sacrifices`, `consequences`, with no range, target or duration |
   | trappings  | `kind` (melee, ranged, ammunition, armour, item, …), `group` (weapon or armour group), `price`, `enc`, `availability` |
   | qualities  | `kind` (weapon-quality, weapon-flaw, armour-quality, armour-flaw, item-quality, item-flaw) |
-  | creatures  | `kind` (creature, npc), `species_type` (as printed), `traits` (trait names with their ratings) |
+  | creatures  | `kind` (creature, npc), `species_type` (as printed), `characteristics`, `traits` (trait names with their ratings), `title` (an NPC's career and status, as printed under its name); the entry also holds an NPC's `skills`, `talents`, `spells` (a list, or lists by group as printed), `trappings`, `marks` and `special` (other labelled paragraphs of its stat block) |
   | traits     | `rated` (true when it takes a rating, e.g. Armour (2)) |
   | diseases   | `contraction`, `incubation`, `duration` |
   | mutations  | `kind` (physical, mental) |

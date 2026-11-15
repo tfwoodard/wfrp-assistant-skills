@@ -5,15 +5,28 @@ Fel W", read as a heading), a row of values ("4 35 - 55 ..."; "-" for none), and
 lists: "Traits:" and "Optional:", their items split at commas outside brackets ("Trained (Broken,
 Entertain, War)" is one). An entry with two or more profiles names each by the short line
 printed above its header (a named individual: "Gruk – Troll Chieftain").
+
+A profile printed in a box of its own (box_profile(), for a box the plan marks "profile") opens
+with its name, sometimes a second line (a career and status), then the header and values, then
+bold-labelled runs: the lists (Traits, Optional, Skills, Talents, Trappings, Marks), the spells
+("Spells:", alone or with groups under it: "Petty:", "Arcane Spells:", "Lore of Lamps:"), and
+any other labelled paragraph (a note, a special rule), kept under `special`. A line set all in
+bold with no colon heads what follows the profile (an item's description): the box's text from
+there on is returned to be read as prose.
 """
 import re
 
-from entry_text import plain
+from entry_text import fix_case, join_lines, plain
 
 HEADER = re.compile(r'^M\s+WS\s+BS\b')
 LABELS = {'Traits': 'traits', 'Optional': 'optional_traits'}
 LABEL = re.compile(r'\*{2,3}(' + '|'.join(LABELS) + r')\*{2,3}:?\s*|\*{2,3}(' + '|'.join(LABELS) + r'):\*{2,3}\s*')
 NAME_WORDS = 12
+LISTS = {'traits': 'traits', 'optional': 'optional_traits', 'skills': 'skills', 'talents': 'talents',
+         'trappings': 'trappings', 'marks': 'marks'}
+SPELL_GROUP = re.compile(r'^(Petty|Arcane|Lore of .+|.+ Magic)( Magic)?( Spells)?$')
+BOX_FIELDS = ('characteristics', 'traits', 'optional_traits', 'skills', 'talents', 'spells', 'trappings',
+              'marks', 'special', 'title', 'profile_name')
 
 
 def split_list(text):
@@ -91,3 +104,100 @@ def stat_blocks(content, report, where):
         out.remove(above)
     return out, {'profiles': [dict({'name': p.get('name')}, **{k: v for k, v in p.items() if k != 'name'})
                               for p in profiles]}
+
+
+def box_profile(lines, report, where):
+    """A box holding one profile -> (the profile, the box's lines after it). The profile has
+    `name`, `title` (a second line above the header, when printed), `characteristics`, a list for
+    each of Traits, Optional, Skills, Talents, Trappings and Marks printed, `spells` (a list, or
+    {group: list} when grouped), `special` ([{label, text}] for other labelled paragraphs) and
+    `lines` ([{label, text}], every labelled run in printed order). No header, or values that
+    don't match it, is an error and returns (None, lines)."""
+    h = next((i for i, l in enumerate(lines) if HEADER.match(plain(l['text']))), None)
+    if h is None or h + 1 >= len(lines):
+        report['errors'].append({'error': f'{where}: a profile box with no characteristics header'})
+        return None, lines
+    names = plain(lines[h]['text']).split()
+    vals = plain(lines[h + 1]['text']).split()
+    if len(vals) != len(names):
+        report['errors'].append({'error': f'{where}: {len(names)} characteristics, but the row under them '
+                                          f'reads {lines[h + 1]["text"]!r}'})
+        return None, lines
+    report['left_out'].append(plain(lines[h]['text']))        # the header: kept as the characteristics' keys
+    above = [fix_case(plain(l['text'])) for l in lines[:h]]
+    prof = {'name': above[0] if above else where}
+    if len(above) > 1:
+        prof['title'] = ' '.join(above[1:])
+    prof['characteristics'] = {n: number(v) for n, v in zip(names, vals)}
+    runs, i = [], h + 2                  # [[labels], [line fragments]]
+    while i < len(lines):
+        l = lines[i]
+        first = l['spans'][0]
+        lead = first['text'].strip()
+        if first['bold'] and lead.endswith(':'):
+            rest = ' '.join(sp['text'].strip() for sp in l['spans'][1:]).strip()
+            runs.append([[x.strip() for x in lead[:-1].split(':')], [rest] if rest else []])
+        elif l['bold'] or not runs:
+            break                        # a line all in bold, no colon: a heading for what follows
+        else:
+            runs[-1][1].append(' '.join(sp['text'].strip() for sp in l['spans']))
+        i += 1
+    printed, spells, group, kept = [], {}, None, []
+    for labels, parts in runs:
+        text = join_lines(parts, report, where) if parts else ''
+        printed.append({'label': ': '.join(labels), 'text': text})
+        for k, lab in enumerate(labels):
+            last = k == len(labels) - 1
+            if lab.lower() in LISTS and last:
+                prof[LISTS[lab.lower()]] = split_list(text)
+                kept.append(lab)               # the label: kept as the field's name
+                group = None
+            elif lab == 'Spells':
+                group = ''
+                kept.append(lab)
+                if last and text:
+                    spells[''] = split_list(text)
+            elif SPELL_GROUP.match(lab) and (group is not None or len(labels) > 1 or lab.endswith('Spells')) and last:
+                spells[lab] = split_list(text)
+                kept.append(lab)               # the group: kept as a key
+                group = lab
+            elif last:
+                prof.setdefault('special', []).append({'label': lab, 'text': text})
+                group = None
+            else:
+                report['errors'].append({'error': f'{where}: label {": ".join(labels)!r} in a profile is not read'})
+    if spells:
+        prof['spells'] = spells[''] if list(spells) == [''] else {k: v for k, v in spells.items() if k}
+        if '' in spells and len(spells) > 1:
+            prof['spells'][''] = spells['']
+    prof['lines'] = printed
+    prof['_labels'] = kept       # printed labels the fields hold as keys: profile_fields() credits them
+    return prof, lines[i:]
+
+
+def profile_fields(profiles, entry_name, report):
+    """The fields an entry takes from the profile boxes it holds: one profile's own fields (its
+    name kept as `profile_name` when it says more than the entry's), or `profiles` for several."""
+    def fields(p, named):
+        out = {k: v for k, v in p.items() if k in BOX_FIELDS}
+        return dict({'name': p['name']}, **out) if named else out
+    report['left_out'] += [lab for p in profiles for lab in p['_labels']]
+    if len(profiles) > 1:
+        return {'profiles': [fields(p, True) for p in profiles]}
+    p = profiles[0]
+    out = fields(p, False)
+    if re.sub(r'\W+', '', p['name']).lower() != re.sub(r'\W+', '', entry_name).lower():
+        out['profile_name'] = p['name']
+    else:
+        report['left_out'].append(p['name'])                 # the entry's own name, printed again
+    return out
+
+
+def profile_block(p):
+    """A profile as a content block, for an entry that isn't the creature's own (a ritual's
+    construct): its name, title, characteristics and labelled lines as printed."""
+    block = {'type': 'profile', 'name': p['name'], 'characteristics': p['characteristics'], 'lines': p['lines']}
+    if p.get('title'):
+        block['meta'] = p['title']
+    return block
+

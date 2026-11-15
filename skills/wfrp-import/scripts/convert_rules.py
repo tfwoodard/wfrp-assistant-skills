@@ -85,7 +85,9 @@ Boxes (pdf_layout.py --boxes). A box becomes a sidebar, under its own title
 the columns it spans; with no text above it there, in the entry running into
 the page. The plan
 can send it to another entry ("to"), or a copy to each of several (a list),
-make it an entry of its own ("entry"),
+make it an entry of its own ("entry"), read it as a stat block ("profile": the fields of a
+"stat_blocks" entry, creatures.box_profile(), with skills, talents, spells, trappings, marks
+and other labelled paragraphs; a profile block in any other entry's text),
 read it as the page's own text ("text": a tinted backdrop the layout took for a box),
 or mark it a diagram ("diagram": a flowchart or picture with words, left out
 and listed for transcription by hand). A box read as a ruled table becomes a
@@ -804,8 +806,20 @@ def convert(layout, plan, taken=(), library=None):
         for b in content:
             if b['type'] == 'heading':
                 b['level'] = (e['level'] or 1) + 1 + ranks.index(b['level'])
+        box_profiles = []
         for bid in e['boxes']:
             bl = [x for x in lines if x.get('box') == bid]
+            if boxes_plan.get(bid, {}).get('profile'):
+                # A stat block in a box of its own: the entry's fields when the entry is the
+                # creature (stat_blocks), a profile block in its text otherwise. What the box
+                # prints after the profile is read as the entry's prose.
+                prof, after = creatures.box_profile(bl, report, name)
+                if prof:
+                    box_profiles.append(prof)
+                    if not spec.get('stat_blocks'):
+                        content.append(creatures.profile_block(prof))
+                    content += blocks_from_lines(after, report, name, vocab) if after else []
+                    continue
             title, body, tlines = box_parts(bl)
             region = regions.get(bid, {})
             inner = blocks_from_lines(body, report, name, vocab)
@@ -853,7 +867,9 @@ def convert(layout, plan, taken=(), library=None):
             at = next((k for k, b in enumerate(content) if b['type'] in ('heading', 'sidebar')), len(content))
             content = ([species_block] if species_block else []) + content[:at] + \
                 ([levels_block] if levels_block else []) + content[at:]
-        if spec.get('stat_blocks'):
+        if spec.get('stat_blocks') and box_profiles:
+            fields.update(creatures.profile_fields(box_profiles, name, report))
+        elif spec.get('stat_blocks'):
             content, prof = creatures.stat_blocks(content, report, name)
             fields.update(prof)
         text = '\n'.join(b['text'] for b in content if b['type'] == 'paragraph')
@@ -886,7 +902,11 @@ def convert(layout, plan, taken=(), library=None):
         out.append((cat, entry))
         rec = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
                'section': entry['section'], 'page': spec['page'], '_category': cat}
-        rec.update({k: v for k, v in fields.items() if not (career and k == 'advances')})
+        # (the index holds what a search filters on: a career's advances and an NPC's skills,
+        # talents, spells and trappings stay in the entry)
+        unlisted = (('advances',) if career else ()) + \
+            (('skills', 'talents', 'spells', 'trappings', 'marks', 'special') if cat == 'creatures' else ())
+        rec.update({k: v for k, v in fields.items() if k not in unlisted})
         if spec.get('aliases'):
             rec['aliases'] = spec['aliases']
         if spec.get('audience'):
