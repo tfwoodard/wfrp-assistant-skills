@@ -192,11 +192,14 @@ class CareerInChapterTest(unittest.TestCase):
             self.assertEqual(sorted(r['slug'] for r in records), ['beacon-law', 'lamp-warden', 'tower-trades'])
             self.assertNotIn('same_name', report)
         with tempfile.TemporaryDirectory() as d:
-            _, _, report, records = self.convert(d, taken=[('careers', ['lamp-warden']), ('rules', ['beacon-law'])])
+            plan = dict(PLAN, relations={'careers/lamp-warden-test': [{'role': 'replaces', 'to': 'careers/lamp-warden'}],
+                                         'rules/beacon-law-test': [{'role': 'adds-to', 'to': 'rules/beacon-law'}]})
+            _, _, report, records = self.convert(d, taken=[('careers', ['lamp-warden']), ('rules', ['beacon-law'])],
+                                                 plan=plan)
             self.assertEqual(sorted(r['slug'] for r in records), ['beacon-law-test', 'lamp-warden-test', 'tower-trades'])
             self.assertEqual(report['same_name'], [
-                {'category': 'careers', 'name': 'Lamp Warden', 'taken': 'lamp-warden'},
-                {'category': 'rules', 'name': 'Beacon Law', 'taken': 'beacon-law'}])
+                {'category': 'careers', 'name': 'Lamp Warden', 'taken': 'lamp-warden', 'relation': 'from the plan'},
+                {'category': 'rules', 'name': 'Beacon Law', 'taken': 'beacon-law', 'relation': 'from the plan'}])
 
     def test_a_career_without_its_class_or_icons_is_an_error(self):
         with tempfile.TemporaryDirectory() as d:

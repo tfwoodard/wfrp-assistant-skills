@@ -74,8 +74,11 @@ the description. A line of the scheme's box that isn't read is an error.
 
 Slugs. --taken CATEGORY=_index.json (repeatable) gives the slugs other sources' entries hold,
 category by category: an entry whose slug is taken in its own category gets the source's code
-after it, and is listed under `same_name` for the plan's "relations" to say how the two relate
-(replaces, reprint-of, adds-to, distinct-from). A table whose planned slug is taken is an error.
+after it, and is listed under `same_name`. Each needs a relation to the entry whose name it
+took: the plan's "relations" (replaces, reprint-of, adds-to, distinct-from), or, with
+--library-data (the library's local library-data folder), the one their texts give: the same
+words are a reprint-of, any difference a replaces (`same_name` says which, for checking). With
+neither it is an error. A table whose planned slug is taken is an error.
 
 Boxes (pdf_layout.py --boxes). A box becomes a sidebar, under its own title
 (its heading lines), in the entry whose text runs just above it on its page in
@@ -238,6 +241,38 @@ def free_slug(slug, cat, name, plan, taken, used_slugs, report):
     return slug
 
 
+def all_text(value):
+    """Every word an entry's content holds, as one string of letters and digits: two printings of
+    a text compare equal however their lines broke."""
+    if isinstance(value, dict):
+        return ''.join(all_text(v) for k, v in value.items() if k not in ('type', 'level', 'data'))
+    if isinstance(value, list):
+        return ''.join(all_text(v) for v in value)
+    return re.sub(r'[\W_]+', '', plain(value).lower()) if isinstance(value, str) else ''
+
+
+def relate_same_name(cat, entry, rec, plan, library, report):
+    """An entry that took another source's entry's name (the last under `same_name`) needs a
+    relation to it. The plan's stands; without one, the two texts are compared, when the
+    library's entries are at hand (--library-data): the same words make it a reprint-of, any
+    difference a replaces. With neither it is an error: nobody decided."""
+    item = report['same_name'][-1]
+    theirs = item['taken']
+    if entry.get('relations'):
+        item['relation'] = 'from the plan'
+        return
+    path = os.path.join(library, cat, theirs + '.json') if library else None
+    if not path or not os.path.exists(path):
+        report['errors'].append({'error': f'{cat}/{entry["slug"]}: another source has {cat}/{theirs}. Give the two '
+                                          'a relation in the plan, or pass --library-data to compare their text'})
+        return
+    with open(path, encoding='utf-8') as f:
+        other = json.load(f)
+    role = 'reprint-of' if all_text(entry['content']) == all_text(other['content']) else 'replaces'
+    entry['relations'] = rec['relations'] = [{'role': role, 'to': f'{cat}/{theirs}'}]
+    item['relation'] = role
+
+
 def read_career(e, entries, lines, layout, plan, report):
     """A career printed inside a chapter (the plan entry's "career": {"class": ...}): its species
     line, under its heading, and the box holding its advance scheme and career path, read as
@@ -306,6 +341,9 @@ def add_entry(spec, out, records, plan, taken, used_slugs):
     if rel:
         rec['relations'] = rel
     records.append(rec)
+    if slug != (spec.get('slug') or slugify(name)) and spec.get('_report') and \
+            spec['_report'].get('same_name', [{}])[-1].get('name') == name and 'relation' not in spec['_report']['same_name'][-1]:
+        relate_same_name(cat, entry, rec, plan, spec.get('_library'), spec['_report'])
 
 
 def headings_to_rows(content, columns, report, where):
@@ -607,7 +645,7 @@ def column_tables(lines, regions, tables_plan, report):
             l['table'] = True
 
 
-def convert(layout, plan, taken=()):
+def convert(layout, plan, taken=(), library=None):
     report = {'errors': [], 'questions': [], 'left_out': [], 'tables_to_confirm': [], 'diagrams': [], 'sizes': {}}
     regions = {r['id']: dict(r) for r in layout.get('regions', [])}
     merged = set()
@@ -856,13 +894,17 @@ def convert(layout, plan, taken=()):
         if rel:
             rec['relations'] = rel
         records.append(rec)
+        same = report.get('same_name', [])
+        if same and 'relation' not in same[-1] and same[-1]['name'] == name and same[-1]['category'] == cat:
+            relate_same_name(cat, entry, rec, plan, library, report)
         for sub in split:
-            add_entry(dict(sub, _report=report), out, records, plan, taken, used_slugs)
+            add_entry(dict(sub, _report=report, _library=library), out, records, plan, taken, used_slugs)
 
     describe_items(found_items, describers, plan, report)
     for it in found_items:
         add_entry({'name': it['name'], 'category': 'trappings', 'page': it['page'], 'section': it['section'],
-                   'fields': it['fields'], 'content': it.get('content', []), '_report': report},
+                   'fields': it['fields'], 'content': it.get('content', []), '_report': report,
+                   '_library': library},
                   out, records, plan, taken, used_slugs)
     if found_items:
         report['items'] = len(found_items)
@@ -913,12 +955,14 @@ def main(argv=None):
     ap.add_argument('--out', required=True)
     ap.add_argument('--taken', action='append', default=[],
                     help='CATEGORY=_index.json of entries already in the library (repeatable)')
+    ap.add_argument('--library-data', help="the library's library-data folder (its local copy): an entry "
+                    "that takes another source's entry's name is compared with it there")
     a = ap.parse_args(argv)
     with open(a.layout, encoding='utf-8') as f:
         layout = json.load(f)
     with open(a.plan, encoding='utf-8') as f:
         plan = json.load(f)
-    entries, records, report = convert(layout, plan, read_taken(a.taken, plan['source']))
+    entries, records, report = convert(layout, plan, read_taken(a.taken, plan['source']), a.library_data)
     return write_outputs(entries, records, report, a.out)
 
 
