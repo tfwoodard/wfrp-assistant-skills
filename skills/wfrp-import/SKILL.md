@@ -160,8 +160,16 @@ in the library or in the same chapter (pass every category's `_index.json`
 with `--taken`), the plan must say how they relate, under `relations` (layout
 §4): `adds-to`, `replaces`, `reprint-of`, `updated-by`, or `distinct-from`.
 Read both entries before deciding, never decide from source precedence, and
-ask the Librarian whenever it isn't certain. Mark GM-only material with
-`audience: "gm"`. The decisions live in the plan, so a re-import keeps them.
+ask the Librarian whenever it isn't certain. The decisions live in the plan,
+so a re-import keeps them.
+
+**GM-only material.** Mark it `audience: "gm"` in the plan: adventures and
+adventure hooks (boxed or printed in the text), and the NPCs a book offers as
+patrons or adversaries, with their profiles, ambitions and "as Patron" text.
+A patron's hooks are entries of their own, related to the NPC (`adds-to`);
+split a box of hooks with the box's `entries`. Careers, spells, items and the
+rules a player uses stay unmarked. Ask the Librarian about anything else that
+reads as the GM's.
 
 **A source of an older edition** (layout §8 "Editions"): its plan also lists
 every rule it holds (career, spell, talent, creature) with the 4e entry that
