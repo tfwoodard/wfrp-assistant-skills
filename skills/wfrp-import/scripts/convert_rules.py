@@ -113,11 +113,117 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_entry import render  # noqa: E402
+import items  # noqa: E402
 from entry_text import (blocks_from_lines, fix_case, merge_lines, norm, plain, slugify, split_row,  # noqa: E402
                         table_data, vocabulary)
 
 
 SUBHEADING = 99      # the heading level given to a plan's "subheadings": below every printed level
+
+
+def split_at_headings(content, lines, spec, report, where):
+    """An entry's "split_headings" ({"category", "kind"}): each of its top subheadings, with the
+    blocks under it, becomes an entry of its own (a list of weapon qualities); the text before
+    the first stays the entry's. A "dividers" heading ({heading: kind}, "Armour Flaws") is no
+    entry: it and its text stay the entry's, and the headings after it take its kind. Returns
+    (the entry's content, the new entries)."""
+    opt = spec['split_headings']
+    dividers = {norm(k): v for k, v in opt.get('dividers', {}).items()}
+    kind, seen = opt.get('kind'), set()
+    heads = [b['level'] for b in content if b['type'] == 'heading']
+    if not heads:
+        report['errors'].append({'error': f'{where}: split_headings, but the entry has no headings'})
+        return content, []
+    top = min(heads)
+    keep, subs, after = [], [], 0
+    for b in content:
+        if b['type'] == 'heading' and b['level'] == top and norm(b['text']) in dividers:
+            kind = dividers[norm(b['text'])]          # "Armour Flaws": the headings after it are flaws
+            seen.add(norm(b['text']))
+            keep.append(b)
+            subs.append(None)
+        elif b['type'] == 'heading' and b['level'] == top:
+            hit = next((i for i, l in enumerate(lines) if i >= after and l.get('heading') and
+                        norm(b['text']).startswith(norm(fix_case(plain(l['text']))))), None)
+            if hit is None:
+                report['errors'].append({'error': f'{where}: no page for the heading {b["text"]!r}'})
+            page = lines[hit]['page'] if hit is not None else spec['page']
+            after = hit + 1 if hit is not None else after
+            subs.append({'name': b['text'], 'category': opt['category'], 'kind': kind,
+                         'page': page, 'section': spec['name'], 'content': []})
+        elif subs and subs[-1] is None:
+            keep.append(b)                            # a divider's own text stays the entry's
+        elif subs:
+            if b['type'] == 'heading':
+                b = dict(b, level=b['level'] - (top - 2))
+            subs[-1]['content'].append(b)
+        else:
+            keep.append(b)
+    for d in set(dividers) - seen:
+        report['errors'].append({'error': f'{where}: no divider heading {d!r}'})
+    return keep, [x for x in subs if x]
+
+
+def describe_items(found, describers, plan, report):
+    """Paragraphs that open with an item's name as a bold label ("**Coat:** Protects ..."), in
+    entries marked "describes_items", move to that item, without the label. A label naming no
+    item stays where it is and is listed under `labels_kept`; two items of one name are an error,
+    unless the plan's "rename" ({"<table>/<name>" or "<table>/<group>/<name>": new name})
+    tells them apart."""
+    for it in found:
+        ren = plan.get('rename', {})
+        new = ren.get(f'{it["region"]}/{it["fields"].get("group", "")}/{it["name"]}') or \
+            ren.get(f'{it["region"]}/{it["name"]}')
+        if new:
+            report.setdefault('renamed', []).append({'region': it['region'], 'from': it['name'], 'to': new})
+            it['name'] = new
+    by_name = {}
+    for it in found:
+        by_name.setdefault(norm(it['name']), []).append(it)
+    for key, its in by_name.items():
+        if len(its) > 1:
+            report['errors'].append({'error': f'{len(its)} items named {its[0]["name"]!r} '
+                                              f'(tables {", ".join(i["region"] for i in its)}): rename them'})
+    for where, content in describers:
+        for b in list(content):
+            lab = items.label(b['text']) if b['type'] == 'paragraph' else None
+            if not lab:
+                continue
+            match = [it for it in found if items.same_item(it['name'], lab[0])]
+            if len(match) == 1:
+                match[0].setdefault('content', []).append({'type': 'paragraph', 'text': lab[1]})
+                content.remove(b)
+                report.setdefault('descriptions_moved', []).append(match[0]['name'])
+                report['left_out'].append(lab[0])     # the label: the item's name again
+            else:
+                report.setdefault('labels_kept', []).append({'entry': where, 'label': lab[0],
+                                                             'items': len(match)})
+
+
+def add_entry(spec, out, records, plan, taken, used_slugs):
+    """An entry made from part of another (a split heading, a price-table row): written and
+    indexed like the plan's own."""
+    cat, name = spec['category'], spec['name']
+    fields = dict(spec.get('fields') or ({'kind': spec['kind']} if spec.get('kind') else {}))
+    slug = spec.get('slug') or slugify(name)
+    if slug in taken or (cat, slug) in used_slugs:     # a slug is one entry's within its category
+        slug = f'{slug}-{plan["source"].lower()}'
+    used_slugs.add((cat, slug))
+    entry = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
+             'section': spec['section'], 'page': spec['page'], 'level': 1, 'fields': fields,
+             'content': spec['content']}
+    if cat == 'rules':
+        entry['kind'] = fields.get('kind', 'procedure')
+    rel = plan.get('relations', {}).get(f'{cat}/{slug}') or plan.get('relations', {}).get(slug)
+    if rel:
+        entry['relations'] = rel
+    out.append((cat, entry))
+    rec = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
+           'section': spec['section'], 'page': spec['page'], '_category': cat}
+    rec.update(fields)
+    if rel:
+        rec['relations'] = rel
+    records.append(rec)
 
 
 def headings_to_rows(content, columns, report, where):
@@ -267,8 +373,40 @@ def strip_title(row, title):
 
 
 def table_block(region, title, plan_t, report, where):
+    cols, rows, banners, width, title = table_cells(region, title, plan_t, report, where)
+    plan_t = plan_t or {}
+    groups, kept = [], []
+    for r in rows:                    # a row with only its first cell filled heads the rows below
+        if width > 2 and r and r[0].strip() and not any(c.strip() for c in r[1:]):
+            groups.append({'before': len(kept), 'text': r[0].strip()})
+        else:
+            kept.append(r)
+    if groups:
+        rows = kept
+        report.setdefault('group_rows', []).append({'entry': where, 'region': region['id'],
+                                                    'groups': [g['text'] for g in groups]})
+    names = cols if cols else [f'Column {i + 1}' for i in range(width)]
+    block = {'type': 'table', 'title': title, 'columns': cols or [''] * width,
+             'rows': rows, 'data': table_data(names, rows, report, where, plan_t.get('roll_column'))}
+    if banners:
+        block['banners'] = banners
+    if groups:
+        block['groups'] = groups
+    report['tables_to_confirm'].append({'entry': where, 'region': region['id'], 'page': region['page'],
+                                        'title': block['title'], 'columns': len(names), 'rows': len(rows)})
+    return block
+
+
+def table_cells(region, title, plan_t, report, where):
+    """A table region's (columns, rows, banners, width, title) as its plan reads them: a cell
+    holding two columns split ("split_column"), a banner, a header row, folded halves, a title
+    printed in the first row, and the columns' names."""
     cols, rows = list(region.get('columns') or []), [list(r) for r in region['rows']]
     plan_t = plan_t or {}
+    if plan_t.get('split_column'):
+        sc = plan_t['split_column']
+        cols, rows = items.split_column(cols, rows, sc['index'], sc['words'], report,
+                                        f'{where}: table {region["id"]}')
     banners = []
     if plan_t.get('banner'):          # the header read is a banner printed across the columns
         text = ' '.join(c for c in cols if c.strip())
@@ -318,26 +456,7 @@ def table_block(region, title, plan_t, report, where):
             cols = list(plan_t['columns'])
     if not any(c.strip() for c in cols):
         cols = []
-    groups, kept = [], []
-    for r in rows:                    # a row with only its first cell filled heads the rows below
-        if width > 2 and r and r[0].strip() and not any(c.strip() for c in r[1:]):
-            groups.append({'before': len(kept), 'text': r[0].strip()})
-        else:
-            kept.append(r)
-    if groups:
-        rows = kept
-        report.setdefault('group_rows', []).append({'entry': where, 'region': region['id'],
-                                                    'groups': [g['text'] for g in groups]})
-    names = cols if cols else [f'Column {i + 1}' for i in range(width)]
-    block = {'type': 'table', 'title': title, 'columns': cols or [''] * width,
-             'rows': rows, 'data': table_data(names, rows, report, where, plan_t.get('roll_column'))}
-    if banners:
-        block['banners'] = banners
-    if groups:
-        block['groups'] = groups
-    report['tables_to_confirm'].append({'entry': where, 'region': region['id'], 'page': region['page'],
-                                        'title': block['title'], 'columns': len(names), 'rows': len(rows)})
-    return block
+    return cols, rows, banners, width, title
 
 
 def text_tables(lines, plans, report):
@@ -550,6 +669,7 @@ def convert(layout, plan, taken=()):
 
     out, records = [], []
     used_slugs = set()
+    found_items, describers = [], []
     for e in entries:
         spec = e['spec']
         name = spec['name']
@@ -564,8 +684,22 @@ def convert(layout, plan, taken=()):
             title, body, tlines = box_parts(bl)
             region = regions.get(bid, {})
             inner = blocks_from_lines(body, report, name, vocab)
-            if region.get('kind') == 'table':
-                inner.append(table_block(region, title, tables_plan.get(bid), report, name))
+            plan_t = tables_plan.get(bid) or {}
+            if region.get('kind') == 'table' and plan_t.get('items'):
+                # A price table: one trapping per row; its footnotes go to the items they mark.
+                where = f'{name}: table {bid}'
+                cols, rows, _, _, _ = table_cells(region, title, plan_t, report, where)
+                report['left_out'].append(' '.join(region.get('columns') or []))  # the header: field names
+                notes, rest = items.footnotes(body)
+                inner = blocks_from_lines(rest, report, name, vocab) if rest else []
+                for it in items.item_rows(cols, rows, plan_t['items'], notes, report, where):
+                    found_items.append(dict(it, region=bid, page=region['page'], section=name))
+                if not inner:
+                    if title:
+                        report['left_out'].append(title)      # the price table's title
+                    continue
+            elif region.get('kind') == 'table':
+                inner.append(table_block(region, title, plan_t, report, name))
             if e.get('own_box'):
                 if title and norm(title) != norm(name):
                     inner.insert(0, {'type': 'heading', 'level': 2, 'text': title})
@@ -576,6 +710,11 @@ def convert(layout, plan, taken=()):
                 content.append({'type': 'sidebar', 'title': title, 'content': inner})
         if spec.get('headings_as_rows'):
             content = headings_to_rows(content, spec['headings_as_rows'], report, name)
+        split = []
+        if spec.get('split_headings'):
+            content, split = split_at_headings(content, e['lines'], spec, report, name)
+        if spec.get('describes_items'):
+            describers.append((name, content))
         cat = spec.get('category', 'rules')
         fields = {'kind': spec.get('kind', 'procedure')} if cat == 'rules' else \
             ({'kind': spec['kind']} if spec.get('kind') else {})
@@ -592,9 +731,9 @@ def convert(layout, plan, taken=()):
         if spec.get('field_labels'):
             content = labelled_to_fields(content, spec['field_labels'])
         slug = spec.get('slug') or slugify(name)
-        if slug in taken or slug in used_slugs:
+        if slug in taken or (cat, slug) in used_slugs:
             slug = f'{slug}-{plan["source"].lower()}'
-        used_slugs.add(slug)
+        used_slugs.add((cat, slug))
         entry = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
                  'section': spec.get('heading', name), 'page': spec['page'], 'level': e['level'] or 1,
                  'fields': fields, 'content': content}
@@ -620,6 +759,15 @@ def convert(layout, plan, taken=()):
         if rel:
             rec['relations'] = rel
         records.append(rec)
+        for sub in split:
+            add_entry(sub, out, records, plan, taken, used_slugs)
+
+    describe_items(found_items, describers, plan, report)
+    for it in found_items:
+        add_entry({'name': it['name'], 'category': 'trappings', 'page': it['page'], 'section': it['section'],
+                   'fields': it['fields'], 'content': it.get('content', [])}, out, records, plan, taken, used_slugs)
+    if found_items:
+        report['items'] = len(found_items)
 
     for bid, t in tables_plan.items():
         if not t.get('slug'):
