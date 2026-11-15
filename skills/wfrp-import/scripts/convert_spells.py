@@ -26,6 +26,17 @@ left out and listed. The spells are found, not listed: in a list, every heading 
 the first one followed by a field line (CN, Range, Target or Duration) is a spell, and one at that
 level without field lines is an error.
 
+A list of kind "ritual" holds rituals: each opens with a block of fields that run over several
+lines and can share one (CN and Type; Learning XP; Ingredients, Conditions, Sacrifices,
+Consequences), up to the blank line before its description. All seven are needed; `cn` and
+`learning_xp` are numbers where printed as numbers, `type` is as printed and `lore` the lore it
+names ("Lore of Lamps" -> "Lamps"), or null. A list's "not_spells" names plain subheadings
+printed at its spells' size.
+
+--taken CATEGORY=_index.json (repeatable; a bare path is the spells index) and --library-data
+work as in convert_rules.py: a spell with another source's spell's name gets the source's code
+after its slug and a relation to it, from the plan or from comparing their text.
+
 A spell's fields: `kind` and `lore` from its list (`lore` may be null), and `cn`, `range`,
 `target`, `duration` from its field lines, which stay in the content as a fields block. A spell
 without Range, Target or Duration is an error; a "petty", "arcane" or "lore" spell without CN
@@ -39,14 +50,17 @@ entries, `_records.json` (with `_category`) and `_report.json`.
 import argparse
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from convert_rules import convert, heading_runs, write_outputs  # noqa: E402
-from entry_text import label_of, norm, plain, slugify, top_fields  # noqa: E402
+from convert_rules import convert, heading_runs, read_taken, write_outputs  # noqa: E402
+from entry_text import block_fields, fix_case, label_of, norm, plain, slugify, top_fields  # noqa: E402
 
 LABELS = {'cn': 'cn', 'range': 'range', 'target': 'target', 'targets': 'target', 'duration': 'duration'}
 NEEDS_CN = ('petty', 'arcane', 'lore')
+RITUAL_LABELS = {'cn': 'cn', 'type': 'type', 'learning xp': 'learning_xp', 'ingredients': 'ingredients',
+                 'conditions': 'conditions', 'sacrifices': 'sacrifices', 'consequences': 'consequences'}
 
 
 def list_spans(lines, runs, plan, report):
@@ -78,7 +92,7 @@ def find_spells(lines, runs, spans, report):
 
         def has_fields(last):
             nxt = lines[last + 1] if last + 1 < len(lines) else None
-            return bool(nxt and (label_of(nxt) or '').lower() in LABELS)
+            return bool(nxt and (label_of(nxt) or '').lower() in LABELS)       # a ritual opens with CN too
 
         first = next((j for j, (t, last) in cand if has_fields(last)), None)
         if first is None:
@@ -88,16 +102,19 @@ def find_spells(lines, runs, spans, report):
         for j, (text, last) in cand:
             if lines[j]['heading'] != level:
                 continue
+            if norm(plain(text)) in [norm(n) for n in lst.get('not_spells', [])]:
+                continue                               # a plain subheading printed at the spells' size
             if not has_fields(last):
                 report['errors'].append({'error': f'heading {text!r} on page {lines[j]["page"]} is at the level of '
                                          f'the spells in {lst["name"]!r} but has no CN/Range/Target/Duration lines'})
                 continue
-            spec = {'name': plain(text), 'page': lines[j]['page'], 'category': 'spells'}
+            # (a name set in display capitals reads back in a jumble of cases)
+            spec = {'name': fix_case(plain(text)), 'page': lines[j]['page'], 'category': 'spells'}
             found.append((j, last, spec, {'kind': lst['kind'], 'lore': lst.get('lore')}))
     return found
 
 
-def convert_chapter(layout, plan, taken=()):
+def convert_chapter(layout, plan, taken=(), library=None):
     report = {'errors': []}
     lines = [l for l in layout['lines'] if not l['furniture']]
     runs = heading_runs(lines)
@@ -107,15 +124,24 @@ def convert_chapter(layout, plan, taken=()):
     parsed = {}
     # Read each spell's field lines into a fields block, from the last spell up.
     for j, last, spec, fields in sorted(found, key=lambda x: -x[0]):
-        n, line, got = top_fields(lines[last + 1:], LABELS, report, spec['name'],
-                                  usual=('cn', 'range', 'target', 'duration'))
-        lines = lines[:last + 1] + [line] + lines[last + 1 + n:]
+        if fields['kind'] == 'ritual':
+            n, line, got = block_fields(lines[last + 1:], RITUAL_LABELS, report, spec['name'])
+            needed = tuple(RITUAL_LABELS.values())
+            # "Lore of Lamps" names the lore; "Any Lore" and the like name none.
+            m = re.fullmatch(r'Lore of (?:the )?(\w+)', got.get('type', ''))
+            got['lore'] = m.group(1) if m else None
+            if got.get('learning_xp', '').isdigit():
+                got['learning_xp'] = int(got['learning_xp'])
+        else:
+            n, line, got = top_fields(lines[last + 1:], LABELS, report, spec['name'],
+                                      usual=('cn', 'range', 'target', 'duration'))
+            needed = ('range', 'target', 'duration') + (('cn',) if fields['kind'] in NEEDS_CN else ())
+        lines = lines[:last + 1] + ([line] if line else []) + lines[last + 1 + n:]
         fields = dict(fields, **got)
-        missing = [f for f in ('range', 'target', 'duration') + (('cn',) if fields['kind'] in NEEDS_CN else ())
-                   if f not in fields]
+        missing = [f for f in needed if f not in fields]
         if missing:
             report['errors'].append({'error': f'{spec["name"]} (page {spec["page"]}): no {", ".join(missing)}'})
-        if fields.get('cn', '').isdigit():
+        if str(fields.get('cn', '')).isdigit():
             fields['cn'] = int(fields['cn'])
         parsed[(spec['name'], spec['page'])] = fields
 
@@ -132,7 +158,8 @@ def convert_chapter(layout, plan, taken=()):
     entries += [s for _, _, s, _ in sorted(found, key=lambda x: x[0])]
     entries.sort(key=lambda e: e['page'])
     rplan = dict(plan, entries=entries)
-    out, records, rep = convert(dict(layout, lines=lines), rplan, set(taken))
+    out, records, rep = convert(dict(layout, lines=lines), rplan, taken if isinstance(taken, dict) else set(taken),
+                                library)
     rep['errors'] = report['errors'] + rep['errors']
     for k in ('field_lines_joined', 'labels_as_printed', 'labels_not_bold'):
         rep[k] = report.get(k, [])
@@ -144,15 +171,18 @@ def convert_chapter(layout, plan, taken=()):
         f = parsed[(e['name'], e['page'])]
         e['fields'] = f
         rec = by_slug[('spells', e['slug'])]
-        rec.update({k: f.get(k) for k in ('kind', 'lore', 'cn', 'range', 'target', 'duration')})
+        keys = ('kind', 'lore', 'cn', 'type', 'learning_xp') if f['kind'] == 'ritual' else \
+            ('kind', 'lore', 'cn', 'range', 'target', 'duration')
+        rec.update({k: f.get(k) for k in keys})
         rec['section'] = e['section'] = section_of(e, spans, lines)
     return out, records, rep
 
 
 def section_of(entry, spans, lines):
     """The list a spell sits in: the list with its kind and lore."""
-    return next((lst['name'] for _, _, _, lst in spans if lst['kind'] == entry['fields']['kind'] and
-                 lst.get('lore') == entry['fields']['lore']), entry.get('section'))
+    kind = entry['fields']['kind']
+    return next((lst['name'] for _, _, _, lst in spans if lst['kind'] == kind and
+                 (kind == 'ritual' or lst.get('lore') == entry['fields']['lore'])), entry.get('section'))
 
 
 def main(argv=None):
@@ -160,17 +190,18 @@ def main(argv=None):
     ap.add_argument('layout')
     ap.add_argument('--plan', required=True)
     ap.add_argument('--out', required=True)
-    ap.add_argument('--taken', help='spells/_index.json of entries already in the library')
+    ap.add_argument('--taken', action='append', default=[],
+                    help='CATEGORY=_index.json of entries already in the library (repeatable); a bare path '
+                         'is the spells index')
+    ap.add_argument('--library-data', help="the library's library-data folder (its local copy): an entry "
+                    "that takes another source's entry's name is compared with it there")
     a = ap.parse_args(argv)
     with open(a.layout, encoding='utf-8') as f:
         layout = json.load(f)
     with open(a.plan, encoding='utf-8') as f:
         plan = json.load(f)
-    taken = set()
-    if a.taken:
-        with open(a.taken, encoding='utf-8') as f:
-            taken = {r['slug'] for r in json.load(f) if r.get('source') != plan['source']}
-    entries, records, report = convert_chapter(layout, plan, taken)
+    taken = read_taken([t if '=' in t else f'spells={t}' for t in a.taken], plan['source'])
+    entries, records, report = convert_chapter(layout, plan, taken, a.library_data)
     return write_outputs(entries, records, report, a.out)
 
 

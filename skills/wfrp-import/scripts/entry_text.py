@@ -342,3 +342,48 @@ def top_fields(seg, labels, report, name, usual=()):
     if not k:
         return 0, None, {}
     return k, merge_lines(seg[:k], {'type': 'fields', 'title': '', 'items': items}), fields
+
+
+def block_fields(seg, labels, report, name):
+    """The block of labelled fields an entry opens with when its fields run to several lines and
+    two can share one ("CN: 12 Type: Lore of Lamps", then "Ingredients: ..." over three lines):
+    every line up to the first blank line, or to a change of column or page where the line
+    before ends its sentence. Each bold label in `labels` (printed label, lower case -> field
+    name) starts a field, wherever on its line it stands; the field is the text up to the next
+    label. A bold "Word:" in the block that isn't one of the labels is an error. Returns (how
+    many lines were read, one line carrying the fields block or None, {field name: text})."""
+    if not seg or (label_of(seg[0]) or '').lower() not in labels:
+        return 0, None, {}
+    k = 1
+    while k < len(seg):
+        prev, l = seg[k - 1], seg[k]
+        if l.get('heading') or l.get('box') or l.get('block'):
+            break
+        if l['column'] != prev['column'] or l['page'] != prev['page'] or l['baseline'] < prev['baseline']:
+            if not label_of(l) and re.search(r'[.!?]["”’)]*$', plain(prev['text'])):
+                break
+        elif l['baseline'] - prev['baseline'] > 1.6 * prev['size']:
+            break
+        k += 1
+    items = []                           # [label as printed, [line fragments]]
+    for l in seg[:k]:
+        fresh = True                     # a field's text on a new line is a new fragment
+        for sp in l['spans']:
+            text = sp['text'].strip()
+            if sp['bold'] and not sp['italic'] and text.endswith(':'):
+                if text[:-1].strip().lower() not in labels:
+                    report['errors'].append({'error': f'{name}: label {text!r} among its fields is not one '
+                                                      f'of {sorted(labels)}'})
+                items.append([text[:-1].strip(), []])
+                fresh = True
+            elif items and text:
+                if fresh:
+                    items[-1][1].append(text)
+                else:
+                    items[-1][1][-1] += ' ' + text
+                fresh = False
+    block = {'type': 'fields', 'title': '',
+             'items': [{'label': lab, 'text': join_lines(parts, report, name)} for lab, parts in items]}
+    fields = {labels[i['label'].lower()]: i['text'] for i in block['items'] if i['label'].lower() in labels}
+    return k, merge_lines(seg[:k], block), fields
+

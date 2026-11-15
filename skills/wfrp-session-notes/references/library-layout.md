@@ -71,7 +71,7 @@ location outside the library.
 │   ├── careers/                 one file per career, its four levels inside
 │   ├── skills/
 │   ├── talents/
-│   ├── spells/                  petty and arcane spells, lore spells, blessings, miracles
+│   ├── spells/                  petty and arcane spells, lore spells, rituals, blessings, miracles
 │   ├── trappings/               weapons, armour, and other trappings
 │   ├── qualities/               weapon and armour qualities and flaws
 │   ├── creatures/               bestiary entries and NPC profiles
@@ -187,7 +187,7 @@ Each category folder in a `library-data/` holds:
   | careers    | `class` (Academics, Burghers, Courtiers, Peasants, Rangers, Riverfolk, Rogues, Warriors), `species` (who may roll it), `levels` (the four level titles), `status` (the four statuses, e.g. "Brass 3"), `earning_skill` (the level 1 skill printed in italics, tested when Earning money) |
   | skills     | `characteristic`, `advanced` (true/false), `grouped` (true/false) |
   | talents    | `max` (as printed, e.g. "Initiative Bonus"), `tests` |
-  | spells     | `kind` (petty, arcane, lore, blessing, miracle), `lore` (lore or god), `cn`, `range`, `target`, `duration` |
+  | spells     | `kind` (petty, arcane, lore, blessing, miracle, ritual), `lore` (lore or god), `cn`, `range`, `target`, `duration`; a ritual has `cn` (a number, or as printed: "The Daemon’s Willpower"), `type` (as printed: "Lore of Beasts", "Any Lore"; `lore` is the lore it names, or null), `learning_xp`, and in its entry `ingredients`, `conditions`, `sacrifices`, `consequences`, with no range, target or duration |
   | trappings  | `kind` (melee, ranged, ammunition, armour, item, …), `group` (weapon or armour group), `price`, `enc`, `availability` |
   | qualities  | `kind` (weapon-quality, weapon-flaw, armour-quality, armour-flaw, item-quality, item-flaw) |
   | creatures  | `kind` (creature, npc), `species_type` (as printed), `traits` (trait names with their ratings) |
