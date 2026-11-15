@@ -25,6 +25,7 @@ import re
 import sys
 
 WORD = re.compile(r"[\w’'+−–-]+")
+PROFILE_FIELDS = {'characteristics', 'traits', 'optional_traits', 'profiles'}
 SKIP_KEYS = {'slug', 'source', 'chapter', 'section', 'page', 'level', 'type', 'id', 'relations', 'audience',
              'kind', 'edition', 'ordered', 'before', 'start', 'span', 'data', 'fields'}
 
@@ -92,8 +93,10 @@ def main(argv=None):
                     got.update(words(c))
         elif not name.startswith('_'):
             # A trapping's values (price, damage, group) are its printed table cells; its kind isn't.
-            printed = {k: v for k, v in data.get('fields', {}).items() if k != 'kind'} \
-                if 'price' in data.get('fields', {}) else {}
+            fields = data.get('fields', {})
+            printed = {k: v for k, v in fields.items() if k != 'kind'} if 'price' in fields else \
+                {k: v for k, v in fields.items() if k in PROFILE_FIELDS}
+            # A creature's profile (characteristics, traits) is its printed stat block.
             for s in strings({'name': data.get('name', ''), 'content': data.get('content', []),
                               'cells': list(printed.values())}):
                 got.update(words(s))
