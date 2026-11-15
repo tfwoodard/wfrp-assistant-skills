@@ -46,7 +46,15 @@ and a missing one is an error; the paragraph they're printed in becomes a fields
 block, items in printed order, with any text before the first label kept. Smaller headings
 inside it become heading blocks. A heading the plan doesn't place, at the size
 of the current entry's own heading or larger, is an error: it would be a
-sibling entry nobody decided on. Text before the first planned entry (the
+sibling entry nobody decided on. An entry with no heading of its own (a
+letter, say, that opens with an address) can instead start at the first line on
+its page whose text begins with its "starts_at"; every heading inside it is then
+a subheading. "subheadings" names lines inside an entry, printed at body size
+(a letter's bold section names), to read as its deepest subheadings, and
+"not_headings" ([{"page", "text"}]) lines printed large that are body text (a
+signature); a line either names that isn't found is an error. Lines with no
+letter or digit printed below body size (flourishes) are left out and listed
+under `ornaments`. Text before the first planned entry (the
 chapter's title page) is left out and listed, unless the plan gives an
 "intro" entry ({"name", "kind"}) for it; the chapter's title (its largest
 heading) is left out either way.
@@ -57,6 +65,7 @@ the columns it spans; with no text above it there, in the entry running into
 the page. The plan
 can send it to another entry ("to"), or a copy to each of several (a list),
 make it an entry of its own ("entry"),
+read it as the page's own text ("text": a tinted backdrop the layout took for a box),
 or mark it a diagram ("diagram": a flowchart or picture with words, left out
 and listed for transcription by hand). A box read as a ruled table becomes a
 table block; a table the plan lists under "tables" is also written as an entry
@@ -104,6 +113,39 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_entry import render  # noqa: E402
 from entry_text import (blocks_from_lines, fix_case, merge_lines, norm, plain, slugify, split_row,  # noqa: E402
                         table_data, vocabulary)
+
+
+SUBHEADING = 99      # the heading level given to a plan's "subheadings": below every printed level
+
+
+def boxes_as_text(lines, boxes_plan, report):
+    """Boxes the plan marks "text" (a tinted backdrop read as a box) are read as the page's
+    columns: their lines lose the box and the page is read again, top to bottom between its
+    full-width lines, left column before right."""
+    pages = {}
+    for bid, bp in boxes_plan.items():
+        if bp.get('text'):
+            hit = [l for l in lines if l.get('box') == bid]
+            if not hit:
+                report['errors'].append({'error': f'the plan reads box {bid} as text, but it has no lines'})
+            for l in hit:
+                l['box'] = None
+                pages[l['page']] = True
+    if not pages:
+        return lines
+    rank = {'full': -1, 'left': 0, 'right': 1}
+
+    def key(l):
+        fulls = [x['baseline'] for x in lines if x['page'] == l['page'] and x['column'] == 'full' and not x.get('box')]
+        above = sum(1 for b in fulls if b < l['baseline'] or (b == l['baseline'] and l['column'] != 'full'))
+        return (above, rank.get(l['column'], 2), l['baseline'], l['x0'])
+    out = []
+    for page in dict.fromkeys(l['page'] for l in lines):
+        on = [l for l in lines if l['page'] == page]
+        if page in pages:
+            on = sorted([l for l in on if not l.get('box')], key=key) + [l for l in on if l.get('box')]
+        out += on
+    return out
 
 
 def heading_runs(lines):
@@ -328,8 +370,32 @@ def convert(layout, plan, taken=()):
                 merged.add(cont)
             else:
                 plan.setdefault('_missing', []).append(cont)
-    lines = [l for l in layout['lines'] if not l['furniture']]
+    lines = [dict(l) for l in layout['lines'] if not l['furniture']]
+    body = layout.get('body_size', 0)
+    orn = [l for l in lines if l['size'] < body and not re.search(r'[^\W_]', l['text']) and
+           not re.match(r'^\s*[•●▪]', l['text'])]
+    if orn:                                           # flourishes: no letter or digit, below body size
+        report['ornaments'] = [{'page': l['page'], 'text': l['text']} for l in orn]
+        report['left_out'] += [l['text'] for l in orn]
+        lines = [l for l in lines if l not in orn]
+    lines = boxes_as_text(lines, plan.get('boxes', {}), report)
     vocab = vocabulary(lines)
+    for nh in plan.get('not_headings', []):           # large lines that are body text
+        hit = [l for l in lines if l['page'] == nh['page'] and l.get('heading') and
+               norm(plain(l['text'])) == norm(nh['text'])]
+        if not hit:
+            report['errors'].append({'error': f'not_headings: no heading {nh["text"]!r} on page {nh["page"]}'})
+        for l in hit:
+            l['heading'] = None
+    for spec in plan['entries']:                      # body-size lines that are subheadings
+        for sub in spec.get('subheadings', []):
+            hit = [l for l in lines if l['page'] >= spec['page'] and not l.get('heading') and
+                   not l.get('box') and norm(plain(l['text'])) == norm(sub)]
+            if not hit:
+                report['errors'].append({'error': f'{spec["name"]}: no subheading line {sub!r} '
+                                         f'from page {spec["page"]}'})
+            if hit:
+                hit[0]['heading'] = SUBHEADING
     lines = text_tables(lines, plan.get('text_tables', []), report)
     column_tables(lines, regions, plan.get('tables', {}), report)
     boxes_plan = plan.get('boxes', {})
@@ -370,7 +436,13 @@ def convert(layout, plan, taken=()):
                     pending_boxes.append((bid, target))
             i += 1
             continue
-        if i in runs:
+        start = next((p for p in pending if p.get('starts_at') and p['page'] == l['page'] and
+                      norm(plain(l['text'])).startswith(norm(p['starts_at']))), None)
+        if start:
+            pending.remove(start)
+            current = {'spec': start, 'level': 1, 'size': 99, 'lines': [], 'boxes': []}
+            entries.append(current)
+        elif i in runs:
             text, last = runs[i]
             match = next((p for p in pending if p['page'] == l['page'] and
                           norm(p.get('heading', p['name'])) == norm(text)), None)
@@ -392,7 +464,8 @@ def convert(layout, plan, taken=()):
             current['lines'].append(l)
         i += 1
     for p in pending:
-        report['errors'].append({'error': f'no heading {p["name"]!r} on page {p["page"]}'})
+        what = f'line starting {p["starts_at"]!r}' if p.get('starts_at') else f'heading {p["name"]!r}'
+        report['errors'].append({'error': f'no {what} on page {p["page"]}'})
 
     # A box goes to the entry whose text runs just above it on its page, in the columns it spans;
     # with no text above it there, to the entry running into the page. The plan's "to" overrides.
