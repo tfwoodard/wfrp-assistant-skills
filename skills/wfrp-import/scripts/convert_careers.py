@@ -88,7 +88,7 @@ def read_scheme(career, lines, i, marks, shapes, plan, report):
     """lines[i] is the scheme's title; lines[i+1] its header row. Returns {level: [codes]}."""
     hdr = lines[i + 1] if i + 1 < len(lines) else None
     cols = plan['scheme_columns']
-    if not hdr or len(hdr['words']) != len(cols):
+    if not hdr or len(hdr['words']) != len(set(cols.values())):    # two labels may name one column (Ag, Agi)
         report['errors'].append({'career': career, 'error': 'advance scheme header row not found or the wrong size',
                                  'got': hdr and hdr['text']})
         return None
@@ -176,6 +176,61 @@ def paragraphs(lines, report, career):
     return blocks
 
 
+def career_levels(name, lines, marks, shapes, plan, report):
+    """The "<Name> Advance Scheme" and "Career Path" among `lines` -> (the `career_levels` block,
+    the fields they give: levels, status, earning_skill, advances; the indexes of the lines read).
+    convert_rules.py reads a career printed inside a chapter of prose with this too."""
+    used = set()
+    si = next((i for i, l in enumerate(lines) if norm(l['text']) == norm(name + ' advance scheme')), None)
+    scheme = None
+    if si is None:
+        report['errors'].append({'career': name, 'error': 'no advance scheme'})
+    else:
+        scheme = read_scheme(name, lines, si, marks, shapes, plan, report)
+        used |= {si, si + 1}
+        report['left_out'] += [lines[si]['text'], lines[si + 1]['text']]
+    pi = next((i for i, l in enumerate(lines) if norm(l['text']) == 'career path' and (si is None or i > si)), None)
+    levels = []
+    if pi is None:
+        report['errors'].append({'career': name, 'error': 'no Career Path'})
+    else:
+        levels, end = read_path(name, lines, pi, marks, shapes, plan, report)
+        used |= set(range(pi, end))
+        report['left_out'].append(lines[pi]['text'])
+
+    lv_blocks, advances = [], {}
+    for n, lv in enumerate(levels, 1):
+        raw = lv.pop('_raw')
+        block = {'title': lv['title'], 'status': lv['status'],
+                 'characteristics': (scheme or {}).get(n, [])}
+        adv = {'status': lv['status'], 'characteristics': block['characteristics']}
+        for lab in LABELS:
+            if lab not in raw:
+                report['errors'].append({'career': name, 'error': f'level {n} has no {lab}'})
+                continue
+            items = split_items(raw[lab])
+            if '' in items:
+                report['questions'].append({'career': name, 'kind': 'empty-item',
+                                            'text': f'level {n} {lab}: an empty item (two commas in a row '
+                                                    'as printed), left out of the list'})
+                items = [x for x in items if x]
+            block[lab.lower()] = items
+            adv[lab.lower()] = [plain(x) for x in items]
+        lv_blocks.append(block)
+        advances[str(n)] = adv
+    earning = [plain(x) for x in (lv_blocks[0].get('skills', []) if lv_blocks else []) if all_italic(x)]
+    if len(earning) != 1:
+        report['errors'].append({'career': name, 'error': f'{len(earning)} level 1 skills in italics '
+                                 '(the skill for Earning money), not 1', 'got': earning})
+    later = [f'level {n}: {plain(x)}' for n, l in enumerate(lv_blocks[1:], 2)
+             for x in l.get('skills', []) if all_italic(x)]
+    if later:
+        report['questions'].append({'career': name, 'kind': 'italic-skill-after-level-1', 'text': ', '.join(later)})
+    fields = {'levels': [l['title'] for l in lv_blocks], 'status': [l['status'] for l in lv_blocks],
+              'earning_skill': earning[0] if len(earning) == 1 else None, 'advances': advances}
+    return {'type': 'career_levels', 'levels': lv_blocks}, fields, used
+
+
 def convert(layout, plan, taken=()):
     report = {'errors': [], 'questions': [], 'left_out': [], 'sizes': {}}
     entries, records = [], []
@@ -200,65 +255,19 @@ def convert(layout, plan, taken=()):
         else:
             used.add(ti + 1)
             species = split_items(plain(species_line['text']))
-        si = next((i for i, l in enumerate(lines) if norm(l['text']) == norm(name + ' advance scheme')), None)
-        scheme = None
-        if si is None:
-            report['errors'].append({'career': name, 'error': 'no advance scheme'})
-        else:
-            scheme = read_scheme(name, lines, si, marks, shapes, plan, report)
-            used |= {si, si + 1}
-            report['left_out'] += [lines[si]['text'], lines[si + 1]['text']]
-        pi = next((i for i, l in enumerate(lines) if norm(l['text']) == 'career path'), None)
-        levels = []
-        if pi is None:
-            report['errors'].append({'career': name, 'error': 'no Career Path'})
-        else:
-            levels, end = read_path(name, lines, pi, marks, shapes, plan, report)
-            used |= set(range(pi, end))
-            report['left_out'].append(lines[pi]['text'])
+        levels_block, level_fields, used_here = career_levels(name, lines, marks, shapes, plan, report)
+        used |= used_here
         rest = [l for i, l in enumerate(lines) if i not in used]
         content = []
         if species_line is not None:
             content.append({'type': 'paragraph', 'text': marked(species_line)})
         content += paragraphs(rest, report, name)
-
-        lv_blocks, advances = [], {}
-        for n, lv in enumerate(levels, 1):
-            raw = lv.pop('_raw')
-            block = {'title': lv['title'], 'status': lv['status'],
-                     'characteristics': (scheme or {}).get(n, [])}
-            adv = {'status': lv['status'], 'characteristics': block['characteristics']}
-            for lab in LABELS:
-                if lab not in raw:
-                    report['errors'].append({'career': name, 'error': f'level {n} has no {lab}'})
-                    continue
-                items = split_items(raw[lab])
-                if '' in items:
-                    report['questions'].append({'career': name, 'kind': 'empty-item',
-                                                'text': f'level {n} {lab}: an empty item (two commas in a row '
-                                                        'as printed), left out of the list'})
-                    items = [x for x in items if x]
-                block[lab.lower()] = items
-                adv[lab.lower()] = [plain(x) for x in items]
-            lv_blocks.append(block)
-            advances[str(n)] = adv
-        content.append({'type': 'career_levels', 'levels': lv_blocks})
-        earning = [plain(x) for x in (lv_blocks[0].get('skills', []) if lv_blocks else []) if all_italic(x)]
-        if len(earning) != 1:
-            report['errors'].append({'career': name, 'error': f'{len(earning)} level 1 skills in italics '
-                                     '(the skill for Earning money), not 1', 'got': earning})
-        later = [f'level {n}: {plain(x)}' for n, l in enumerate(lv_blocks[1:], 2)
-                 for x in l.get('skills', []) if all_italic(x)]
-        if later:
-            report['questions'].append({'career': name, 'kind': 'italic-skill-after-level-1', 'text': ', '.join(later)})
+        content.append(levels_block)
 
         slug = slugify(name)
         if slug in taken:
             slug = f'{slug}-{plan["source"].lower()}'
-        fields = {'class': c.get('class'), 'species': species,
-                  'levels': [l['title'] for l in lv_blocks], 'status': [l['status'] for l in lv_blocks],
-                  'earning_skill': earning[0] if len(earning) == 1 else None,
-                  'advances': advances}
+        fields = dict({'class': c.get('class'), 'species': species}, **level_fields)
         if not c.get('class'):
             report['errors'].append({'career': name, 'error': 'the plan gives no class'})
         entry = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],

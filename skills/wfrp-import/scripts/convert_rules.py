@@ -61,6 +61,22 @@ chapter's title page) is left out and listed, unless the plan gives an
 "intro" entry ({"name", "kind"}) for it; the chapter's title (its largest
 heading) is left out either way.
 
+An entry's "fields" ({"characteristic": "Int", "advanced": true}) are index fields the book
+states in its prose, for an entry of another category (a skill described in a chapter of rules).
+
+Careers. An entry with "career": {"class": "Burghers"} is a career printed inside the chapter:
+the line under its heading is its species, and the box holding "<Name> Advance Scheme" and
+"Career Path" (on its page or the next; two careers' schemes may share a box) is read as
+convert_careers.py reads a career page, with the plan's "level_icons" and "scheme_columns"
+(run pdf_layout.py with the icon fonts). It is written to careers/ with a career's fields; its
+description, any sections printed after it and its sidebars stay its prose, the levels after
+the description. A line of the scheme's box that isn't read is an error.
+
+Slugs. --taken CATEGORY=_index.json (repeatable) gives the slugs other sources' entries hold,
+category by category: an entry whose slug is taken in its own category gets the source's code
+after it, and is listed under `same_name` for the plan's "relations" to say how the two relate
+(replaces, reprint-of, adds-to, distinct-from). A table whose planned slug is taken is an error.
+
 Boxes (pdf_layout.py --boxes). A box becomes a sidebar, under its own title
 (its heading lines), in the entry whose text runs just above it on its page in
 the columns it spans; with no text above it there, in the entry running into
@@ -77,7 +93,8 @@ a table's "title", say its read header is a "banner" printed across the
 columns, or that its first row is its "header_row", and name its "columns" (when the header
 isn't printed or isn't read). A table's title printed inside its frame, read into the first
 row's cells, is taken out of them (`titles_stripped`). A row with only its first cell filled,
-in a table of three or more columns, heads the rows below it (a group: `group_rows`).
+in a table of three or more columns, heads the rows below it (a group: `group_rows`); so does a
+row whose one filled cell is in capitals (a band across the columns), in any table.
 "continued_in" lists boxes
 on later pages holding the rest of its rows, which join it. "fold": 2 reads a table
 printed in two side-by-side halves (the same columns twice) down the left half, then the right;
@@ -103,6 +120,7 @@ in `_records.json` (rules or tables), and `_report.json`:
 - `box_placement`: which entry each box went to, for the Librarian to check.
 - `titles_stripped`, `group_rows`: tables whose title came out of row 1, and their group rows.
 - `folded_keys`: a "fold_join" table's key column as printed in its later parts, kept once.
+- `same_name`: entries whose slug another source's entry in their category already had.
 - `left_out`: everything printed that no entry holds.
 """
 import argparse
@@ -115,8 +133,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_entry import render  # noqa: E402
 import items  # noqa: E402
 import creatures  # noqa: E402
-from entry_text import (blocks_from_lines, fix_case, merge_lines, norm, plain, slugify, split_row,  # noqa: E402
-                        table_data, vocabulary)
+import convert_careers  # noqa: E402
+from entry_text import (blocks_from_lines, fix_case, marked, merge_lines, norm, plain, slugify,  # noqa: E402
+                        split_items, split_row, table_data, vocabulary)
 
 
 SUBHEADING = 99      # the heading level given to a plan's "subheadings": below every printed level
@@ -205,15 +224,73 @@ def describe_items(found, describers, plan, report):
                                                              'items': len(match)})
 
 
+def free_slug(slug, cat, name, plan, taken, used_slugs, report):
+    """The entry's slug, with the source's code after it when another source's entry in its
+    category has it already (`taken`: {category: slugs}; a bare set is checked for every
+    category) or an entry of this chapter does. A slug taken by another source is listed under
+    `same_name`, for the plan to say how the two relate (replaces, reprint-of, distinct-from)."""
+    theirs = slug in (taken.get(cat, ()) if isinstance(taken, dict) else taken)
+    if theirs or (cat, slug) in used_slugs:
+        if theirs and report is not None:
+            report.setdefault('same_name', []).append({'category': cat, 'name': name, 'taken': slug})
+        slug = f'{slug}-{plan["source"].lower()}'
+    used_slugs.add((cat, slug))
+    return slug
+
+
+def read_career(e, entries, lines, layout, plan, report):
+    """A career printed inside a chapter (the plan entry's "career": {"class": ...}): its species
+    line, under its heading, and the box holding its advance scheme and career path, read as
+    convert_careers.py reads a career page. Both are taken out of the entry's text, which stays
+    prose (its description, any sections on the pages after, its sidebars). Returns the species
+    line's block, the `career_levels` block and the career's fields."""
+    name, page = e['spec']['name'], e['spec']['page']
+    missing = [k for k in ('level_icons', 'scheme_columns') if k not in plan]
+    if missing:
+        report['errors'].append({'error': f'{name}: a career needs the plan\'s {" and ".join(missing)}'})
+        return None, None, {}
+    first = e['lines'][0] if e['lines'] and not e['lines'][0].get('heading') else None
+    species, species_block = [], None
+    if first is None:
+        report['errors'].append({'career': name, 'error': 'no species line after the heading'})
+    else:
+        e['lines'] = e['lines'][1:]
+        species = split_items(plain(first['text']))
+        species_block = {'type': 'paragraph', 'text': marked(first)}
+    fields = {'class': e['spec']['career'].get('class'), 'species': species}
+    if not fields['class']:
+        report['errors'].append({'career': name, 'error': 'the plan gives no class'})
+    bid = next((l['box'] for l in lines if l.get('box') and e['spec']['page'] <= l['page'] <= page + 1 and
+                norm(l['text']) == norm(name + ' advance scheme')), None)
+    if bid is None:
+        report['errors'].append({'career': name, 'error': 'no box holding its advance scheme'})
+        return species_block, None, fields
+    for other in entries:
+        if bid in other['boxes']:
+            other['boxes'].remove(bid)
+    box = [l for l in lines if l.get('box') == bid]
+    start = next(i for i, l in enumerate(box) if norm(l['text']) == norm(name + ' advance scheme'))
+    stop = next((i for i, l in enumerate(box) if i > start and norm(l['text']).endswith(' advance scheme')), len(box))
+    mine = box[start:stop]            # a box can hold two careers' schemes, one after the other
+    on_page = mine[0]['page']
+    marks = [m for m in layout.get('marks', []) if m['page'] == on_page]
+    shapes = [x for x in layout.get('shapes', []) if x['page'] == on_page]
+    block, level_fields, used = convert_careers.career_levels(name, mine, marks, shapes, plan, report)
+    unread = [l['text'] for i, l in enumerate(mine) if i not in used] + \
+        ([l['text'] for l in box[:start]] if not any(norm(l['text']).endswith(' advance scheme') for l in box[:start]) else [])
+    if unread:
+        report['errors'].append({'career': name, 'error': f'lines in the scheme\'s box that were not read: {unread}'})
+    fields.update(level_fields)
+    return species_block, block, fields
+
+
 def add_entry(spec, out, records, plan, taken, used_slugs):
     """An entry made from part of another (a split heading, a price-table row): written and
     indexed like the plan's own."""
     cat, name = spec['category'], spec['name']
     fields = dict(spec.get('fields') or ({'kind': spec['kind']} if spec.get('kind') else {}))
-    slug = spec.get('slug') or slugify(name)
-    if slug in taken or (cat, slug) in used_slugs:     # a slug is one entry's within its category
-        slug = f'{slug}-{plan["source"].lower()}'
-    used_slugs.add((cat, slug))
+    # a slug is one entry's within its category
+    slug = free_slug(spec.get('slug') or slugify(name), cat, name, plan, taken, used_slugs, spec.get('_report'))
     entry = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
              'section': spec['section'], 'page': spec['page'], 'level': 1, 'fields': fields,
              'content': spec['content']}
@@ -382,8 +459,12 @@ def table_block(region, title, plan_t, report, where):
     plan_t = plan_t or {}
     groups, kept = [], []
     for r in rows:                    # a row with only its first cell filled heads the rows below
+        only = [c.strip() for c in r if c.strip()]
         if width > 2 and r and r[0].strip() and not any(c.strip() for c in r[1:]):
             groups.append({'before': len(kept), 'text': r[0].strip()})
+        elif len(only) == 1 and only[0].isupper() and len(re.sub(r'[^A-Za-z]', '', only[0])) >= 3:
+            # ...and so does a band in capitals across the columns, whichever cell it was read into
+            groups.append({'before': len(kept), 'text': fix_case(only[0])})
         else:
             kept.append(r)
     if groups:
@@ -678,6 +759,7 @@ def convert(layout, plan, taken=()):
     for e in entries:
         spec = e['spec']
         name = spec['name']
+        career = read_career(e, entries, lines, layout, plan, report) if spec.get('career') else None
         content = blocks_from_lines(e['lines'], report, name, vocab, e['level'])
         # Subheadings take consecutive levels below the entry's own, whatever sizes the book used.
         ranks = sorted({b['level'] for b in content if b['type'] == 'heading'})
@@ -722,9 +804,17 @@ def convert(layout, plan, taken=()):
             report['errors'].append({'error': f'{name}: stat_blocks needs a category (creatures)'})
         if spec.get('describes_items'):
             describers.append((name, content))
-        cat = spec.get('category', 'rules')
+        cat = 'careers' if career else spec.get('category', 'rules')
         fields = {'kind': spec.get('kind', 'procedure')} if cat == 'rules' else \
             ({'kind': spec['kind']} if spec.get('kind') else {})
+        fields.update(spec.get('fields', {}))      # index fields the book states in its prose
+        if career:
+            # The species line opens the entry; the levels follow its description, before any
+            # sections and sidebars printed after them.
+            species_block, levels_block, fields = career
+            at = next((k for k, b in enumerate(content) if b['type'] in ('heading', 'sidebar')), len(content))
+            content = ([species_block] if species_block else []) + content[:at] + \
+                ([levels_block] if levels_block else []) + content[at:]
         if spec.get('stat_blocks'):
             content, prof = creatures.stat_blocks(content, report, name)
             fields.update(prof)
@@ -740,10 +830,7 @@ def convert(layout, plan, taken=()):
                 report['errors'].append({'error': f'{name}: no {lab!r} line'})
         if spec.get('field_labels'):
             content = labelled_to_fields(content, spec['field_labels'])
-        slug = spec.get('slug') or slugify(name)
-        if slug in taken or (cat, slug) in used_slugs:
-            slug = f'{slug}-{plan["source"].lower()}'
-        used_slugs.add((cat, slug))
+        slug = free_slug(spec.get('slug') or slugify(name), cat, name, plan, taken, used_slugs, report)
         entry = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
                  'section': spec.get('heading', name), 'page': spec['page'], 'level': e['level'] or 1,
                  'fields': fields, 'content': content}
@@ -761,7 +848,7 @@ def convert(layout, plan, taken=()):
         out.append((cat, entry))
         rec = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
                'section': entry['section'], 'page': spec['page'], '_category': cat}
-        rec.update(fields)
+        rec.update({k: v for k, v in fields.items() if not (career and k == 'advances')})
         if spec.get('aliases'):
             rec['aliases'] = spec['aliases']
         if spec.get('audience'):
@@ -770,12 +857,13 @@ def convert(layout, plan, taken=()):
             rec['relations'] = rel
         records.append(rec)
         for sub in split:
-            add_entry(sub, out, records, plan, taken, used_slugs)
+            add_entry(dict(sub, _report=report), out, records, plan, taken, used_slugs)
 
     describe_items(found_items, describers, plan, report)
     for it in found_items:
         add_entry({'name': it['name'], 'category': 'trappings', 'page': it['page'], 'section': it['section'],
-                   'fields': it['fields'], 'content': it.get('content', [])}, out, records, plan, taken, used_slugs)
+                   'fields': it['fields'], 'content': it.get('content', []), '_report': report},
+                  out, records, plan, taken, used_slugs)
     if found_items:
         report['items'] = len(found_items)
 
@@ -786,6 +874,8 @@ def convert(layout, plan, taken=()):
         if not region or region.get('kind') != 'table':
             report['errors'].append({'error': f'the plan lists {bid} as a table, but it was not read as one'})
             continue
+        if isinstance(taken, dict) and t['slug'] in taken.get('tables', ()):
+            report['errors'].append({'error': f'table {bid}: another source\'s table has the slug {t["slug"]!r}'})
         title = box_parts([x for x in lines if x.get('box') == bid])[0]
         block = table_block(region, title, t, {'tables_to_confirm': []}, t['title'])   # reported with its entry
         host = next((n for n, en in ((en['name'], en) for _, en in out) if any(
@@ -806,6 +896,16 @@ def convert(layout, plan, taken=()):
     return out, records, report
 
 
+def read_taken(args, source):
+    """--taken CATEGORY=_index.json ... -> {category: the slugs other sources' entries hold}."""
+    taken = {}
+    for t in args:
+        cat, _, path = t.partition('=')
+        with open(path, encoding='utf-8') as f:
+            taken.setdefault(cat, set()).update(r['slug'] for r in json.load(f) if r.get('source') != source)
+    return taken
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('layout')
@@ -818,13 +918,7 @@ def main(argv=None):
         layout = json.load(f)
     with open(a.plan, encoding='utf-8') as f:
         plan = json.load(f)
-    taken = set()
-    for t in a.taken:
-        cat, _, path = t.partition('=')
-        if cat == 'rules':
-            with open(path, encoding='utf-8') as f:
-                taken |= {r['slug'] for r in json.load(f) if r.get('source') != plan['source']}
-    entries, records, report = convert(layout, plan, taken)
+    entries, records, report = convert(layout, plan, read_taken(a.taken, plan['source']))
     return write_outputs(entries, records, report, a.out)
 
 
