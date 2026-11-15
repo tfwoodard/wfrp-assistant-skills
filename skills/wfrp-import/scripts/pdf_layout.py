@@ -33,6 +33,15 @@ text in a size the chapter uses rarely (a size used as much as a sidebar's
 text is text, not headings). `fonts` lists every size with how many characters use it; `body_size` is
 the commonest. `gutters` gives each page's gutter x positions (null: one column).
 
+Tilted text. Notes printed at an angle (handwriting on scraps of paper pinned across a page)
+are read scrap by scrap: characters set at the same angle are turned level about the page's
+centre, read into lines there, and grouped into scraps (lines near each other, one under
+another). Their lines follow the page's body lines, scrap by scrap in the order their first
+lines start down the page, each carrying `tilt` (degrees, anticlockwise) and `scrap` ("<page>.t<n>"); their
+positions are in the levelled frame, their column is "full", and they are never furniture
+(a note pinned over the top margin is still a note). Their size is the type size set, not the
+height of the turned glyph.
+
 Icons. Books mark things with symbol glyphs (a career level's cross) and small
 vector drawings (its shield or skull). Glyphs in a font named by --icon-fonts
 (a part of the font's name is enough) are taken out of the text and listed
@@ -68,6 +77,7 @@ commit it. Needs pdfplumber.
 import argparse
 import collections
 import json
+import math
 import re
 import sys
 
@@ -107,6 +117,9 @@ BOX_MIN = (100, 24)                      # points: a smaller image isn't a boxed
 RUN_ON_GAP = 4.0                         # points: a word this near a box's edge is on the same line
 RUN_OVER_SHARE = 0.25                    # a box with this share of its lines crossing its edges is no panel
 PANEL_OPAQUE = 0.75                      # a masked image less opaque than this is an illustration
+TILT_MIN = 0.5                           # degrees: text turned less than this is level
+SCRAP_GAP = 4.0                          # a gap wider than this x the type size parts two tilted notes side by side
+SCRAP_LEADING = 3.0                      # lines further apart than this x the type size are different notes
 HEADING_SHARE = 0.08                     # a larger size used for more than this share of the body's characters is text
 
 
@@ -214,6 +227,88 @@ a little off the line joins the line it touches."""
     return [{'text': ''.join(c['text'] for c in cs), 'x0': min(c['x0'] for c in cs),
              'x1': max(c['x1'] for c in cs), 'top': min(c['top'] for c in cs),
              'bottom': max(c['bottom'] for c in cs), 'baseline': b, 'chars': cs} for b, cs in groups]
+
+
+def tilt(c):
+    """The angle a character is set at, in quarter degrees anticlockwise (0.0: level)."""
+    m = c.get('matrix')
+    if not m or abs(m[1]) < 1e-6:
+        return 0.0
+    a = round(math.degrees(math.atan2(m[1], m[0])) * 4) / 4
+    return a if abs(a) >= TILT_MIN else 0.0
+
+
+def levelled(c, angle, width, height):
+    """A copy of a tilted character turned level about the page's centre: where it would sit,
+    and at what size, had its note been pinned straight."""
+    m = c['matrix']
+    th = math.radians(angle)
+    cx, cy = width / 2, height / 2
+    dx, dy = m[4] - cx, m[5] - cy
+    x = cx + dx * math.cos(th) + dy * math.sin(th)
+    y = cy - dx * math.sin(th) + dy * math.cos(th)
+    # pdfminer's `adv` is the glyph's advance before the text matrix scales it; the glyph's box
+    # is that advance by the type size, turned. Its height gives the type size back.
+    wide = c.get('adv', c['x1'] - c['x0']) * math.hypot(m[0], m[1])
+    size = round((c['bottom'] - c['top'] - wide * abs(math.sin(th))) / math.cos(th), 1)
+    return dict(c, x0=x, x1=x + wide, bottom=height - y, top=height - y - size, size=size,
+                matrix=None, real_top=c['top'], real_x0=c['x0'])
+
+
+def scraps(words):
+    """Levelled words of one angle -> scraps: lists of words whose lines sit near each other, one
+    under another. A line is cut where its words stand far apart (two notes side by side)."""
+    rows = collections.defaultdict(list)
+    for w in words:
+        rows[w['baseline']].append(w)
+    segs = []
+    for b, raw in sorted(rows.items()):
+        cur = []
+        for w in sorted(raw, key=lambda w: w['x0']):
+            if cur and w['x0'] - cur[-1]['x1'] > SCRAP_GAP * word_size(w):
+                segs.append(cur)
+                cur = []
+            cur.append(w)
+        segs.append(cur)
+    group = list(range(len(segs)))
+
+    def find(i):
+        while group[i] != i:
+            i = group[i]
+        return i
+    for i, a in enumerate(segs):
+        for j in range(i + 1, len(segs)):
+            b = segs[j]
+            size = max(word_size(a[0]), word_size(b[0]))
+            if b[0]['baseline'] - a[0]['baseline'] > SCRAP_LEADING * size:
+                break
+            if min(a[-1]['x1'], b[-1]['x1']) - max(a[0]['x0'], b[0]['x0']) > 0:
+                group[find(j)] = find(i)
+    out = collections.defaultdict(list)
+    for i, seg in enumerate(segs):
+        out[find(i)] += seg
+    return list(out.values())
+
+
+def tilted_lines(chars, page_no, width, height):
+    """Tilted characters -> their lines, scrap by scrap from the top of the page down."""
+    by_angle = collections.defaultdict(list)
+    for c in chars:
+        by_angle[tilt(c)].append(c)
+    found = []
+    for angle, cs in by_angle.items():
+        words = make_words([levelled(c, angle, width, height) for c in cs], height)
+        for ws in scraps(words):
+            # A note's place on the page is where its first line starts: a line tilted upwards
+            # ends higher than a note beside it begins.
+            first = min(ws, key=lambda w: (w['baseline'], w['x0']))['chars'][0]
+            found.append(((first['real_top'], first['real_x0']), angle, ws))
+    out = []
+    for n, (_, angle, ws) in enumerate(sorted(found, key=lambda f: f[0])):
+        for l in order_lines(ws, [], page_no, height):
+            l.update(tilt=angle, scrap=f'{page_no}.t{n + 1}', furniture=False)
+            out.append(l)
+    return out
 
 
 def slanted(c):
@@ -606,13 +701,16 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
     drawings to `shapes`, when those lists are given. With `regions` (a list), boxed panels are
     read as regions of their own: their lines follow the page's body lines, tagged with the box,
     and each box and ruled table is added to `regions`."""
-    chars, marks_here, shapes_here = [], [], []
+    chars, marks_here, shapes_here, tilted = [], [], [], []
     for c in page.chars:
         f = font_name(c.get('fontname', ''))
         if icon_fonts and any(k.lower() in f.lower() for k in icon_fonts):
             marks_here.append({'page': page_no, 'x0': round(c['x0'], 1), 'x1': round(c['x1'], 1),
                                'top': round(c['top'], 1), 'bottom': round(c['bottom'], 1),
                                'font': f, 'text': c['text']})
+            continue
+        if tilt(c):
+            tilted.append(c)
             continue
         chars.append(c)
     for cv in page.curves:
@@ -645,6 +743,7 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
                             w['bottom'] <= page.height * (1 - MARGIN_BOTTOM) and
                             max(c['size'] for c in w['chars']) <= usual], page.width)
     out = order_lines(body, gutters, page_no, page.height)
+    out += tilted_lines(tilted, page_no, page.width, page.height)
     for i, box in enumerate(boxes):
         bw = [w for w in words if in_box.get(id(w)) == i]
         if not bw:

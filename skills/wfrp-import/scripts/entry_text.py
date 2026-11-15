@@ -156,7 +156,7 @@ def runs_on(prev, l):
 
 
 def new_paragraph(l, prev):
-    if prev is None or l.get('box') != prev.get('box'):
+    if prev is None or l.get('box') != prev.get('box') or l.get('scrap') != prev.get('scrap'):
         return True
     if l['column'] != prev['column'] or l['page'] != prev['page'] or l['baseline'] < prev['baseline']:
         return not runs_on(prev, l)
@@ -177,6 +177,7 @@ def blocks_from_lines(lines, report, where, vocab=None, base_level=None):
     paragraphs (a new one at a column, page or box change or a wider gap). A line carrying a
     `block` (merge_lines()) is that block, and ends the paragraph before it."""
     blocks, buf, items, prev, bullet_x0 = [], [], [], None, None
+    printed = {}                  # id(heading block) -> its words as printed
 
     def flush():
         nonlocal buf, items
@@ -198,9 +199,13 @@ def blocks_from_lines(lines, report, where, vocab=None, base_level=None):
             flush()
             if blocks and blocks[-1]['type'] == 'heading' and prev is not None and prev.get('heading') == l['heading'] \
                     and l['baseline'] - prev['baseline'] < 1.6 * l['size']:
-                blocks[-1]['text'] = fix_case(blocks[-1]['text'] + ' ' + plain(text))   # one heading, two lines
+                # One heading, two lines: its case is fixed as a whole, from the words as printed
+                # (a first line already title-cased would hide that the second is in capitals).
+                printed[id(blocks[-1])] += ' ' + plain(text)
+                blocks[-1]['text'] = fix_case(printed[id(blocks[-1])])
             else:
                 blocks.append({'type': 'heading', 'level': l['heading'], 'text': fix_case(plain(text))})
+                printed[id(blocks[-1])] = plain(text)
             prev = l
             continue
         bullet = re.match(r'^\s*[•●▪]\s*', plain(l['text']))

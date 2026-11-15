@@ -120,6 +120,23 @@ class TitleCaseTest(unittest.TestCase):
         self.assertEqual(entry_text.fix_case('CharaCteristiC Xp'), 'Characteristic XP')
 
 
+class TwoLineHeadingTest(unittest.TestCase):
+    def test_a_heading_in_capitals_over_two_lines_is_title_cased_whole(self):
+        def line(text, baseline, heading=None):
+            l = {'page': 1, 'column': 'left', 'text': text, 'size': 15.0 if heading else 10.0,
+                 'baseline': baseline, 'x0': 50.0, 'x1': 200.0, 'bold': bool(heading), 'italic': False,
+                 'spans': [{'text': text, 'size': 15.0 if heading else 10.0, 'bold': bool(heading),
+                            'italic': False}]}
+            if heading:
+                l['heading'] = heading
+            return l
+        lines = [line('TRIMMING', 100.0, 3), line('THE STORM LAMPS', 116.0, 3),
+                 line('Light both lamps when the bell rings.', 132.0)]
+        blocks = entry_text.blocks_from_lines(lines, {'questions': [], 'dehyphenated': []}, 'page 1')
+        self.assertEqual(blocks[0], {'type': 'heading', 'level': 3, 'text': 'Trimming the Storm Lamps'})
+        self.assertEqual(len(blocks), 2)
+
+
 class BulletTest(unittest.TestCase):
     def test_a_bullet_goes_but_its_bold_stays(self):
         self.assertEqual(entry_text.strip_bullet('**• Wick**: the part that burns'), '**Wick**: the part that burns')
