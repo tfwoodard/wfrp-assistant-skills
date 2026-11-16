@@ -602,6 +602,8 @@ def read_table(page, box, lines):
         if not all(sp['bold'] for sp in l['spans']):
             if header:
                 break
+            if vl and l['baseline'] < min(v['top'] for v in vl):
+                break            # above the column rules: a note printed over the table, not a row
             first_row.append(l)
             continue
         header.append(l)
