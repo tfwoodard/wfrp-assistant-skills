@@ -753,6 +753,7 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
                             w['bottom'] <= page.height * (1 - MARGIN_BOTTOM) and
                             max(c['size'] for c in w['chars']) <= usual], page.width)
     out = order_lines(body, gutters, page_no, page.height)
+    keep_run_on(out, page_no, page.height)
     out += tilted_lines(tilted, page_no, page.width, page.height)
     for i, box in enumerate(boxes):
         bw = [w for w in words if in_box.get(id(w)) == i]
@@ -783,6 +784,17 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
             regions.append(region)
             out += sl
     return out, gutters
+
+
+def keep_run_on(lines, page_no, height):
+    """A column's last line that dips into the foot margin is still body text, not a running
+    foot: it sits one line below the line before it, at the same size, from the same left edge."""
+    for prev, l in zip(lines, lines[1:]):
+        if (l['furniture'] and not prev['furniture'] and l['text'].strip() != str(page_no) and
+                l['top'] > height / 2 and l['column'] == prev['column'] and l['size'] == prev['size'] and
+                abs(l['x0'] - prev['x0']) <= 2 and
+                0 < l['baseline'] - prev['baseline'] <= 1.5 * l['size']):
+            l['furniture'] = False
 
 
 def assign_headings(lines):

@@ -69,8 +69,11 @@ def main(argv=None):
         doc = json.load(f)
     page = collections.Counter()
     where = {}
+    furniture = collections.Counter()
     for l in doc['lines']:
         if l.get('furniture'):
+            if l['text'].strip() != str(l['page']):      # every line left out but the page numbers
+                furniture[l['text']] += 1
             continue
         for w in words(l['text']):
             page[w] += 1
@@ -112,6 +115,10 @@ def main(argv=None):
         print(f'excused: {w!r} x{n} (--ignore)')
     for w, n in missing:
         print(f'missing: {w!r} x{n}  first seen {where[w]}')
+    # No silent exceptions: the lines the layout set aside as page furniture are shown, so a body
+    # line among the running heads is seen.
+    for text, n in sorted(furniture.items(), key=lambda kv: (-kv[1], kv[0])):
+        print(f'page furniture: {text!r}' + (f' x{n}' if n > 1 else ''))
     if not missing:
         print(f'every word of {sum(page.values())} is accounted for')
     return 1 if missing else 0

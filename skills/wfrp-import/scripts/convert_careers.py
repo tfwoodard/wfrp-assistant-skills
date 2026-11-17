@@ -122,8 +122,9 @@ def read_scheme(career, lines, i, marks, shapes, plan, report):
     return levels
 
 
-def read_path(career, lines, start, marks, shapes, plan, report):
-    """lines[start] is the "Career Path" heading. Returns the four levels and the index after them."""
+def read_path(career, lines, start, marks, shapes, plan, report, bare=False):
+    """lines[start] is the "Career Path" heading. Returns the four levels and the index after them.
+    A `bare` career's level lines are a title alone, with no status (a familiar's)."""
     levels, cur, label, buf = [], None, None, []
 
     def flush():
@@ -136,9 +137,11 @@ def read_path(career, lines, start, marks, shapes, plan, report):
     while i < len(lines) and lines[i]['column'] == lines[start]['column']:
         l = lines[i]
         m = LEVEL_LINE.match(plain(l['text']))
-        if m and l['spans'][0]['bold']:
+        title_only = bare and l['bold'] and ':' not in l['text']
+        if (m or title_only) and l['spans'][0]['bold']:
             flush()
-            cur = {'title': m.group('title'), 'status': m.group('status'), '_raw': {}}
+            cur = {'title': plain(l['text']), '_raw': {}} if title_only else \
+                {'title': m.group('title'), 'status': m.group('status'), '_raw': {}}
             lv = icon_level(plan['level_icons'], near(marks, l['top'] - 4, l['top'] + l['size'] + 2, None, l['x0']),
                             near(shapes, l['top'] - 4, l['top'] + l['size'] + 2, None, l['x0']))
             if lv != len(levels) + 1:
@@ -176,10 +179,11 @@ def paragraphs(lines, report, career):
     return blocks
 
 
-def career_levels(name, lines, marks, shapes, plan, report):
+def career_levels(name, lines, marks, shapes, plan, report, bare=False):
     """The "<Name> Advance Scheme" and "Career Path" among `lines` -> (the `career_levels` block,
     the fields they give: levels, status, earning_skill, advances; the indexes of the lines read).
-    convert_rules.py reads a career printed inside a chapter of prose with this too."""
+    convert_rules.py reads a career printed inside a chapter of prose with this too. A `bare`
+    career (a familiar's) prints no status, trappings or skill for Earning money, and gets none."""
     used = set()
     si = next((i for i, l in enumerate(lines) if norm(l['text']) == norm(name + ' advance scheme')), None)
     scheme = None
@@ -194,17 +198,19 @@ def career_levels(name, lines, marks, shapes, plan, report):
     if pi is None:
         report['errors'].append({'career': name, 'error': 'no Career Path'})
     else:
-        levels, end = read_path(name, lines, pi, marks, shapes, plan, report)
+        levels, end = read_path(name, lines, pi, marks, shapes, plan, report, bare)
         used |= set(range(pi, end))
         report['left_out'].append(lines[pi]['text'])
 
     lv_blocks, advances = [], {}
     for n, lv in enumerate(levels, 1):
         raw = lv.pop('_raw')
-        block = {'title': lv['title'], 'status': lv['status'],
-                 'characteristics': (scheme or {}).get(n, [])}
-        adv = {'status': lv['status'], 'characteristics': block['characteristics']}
+        block = dict({'title': lv['title']}, **({} if bare else {'status': lv['status']}),
+                     characteristics=(scheme or {}).get(n, []))
+        adv = dict({} if bare else {'status': lv['status']}, characteristics=block['characteristics'])
         for lab in LABELS:
+            if lab not in raw and bare and lab == 'Trappings':
+                continue
             if lab not in raw:
                 report['errors'].append({'career': name, 'error': f'level {n} has no {lab}'})
                 continue
@@ -219,15 +225,16 @@ def career_levels(name, lines, marks, shapes, plan, report):
         lv_blocks.append(block)
         advances[str(n)] = adv
     earning = [plain(x) for x in (lv_blocks[0].get('skills', []) if lv_blocks else []) if all_italic(x)]
-    if len(earning) != 1:
+    if len(earning) != (0 if bare else 1):
         report['errors'].append({'career': name, 'error': f'{len(earning)} level 1 skills in italics '
-                                 '(the skill for Earning money), not 1', 'got': earning})
+                                 f'(the skill for Earning money), not {0 if bare else 1}', 'got': earning})
     later = [f'level {n}: {plain(x)}' for n, l in enumerate(lv_blocks[1:], 2)
              for x in l.get('skills', []) if all_italic(x)]
     if later:
         report['questions'].append({'career': name, 'kind': 'italic-skill-after-level-1', 'text': ', '.join(later)})
-    fields = {'levels': [l['title'] for l in lv_blocks], 'status': [l['status'] for l in lv_blocks],
-              'earning_skill': earning[0] if len(earning) == 1 else None, 'advances': advances}
+    fields = {'levels': [l['title'] for l in lv_blocks], 'advances': advances} if bare else \
+        {'levels': [l['title'] for l in lv_blocks], 'status': [l['status'] for l in lv_blocks],
+         'earning_skill': earning[0] if len(earning) == 1 else None, 'advances': advances}
     return {'type': 'career_levels', 'levels': lv_blocks}, fields, used
 
 
