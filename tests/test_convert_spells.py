@@ -192,6 +192,40 @@ class ConvertSpellsTest(unittest.TestCase):
         cov = run('check_coverage.py', self.layout, self.out)
         self.assertEqual(cov.returncode, 0, cov.stdout)
 
+    def replan(self, plan):
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(plan, f)
+
+    def test_a_lists_audience_marks_its_spells_and_its_own_entry(self):
+        lists = [dict(PLAN['lists'][0], audience='gm'), PLAN['lists'][1]]
+        self.replan(dict(PLAN, lists=lists))
+        r, report = self.convert()
+        self.assertEqual(r.returncode, 0, report['errors'])
+        rec = {(x['_category'], x['slug']): x.get('audience') for x in self.load('_records.json')}
+        self.assertEqual(rec, {('rules', 'lamp-magic'): None, ('rules', 'keeper-spells'): 'gm',
+                               ('spells', 'glow'): 'gm', ('spells', 'far-beam'): 'gm',
+                               ('spells', 'calm-sea'): None, ('spells', 'safe-harbour'): None})
+        self.assertEqual(self.load('spells--glow.json').get('audience'), 'gm')
+
+    def test_a_spell_outside_the_lists_is_an_entry_of_the_plan(self):
+        harbour = {'name': 'Safe Harbour', 'page': 1, 'category': 'spells', 'kind': 'miracle',
+                   'fields': {'kind': 'miracle', 'lore': 'the Keeper'}, 'field_labels': ['Range', 'Target', 'Duration']}
+        entries = PLAN['entries'] + [{'name': 'Prayers of the Keeper', 'page': 1, 'kind': 'other'}, harbour]
+        self.replan(dict(PLAN, entries=entries, lists=PLAN['lists'][:1]))
+        r, report = self.convert()
+        self.assertEqual(r.returncode, 0, report['errors'])
+        rec = {(x['_category'], x['slug']): x for x in self.load('_records.json')}
+        got = rec[('spells', 'safe-harbour')]
+        self.assertEqual((got['kind'], got['lore'], got['cn'], got['range'], got['target'], got['duration']),
+                         ('miracle', 'the Keeper', None, '1 mile', 'One boat', 'Instant'))
+        self.assertEqual(self.load('spells--safe-harbour.json')['fields']['range'], '1 mile')
+        self.assertIn(('rules', 'prayers-of-the-keeper'), rec)        # Calm Sea stays in its prose
+        harbour.pop('fields')
+        harbour.pop('kind')
+        self.replan(dict(PLAN, entries=entries, lists=PLAN['lists'][:1]))
+        r, report = self.convert()
+        self.assertTrue(any('needs its "kind"' in e['error'] for e in report['errors']), report['errors'])
+
     def test_a_heading_at_spell_level_without_fields_is_an_error(self):
         r, report = self.convert(stray=True)
         self.assertEqual(r.returncode, 1)

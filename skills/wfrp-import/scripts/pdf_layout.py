@@ -839,7 +839,7 @@ def assign_headings(lines):
     return sizes, body
 
 
-def read(pdf_path, first, last, offset, icon_fonts=(), boxes=False, icon_text=None):
+def read(pdf_path, first, last, offset, icon_fonts=(), boxes=False, icon_text=None, margin_lines=()):
     CASE_FIXED.clear()
     with pdfplumber.open(pdf_path) as pdf:
         n = len(pdf.pages)
@@ -853,6 +853,9 @@ def read(pdf_path, first, last, offset, icon_fonts=(), boxes=False, icon_text=No
             gutters[str(p)] = [round(g, 1) for g in gutters_here] or None
             if not got:
                 empty.append(p)
+            for l in got:           # a handout set to the page's edges: its title, its last line
+                if l['furniture'] and l['text'] in margin_lines:
+                    l['furniture'] = False
             lines += got
     sizes, body = assign_headings(lines)
     return {'pages': f'{first}-{last}', 'page_offset': offset, 'body_size': body,
@@ -882,12 +885,15 @@ def main(argv=None):
     ap.add_argument('--icon-text', nargs='*', default=[], metavar='ICON=TEXT',
                     help='put TEXT in the line where an icon is printed inline: FONT=TEXT for a glyph in an '
                          '--icon-fonts font, pts:N=TEXT for a drawing with N points')
+    ap.add_argument('--margin-lines', nargs='*', default=[], metavar='TEXT',
+                    help='lines printed in a page margin that are text, not page furniture, each given '
+                         'whole (a handout set to the edges of its page: its title, its last line)')
     ap.add_argument('--out', help='write the layout JSON here')
     ap.add_argument('--text', action='store_true', help='print a readable view instead of JSON')
     a = ap.parse_args(argv)
     first, last = parse_pages(a.pages)
     icon_text = dict(x.split('=', 1) for x in a.icon_text)
-    doc = read(a.pdf, first, last, a.page_offset, a.icon_fonts, a.boxes, icon_text)
+    doc = read(a.pdf, first, last, a.page_offset, a.icon_fonts, a.boxes, icon_text, a.margin_lines)
     if doc['pages_without_text']:
         print('no text layer on printed pages ' + ', '.join(map(str, doc['pages_without_text'])) +
               ': look at the page images, and ask before running OCR', file=sys.stderr)

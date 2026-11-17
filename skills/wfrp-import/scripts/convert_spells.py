@@ -30,7 +30,9 @@ A list of kind "ritual" holds rituals: each opens with a block of fields that ru
 lines and can share one (CN and Type; Learning XP; Ingredients, Conditions, Sacrifices,
 Consequences), up to the blank line before its description. All seven are needed; `cn` and
 `learning_xp` are numbers where printed as numbers, `type` is as printed and `lore` the lore it
-names ("Lore of Lamps" -> "Lamps"), or null. A list's "not_spells" names plain subheadings
+names ("Lore of Lamps" -> "Lamps"), or null. A list's "audience" marks all its spells ("gm").
+A spell printed outside any list (in a box of its own) is an entry of the plan with category
+"spells", its "kind" and its "field_labels". A list's "not_spells" names plain subheadings
 printed at its spells' size.
 
 --taken CATEGORY=_index.json (repeatable; a bare path is the spells index) and --library-data
@@ -110,6 +112,8 @@ def find_spells(lines, runs, spans, report):
                 continue
             # (a name set in display capitals reads back in a jumble of cases)
             spec = {'name': fix_case(plain(text)), 'page': lines[j]['page'], 'category': 'spells'}
+            if lst.get('audience'):                   # a nemesis's own spells are the GM's
+                spec['audience'] = lst['audience']
             found.append((j, last, spec, {'kind': lst['kind'], 'lore': lst.get('lore')}))
     return found
 
@@ -150,7 +154,8 @@ def convert_chapter(layout, plan, taken=(), library=None):
     for i, last, _, lst in spans:
         if lst.get('entry', True):
             entries.append({'name': lst['name'], 'heading': lst.get('heading', lst['name']), 'page': lst['page'],
-                            'kind': 'glossary', 'slug': lst.get('slug', slugify(lst['name']))})
+                            'kind': 'glossary', 'slug': lst.get('slug', slugify(lst['name'])),
+                            **({'audience': lst['audience']} if lst.get('audience') else {})})
         else:
             left_heads += [id(l) for l in head_lines[i]]
     left_out = [l['text'] for l in lines if id(l) in left_heads]
@@ -168,7 +173,16 @@ def convert_chapter(layout, plan, taken=(), library=None):
     for cat, e in out:
         if cat != 'spells':
             continue
-        f = parsed[(e['name'], e['page'])]
+        f = parsed.get((e['name'], e['page']))
+        if f is None:
+            # A spell the plan lists among its entries (one printed in a box of its own, outside
+            # any list): its fields are the plan's "kind" and "lore" and its labelled lines.
+            f = e['fields']
+            if not f.get('kind'):
+                rep['errors'].append({'error': f'{e["name"]}: a spell outside the lists needs its "kind" '
+                                               'in the plan'})
+                continue
+            f.setdefault('lore', None)
         e['fields'] = f
         rec = by_slug[('spells', e['slug'])]
         keys = ('kind', 'lore', 'cn', 'type', 'learning_xp') if f['kind'] == 'ritual' else \

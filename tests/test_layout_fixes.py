@@ -416,7 +416,7 @@ class ColumnEndsInTheFootMarginTest(unittest.TestCase):
     """A column's last line dips into the foot margin: it is body text. The running foot and the
     page number, set apart from the text, are not."""
 
-    def read(self, d):
+    def read(self, d, *args):
         pdf, out = os.path.join(d, 'p.pdf'), os.path.join(d, 'l.json')
         c = canvas.Canvas(pdf, pagesize=A4)
         w, h = A4
@@ -438,10 +438,17 @@ class ColumnEndsInTheFootMarginTest(unittest.TestCase):
         c.drawString(560, 22, '1')
         c.save()
         r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'pdf_layout.py'), pdf, '--pages', '1',
-                            '--boxes', '--out', out], capture_output=True, text=True)
+                            '--boxes', '--out', out, *args], capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stderr)
         with open(out) as f:
             return out, json.load(f)
+
+    def test_a_margin_line_the_caller_names_is_text(self):
+        with tempfile.TemporaryDirectory() as d:
+            _, doc = self.read(d, '--margin-lines', 'LANTERN TRADES ALMANACK')
+        lines = {l['text']: l for l in doc['lines']}
+        self.assertFalse(lines['LANTERN TRADES ALMANACK']['furniture'])
+        self.assertTrue(lines['1']['furniture'])
 
     def test_the_columns_last_line_is_kept(self):
         with tempfile.TemporaryDirectory() as d:
