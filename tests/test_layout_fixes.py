@@ -464,3 +464,57 @@ class ColumnEndsInTheFootMarginTest(unittest.TestCase):
         self.assertIn("page furniture: 'LANTERN TRADES ALMANACK'", r.stdout)
         self.assertNotIn("page furniture: '1'", r.stdout)
         self.assertIn('every word', r.stdout)
+
+
+@unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the invented page')
+class HeadingsSideBySideTest(unittest.TestCase):
+    """Two columns' headings on one baseline, in different typefaces and sizes a little apart, nearly
+    touching at the gutter;
+    and a bullet's second line, indented, in the foot margin."""
+
+    def read(self, d):
+        pdf, out = os.path.join(d, 'p.pdf'), os.path.join(d, 'l.json')
+        c = canvas.Canvas(pdf, pagesize=A4)
+        w, h = A4
+        left = 'Trimming of Wicks and Lamps'
+        c.setFont('Times-Bold', 18)
+        c.drawString(292 - c.stringWidth(left, 'Times-Bold', 18), h - 70, left)      # ends at the gutter
+        c.setFont('Helvetica-Bold', 22)
+        c.drawString(302, h - 70, 'HARBOUR LIGHTS')
+        c.setFont('Helvetica', 9)
+        y = h - 96
+        while y > 62:
+            k = int(y) // 12 % 3            # varied lines: no word space lines up down the page
+            body = ('The keepers trim every wick before the dusk bell rings out',
+                    'A boy carries oil up the long stair twice in each watch',
+                    'Nobody sleeps while a ship is still out past the bar')[k]
+            t = c.beginText(50, y)                      # justified: set full out to the gutter
+            t.setWordSpace((241 - c.stringWidth(body, 'Helvetica', 9)) / body.count(' '))
+            t.textOut(body)
+            c.drawText(t)
+            c.drawString(302, y, ('and the boats come home by the north lamp', 'when fog sits low on the water at night',
+                                  'so the harbour master counts every sail in')[k])
+            y -= 12
+        c.drawString(302, y, '• Rule: a keeper who lets the lamp go dark must')
+        c.drawString(312, y - 12, 'light it again before the tide.')                 # indented, in the foot margin
+        c.setFont('Helvetica', 12)
+        c.drawString(560, 22, '1')
+        c.save()
+        r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'pdf_layout.py'), pdf, '--pages', '1',
+                            '--boxes', '--out', out], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(out) as f:
+            return json.load(f)
+
+    def test_each_column_keeps_its_own_heading(self):
+        with tempfile.TemporaryDirectory() as d:
+            doc = self.read(d)
+        heads = [(l['column'], l['text']) for l in doc['lines'] if l.get('heading')]
+        self.assertEqual(heads, [('left', 'Trimming of Wicks and Lamps'), ('right', 'HARBOUR LIGHTS')])
+
+    def test_a_bullets_indented_last_line_is_kept(self):
+        with tempfile.TemporaryDirectory() as d:
+            doc = self.read(d)
+        lines = {l['text']: l for l in doc['lines']}
+        self.assertFalse(lines['light it again before the tide.']['furniture'])
+        self.assertTrue(lines['1']['furniture'])

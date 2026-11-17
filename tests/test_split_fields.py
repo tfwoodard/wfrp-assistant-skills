@@ -175,5 +175,35 @@ class BannerRowsTest(unittest.TestCase):
         self.assertEqual(report['errors'], [])
 
 
+class RowGroupsTest(unittest.TestCase):
+    """A table whose first column labels groups of rows, each label printed once beside its group."""
+
+    REGION = {'id': '1.1', 'page': 1, 'columns': ['', 'Lamp', 'Burns'],
+              'rows': [['', 'Brass', '2 hours'], ['Harbour', 'Glass', '5 hours'], ['', 'Horn', '1 hour'],
+                       ['Storm', 'Lantern', '9 hours'], ['Tower', 'Great', '3 days'], ['Lights', 'Lesser', '1 day']]}
+
+    def block(self, groups):
+        sys.path.insert(0, SCRIPTS)
+        import convert_rules
+        report = {'errors': [], 'tables_to_confirm': []}
+        b = convert_rules.table_block(self.REGION, 'Lamps', {'row_groups': groups}, report, 'Lamps')
+        return b, report
+
+    def test_every_row_carries_its_groups_label(self):
+        b, report = self.block([['Harbour', 3], ['Storm Lantern', 1], ['Tower Lights', 2]])
+        self.assertEqual(report['errors'], [])
+        self.assertEqual(b['rows'], [['Harbour', 'Brass', '2 hours'], ['Harbour', 'Glass', '5 hours'],
+                                     ['Harbour', 'Horn', '1 hour'], ['Storm Lantern', '', '9 hours'],
+                                     ['Tower Lights', 'Great', '3 days'], ['Tower Lights', 'Lesser', '1 day']])
+
+    def test_a_label_the_table_does_not_print_is_an_error(self):
+        b, report = self.block([['Harbour', 2], ['Storm Lantern', 2], ['Tower Lights', 2]])
+        self.assertEqual(len(report['errors']), 1)
+        self.assertIn("prints 'Storm' beside the 2 rows", report['errors'][0]['error'])
+        self.assertEqual(b['rows'][0], ['', 'Brass', '2 hours'])
+        _, report = self.block([['Harbour', 3], ['Storm Lantern', 1]])
+        self.assertIn('has 6 rows', report['errors'][0]['error'])
+
+
 if __name__ == '__main__':
     unittest.main()
