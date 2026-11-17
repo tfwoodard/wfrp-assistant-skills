@@ -174,15 +174,15 @@ def strip_bullet(text):
 def ends_fields(run, l, labels):
     """True when `l` starts the prose after a run of labelled field lines ("Motive: ...", "Aim:
     ..." under a name, then the biography with no blank line between): the run opens with one of
-    `labels` in bold, its last line stops well short of the run's widest line, and `l` starts a
-    sentence without a label of its own."""
+    `labels` in bold, its last line stops well short of the widest line of the run and `l`, and
+    `l` starts a sentence without a label of its own."""
     if not run or not labels:
         return False
     known = {x.lower() for x in labels}
     if (label_of(run[0]) or '').lower() not in known or (label_of(l) or '').lower() in known:
         return False
     last = run[-1]
-    return (last['x1'] < max(x['x1'] for x in run) - 3 * last['size'] and
+    return (last['x1'] < max(x['x1'] for x in run + [l]) - 3 * last['size'] and
             bool(re.match(r'^[A-Z‘“"\'(]', plain(l['text']))))
 
 

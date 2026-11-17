@@ -358,3 +358,54 @@ class PanelInTheFootMarginTest(unittest.TestCase):
         self.assertEqual((last.get('box'), last['furniture']), ('1.1', False))
         self.assertTrue(lines['Lantern Trades Almanack']['furniture'])
         self.assertTrue(lines['1']['furniture'])
+
+
+def draw_noted_table(path):
+    """A panel: a title, a note in body type, then a table with no header whose first row has no
+    rule above it; a column rule runs from the first row's top."""
+    c = canvas.Canvas(path, pagesize=A4)
+    w, h = A4
+    c.drawImage(ImageReader(Image.new('RGB', (40, 40), (230, 220, 190))), 60, h - 260, 240, 180)
+    c.setLineWidth(0.5)
+    c.setFont('Helvetica-Bold', 12)
+    c.drawString(110, h - 100, 'LAMP MISHAPS')
+    c.setFont('Helvetica', 9)
+    c.drawString(70, h - 116, 'When a keeper fumbles the lighting, roll here')
+    c.drawString(70, h - 128, 'as well as on the usual table.')
+    rows = [('1-2', 'Soot on the glass'), ('3-8', 'No effect'), ('9-10', 'The wick is lost')]
+    top = h - 130            # close under the note: no gap tells the two apart
+    y = top
+    for k, (roll, what) in enumerate(rows):
+        if k:
+            c.line(70, y, 290, y)
+        y -= 13
+        c.drawString(74, y, roll)
+        c.drawString(114, y, what)
+        y -= 5
+    c.line(70, y, 290, y)
+    c.line(108, top, 108, y)
+    for k in range(14):
+        c.drawString(60, h - 300 - 11 * k, 'Keepers trim the wicks at dusk.')
+        c.drawString(320, h - 110 - 11 * k, 'Gulls circle the tower all day.')
+    c.showPage()
+    c.save()
+
+
+@unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the invented page')
+class NoteAboveATableTest(unittest.TestCase):
+    def test_a_note_above_the_column_rules_is_not_the_first_row(self):
+        with tempfile.TemporaryDirectory() as d:
+            pdf, out = os.path.join(d, 'page.pdf'), os.path.join(d, 'layout.json')
+            draw_noted_table(pdf)
+            r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'pdf_layout.py'), pdf, '--pages', '1',
+                                '--boxes', '--out', out], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            with open(out) as f:
+                doc = json.load(f)
+        region = doc['regions'][0]
+        self.assertEqual(region['kind'], 'table')
+        self.assertEqual(region['rows'], [['1-2', 'Soot on the glass'], ['3-8', 'No effect'],
+                                          ['9-10', 'The wick is lost']])
+        boxed = [l['text'] for l in doc['lines'] if l.get('box')]
+        self.assertEqual(boxed[:3], ['LAMP MISHAPS', 'When a keeper fumbles the lighting, roll here',
+                                     'as well as on the usual table.'])
