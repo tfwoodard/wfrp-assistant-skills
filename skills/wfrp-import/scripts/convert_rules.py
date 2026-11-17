@@ -102,6 +102,7 @@ roll table, its roll column's values as {"min", "max"}. The plan can also give
 a table's "title", say its read header is a "banner" printed across the
 columns (and that so are its first "banner_rows": N rows; one that is the title is dropped), name the "row_groups" its
 first column labels ([[label, rows], ...]: each label is printed once beside its group),
+name the table "stacked" under it ({"title", "columns"}: set below with no rule between),
 or that its first row is its "header_row", and name its "columns" (when the header
 isn't printed or isn't read). A table's title printed inside its frame, read into the first
 row's cells, is taken out of them (`titles_stripped`). A row with only its first cell filled,
@@ -561,6 +562,37 @@ def strip_title(row, title):
     return list(row), False
 
 
+def unstack(region, plan_t, report, where):
+    """Two tables set one under the other with no rule between, read as one: the second's title
+    and header ran into the row above them. The plan's "stacked" ({"title", "columns"}) names the
+    second table; the row whose cells end with its header is cleaned of title and header, and the
+    rows below it are the second table's. -> (the first table's region, the second's or None)."""
+    st = (plan_t or {}).get('stacked')
+    if not st:
+        return region, None
+    heads = st['columns']
+    title = [norm(w) for w in st['title'].split()]
+    for k, row in enumerate(region['rows']):
+        if len(row) != len(heads) or not all(norm(c).endswith(norm(h)) for c, h in zip(row, heads)):
+            continue
+        clean, at = [], 0
+        for c, h in zip(row, heads):
+            words = c.split()
+            words = words[:len(words) - len(h.split())]                    # the header's label
+            m = min(len(words), len(title) - at)                          # the title's next words
+            while m and [norm(w) for w in words[len(words) - m:]] != title[at:at + m]:
+                m -= 1
+            at += m
+            clean.append(' '.join(words[:len(words) - m]))
+        if at != len(title):
+            break
+        return (dict(region, rows=region['rows'][:k] + [clean]),
+                dict(region, id=region['id'] + 'b', columns=list(heads), rows=region['rows'][k + 1:]))
+    report['errors'].append({'error': f'{where}: table {region["id"]}: no row ends with the header of the '
+                                      f'table the plan stacks under it ({st["title"]!r})'})
+    return region, None
+
+
 def label_row_groups(rows, groups, report, where, rid):
     """A table whose first column labels groups of rows, each label printed once beside its group
     (centred on it, or over two lines, or run across the first two cells of a group of one row).
@@ -598,9 +630,10 @@ def table_block(region, title, plan_t, report, where):
         only = [c.strip() for c in r if c.strip()]
         if width > 2 and r and r[0].strip() and not any(c.strip() for c in r[1:]):
             groups.append({'before': len(kept), 'text': r[0].strip()})
-        elif len(only) == 1 and only[0].isupper() and len(re.sub(r'[^A-Za-z]', '', only[0])) >= 3:
-            # ...and so does a band in capitals across the columns, whichever cell it was read into
-            groups.append({'before': len(kept), 'text': fix_case(only[0])})
+        elif (only and len(only) <= max(1, width // 3) and all(c.isupper() for c in only) and
+              len(re.sub(r'[^A-Za-z]', '', ''.join(only))) >= 3):
+            # ...and so does a band in capitals across the columns, whichever cells it was read into
+            groups.append({'before': len(kept), 'text': fix_case(' '.join(only))})
         else:
             kept.append(r)
     if groups:
@@ -879,7 +912,13 @@ def convert(layout, plan, taken=(), library=None):
             if current is not None and l['size'] >= current['size']:
                 report['errors'].append({'error': f'heading {text!r} on page {l["page"]} is at the level of '
                                          f'{current["spec"]["name"]!r} but the plan doesn\'t place it'})
-        if current is None and intro and not (i in runs and l['heading'] == 1):
+        if current is None and i in runs and l['heading'] == 1:
+            # The chapter's title, over one line or two: left out whole, before the intro starts.
+            last = runs[i][1]
+            report['left_out'] += [x['text'] for x in lines[i:last + 1]]
+            i = last + 1
+            continue
+        if current is None and intro:
             current = {'spec': dict(intro, page=l['page']), 'level': 1, 'size': 99, 'lines': [], 'boxes': []}
             entries.append(current)
         if current is None:
@@ -992,6 +1031,8 @@ def convert(layout, plan, taken=(), library=None):
                 where = f'{name}: table {bid}'
                 cols, rows, _, _, _ = table_cells(region, title, plan_t, report, where)
                 report['left_out'].append(' '.join(region.get('columns') or []))  # the header: field names
+                if norm(' '.join(cols)) != norm(' '.join(region.get('columns') or [])):
+                    report['left_out'].append(' '.join(cols))      # ...when the plan found it a row down
                 notes, rest = items.footnotes(body)
                 inner = blocks_from_lines(rest, report, name, vocab) if rest else []
                 for it in items.item_rows(cols, rows, plan_t['items'], notes, report, where):
@@ -1001,7 +1042,10 @@ def convert(layout, plan, taken=(), library=None):
                         report['left_out'].append(title)      # the price table's title
                     continue
             elif region.get('kind') == 'table':
-                inner.append(table_block(region, title, plan_t, report, name))
+                first, second = unstack(region, plan_t, report, name)
+                inner.append(table_block(first, title, plan_t, report, name))
+                if second:
+                    inner.append(table_block(second, plan_t['stacked']['title'], plan_t['stacked'], report, name))
             if e.get('own_box'):
                 if title and norm(title) != norm(name):
                     inner.insert(0, {'type': 'heading', 'level': 2, 'text': title})

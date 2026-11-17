@@ -47,9 +47,14 @@ def footnotes(lines):
 
 
 def group_row(row):
-    """A row naming the group of the rows below: its first cell empty, the text in the others."""
-    if row and not row[0].strip() and any(c.strip() for c in row[1:]):
-        return ' '.join(c.strip() for c in row[1:] if c.strip())
+    """A row naming the group of the rows below: its first cell empty, the text in the others; or
+    a band in capitals read into several cells, the first among them ("HERBS" "AND" "DRAUGHTS")."""
+    filled = [c.strip() for c in row if c.strip()]
+    if row and not row[0].strip() and filled:
+        return ' '.join(filled)
+    if (len(filled) > 1 and len(filled) < len(row) and all(c.isupper() for c in filled) and
+            not any(ch.isdigit() for c in filled for ch in c)):
+        return ' '.join(filled)
     return None
 
 
