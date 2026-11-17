@@ -409,3 +409,58 @@ class NoteAboveATableTest(unittest.TestCase):
         boxed = [l['text'] for l in doc['lines'] if l.get('box')]
         self.assertEqual(boxed[:3], ['LAMP MISHAPS', 'When a keeper fumbles the lighting, roll here',
                                      'as well as on the usual table.'])
+
+
+@unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the invented page')
+class ColumnEndsInTheFootMarginTest(unittest.TestCase):
+    """A column's last line dips into the foot margin: it is body text. The running foot and the
+    page number, set apart from the text, are not."""
+
+    def read(self, d):
+        pdf, out = os.path.join(d, 'p.pdf'), os.path.join(d, 'l.json')
+        c = canvas.Canvas(pdf, pagesize=A4)
+        w, h = A4
+        c.setFont('Helvetica-Bold', 30)
+        c.drawString(150, h - 70, 'THE LANTERN TRADES')
+        c.setFont('Helvetica', 9)
+        y = h - 110
+        while y > 60:
+            c.drawString(50, y, 'The keepers trim every wick before dusk')
+            c.drawString(320, y, 'and the boats come home by the north lamp')
+            y -= 12
+        c.setFont('Helvetica-Bold', 9)
+        c.drawString(50, y, 'A keeper who lets the lamp go dark must light it')
+        c.setFont('Helvetica', 9)
+        c.drawString(50, y - 12, 'again before the tide turns.')                 # in the foot margin
+        c.setFont('Helvetica', 7)
+        c.drawString(430, 30, 'LANTERN TRADES ALMANACK')
+        c.setFont('Helvetica', 12)
+        c.drawString(560, 22, '1')
+        c.save()
+        r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'pdf_layout.py'), pdf, '--pages', '1',
+                            '--boxes', '--out', out], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        with open(out) as f:
+            return out, json.load(f)
+
+    def test_the_columns_last_line_is_kept(self):
+        with tempfile.TemporaryDirectory() as d:
+            _, doc = self.read(d)
+        lines = {l['text']: l for l in doc['lines']}
+        self.assertFalse(lines['again before the tide turns.']['furniture'])
+        self.assertTrue(lines['LANTERN TRADES ALMANACK']['furniture'])
+        self.assertTrue(lines['1']['furniture'])
+
+    def test_the_coverage_check_lists_the_furniture_it_leaves_out(self):
+        with tempfile.TemporaryDirectory() as d:
+            layout, doc = self.read(d)
+            out = os.path.join(d, 'out')
+            os.mkdir(out)
+            text = ' '.join(l['text'] for l in doc['lines'] if not l['furniture'])
+            with open(os.path.join(out, 'e.json'), 'w') as f:
+                json.dump({'name': 'x', 'content': [{'type': 'paragraph', 'text': text}]}, f)
+            r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'check_coverage.py'), layout, out],
+                               capture_output=True, text=True)
+        self.assertIn("page furniture: 'LANTERN TRADES ALMANACK'", r.stdout)
+        self.assertNotIn("page furniture: '1'", r.stdout)
+        self.assertIn('every word', r.stdout)

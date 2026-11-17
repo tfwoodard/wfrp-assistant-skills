@@ -331,7 +331,9 @@ def read_career(e, entries, lines, layout, plan, report):
     line, under its heading, and the box holding its advance scheme and career path, read as
     convert_careers.py reads a career page. Both are taken out of the entry's text, which stays
     prose (its description, any sections on the pages after, its sidebars). Returns the species
-    line's block, the `career_levels` block and the career's fields."""
+    line's block, the `career_levels` block and the career's fields. A career that prints no
+    species line names its "species" in the plan; one whose levels print no status, trappings or
+    skill for Earning money is "bare": true (a familiar's)."""
     name, page = e['spec']['name'], e['spec']['page']
     missing = [k for k in ('level_icons', 'scheme_columns') if k not in plan]
     if missing:
@@ -339,7 +341,9 @@ def read_career(e, entries, lines, layout, plan, report):
         return None, None, {}
     first = e['lines'][0] if e['lines'] and not e['lines'][0].get('heading') else None
     species, species_block = [], None
-    if first is None:
+    if 'species' in e['spec']['career']:        # the book prints no species line (a familiar's career)
+        species = list(e['spec']['career']['species'])
+    elif first is None:
         report['errors'].append({'career': name, 'error': 'no species line after the heading'})
     else:
         e['lines'] = e['lines'][1:]
@@ -363,7 +367,8 @@ def read_career(e, entries, lines, layout, plan, report):
     on_page = mine[0]['page']
     marks = [m for m in layout.get('marks', []) if m['page'] == on_page]
     shapes = [x for x in layout.get('shapes', []) if x['page'] == on_page]
-    block, level_fields, used = convert_careers.career_levels(name, mine, marks, shapes, plan, report)
+    block, level_fields, used = convert_careers.career_levels(name, mine, marks, shapes, plan, report,
+                                                               bare=bool(e['spec']['career'].get('bare')))
     unread = [l['text'] for i, l in enumerate(mine) if i not in used] + \
         ([l['text'] for l in box[:start]] if not any(norm(l['text']).endswith(' advance scheme') for l in box[:start]) else [])
     if unread:

@@ -42,7 +42,9 @@ PLAN = {
 }
 
 
-def draw_pages(path):
+def draw_pages(path, bare=False):
+    """`bare`: a career printed with no species line and, in its levels, no status, trappings or
+    italic skill (a lamp sprite's)."""
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     panel = ImageReader(Image.new('RGB', (40, 40), (230, 220, 190)))
@@ -82,7 +84,8 @@ def draw_pages(path):
     body(50, h - 126, ['Every tower keeps a warden and a boy', 'to carry the oil up the stair.'])
     y = h - 180
     text(50, y, 'Lamp Warden', 'Helvetica-Bold', 19)
-    text(50, y - 14, 'Dwarf, Halfling, Human')
+    if not bare:
+        text(50, y - 14, 'Dwarf, Halfling, Human')
     body(50, y - 34, ['Lamp Wardens keep the harbour lights burning', 'through fog and storm, with oil and wick.'])
     body(320, y - 34, ['Wardens move between ports when a tower', 'falls dark for good.'])
     sy = y - 80
@@ -98,15 +101,15 @@ def draw_pages(path):
     py -= 22
     for n, (title, status, skills, talents, trappings) in enumerate(LEVELS, 1):
         icon(n, 55, py + 1)
-        text(65, py, f'{title} — {status}', 'Helvetica-Bold')
+        text(65, py, title if bare else f'{title} — {status}', 'Helvetica-Bold')
         py -= 11
-        for label, val in (('Skills:', skills), ('Talents:', talents), ('Trappings:', trappings)):
+        for label, val in (('Skills:', skills), ('Talents:', talents), ('Trappings:', trappings))[:2 if bare else 3]:
             x = text(65, py, label, 'Helvetica-Bold')
             for k, part in enumerate(val.split('|')):
                 if k:
                     py -= 11
                     x = 65
-                if 'Melee (Basic)' in part:
+                if 'Melee (Basic)' in part and not bare:
                     before, after = part.split('Melee (Basic)')
                     x = text(x + 3, py, before) if before else x + 3
                     x = text(x, py, 'Melee (Basic)', slant=True)
@@ -137,9 +140,9 @@ def run(script, *args):
 
 @unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the fixture PDF')
 class CareerInChapterTest(unittest.TestCase):
-    def convert(self, d, taken=(), plan=PLAN):
+    def convert(self, d, taken=(), plan=PLAN, bare=False):
         pdf, layout, planf, out = (os.path.join(d, n) for n in ('pages.pdf', 'layout.json', 'plan.json', 'out'))
-        draw_pages(pdf)
+        draw_pages(pdf, bare)
         r = run('pdf_layout.py', pdf, '--pages', '1-2', '--boxes', '--icon-fonts', 'ZapfDingbats', '--out', layout)
         self.assertEqual(r.returncode, 0, r.stderr)
         with open(planf, 'w', encoding='utf-8') as f:
@@ -183,6 +186,29 @@ class CareerInChapterTest(unittest.TestCase):
             self.assertEqual(rec['earning_skill'], 'Melee (Basic)')
             self.assertEqual(sorted((r['_category'], r['slug']) for r in records),
                              [('careers', 'lamp-warden'), ('rules', 'beacon-law'), ('rules', 'tower-trades')])
+            r = run('check_coverage.py', layout, out)
+            self.assertIn('every word', r.stdout, r.stdout + r.stderr)
+
+    def test_a_bare_career_has_no_species_line_status_trappings_or_earning_skill(self):
+        entries = [dict(e, career={'class': 'Burghers', 'bare': True, 'species': ['Lamp Sprite']})
+                   if e.get('career') else e for e in PLAN['entries']]
+        with tempfile.TemporaryDirectory() as d:
+            out, layout, report, records = self.convert(d, plan=dict(PLAN, entries=entries), bare=True)
+            with open(os.path.join(out, 'careers--lamp-warden.json'), encoding='utf-8') as f:
+                e = json.load(f)
+            f = e['fields']
+            self.assertEqual((f['class'], f['species']), ('Burghers', ['Lamp Sprite']))
+            self.assertEqual(f['levels'], [l[0] for l in LEVELS])
+            self.assertNotIn('status', f)
+            self.assertNotIn('earning_skill', f)
+            self.assertEqual(sorted(f['advances']['1']), ['characteristics', 'skills', 'talents'])
+            levels = next(b for b in e['content'] if b['type'] == 'career_levels')['levels']
+            self.assertEqual(sorted(levels[0]), ['characteristics', 'skills', 'talents', 'title'])
+            self.assertEqual([b['type'] for b in e['content']][:3], ['paragraph', 'paragraph', 'career_levels'])
+            with open(os.path.join(out, 'careers--lamp-warden.md'), encoding='utf-8') as f:
+                md = f.read()
+            self.assertIn('| Level | Title | Characteristics |', md)
+            self.assertIn(f'***{LEVELS[0][0]}***\n', md)
             r = run('check_coverage.py', layout, out)
             self.assertIn('every word', r.stdout, r.stdout + r.stderr)
 

@@ -88,13 +88,15 @@ def md_profile(b, base, titled=True):
 def md_career_levels(b):
     """A career's advance scheme: one row per career level, then each level's skills, talents
     and trappings as printed."""
-    out = ['| Level | Title | Status | Characteristics |', '|---|---|---|---|']
+    status = any(lv.get('status') for lv in b['levels'])      # a familiar's career prints none
+    out = ['| Level | Title | Status | Characteristics |', '|---|---|---|---|'] if status else \
+        ['| Level | Title | Characteristics |', '|---|---|---|']
     for i, lv in enumerate(b['levels'], 1):
-        out.append(f'| {i} | {cell(lv["title"])} | {cell(lv.get("status", ""))} | '
+        out.append(f'| {i} | {cell(lv["title"])} | ' + (f'{cell(lv.get("status", ""))} | ' if status else '') +
                    f'{cell(", ".join(lv.get("characteristics", [])))} |')
     out.append('')
     for i, lv in enumerate(b['levels'], 1):
-        out += [f'***{lv["title"]}*** ({lv.get("status", "")})', '']
+        out += [f'***{lv["title"]}***' + (f' ({lv.get("status", "")})' if status else ''), '']
         for k, label in (('skills', 'Skills'), ('talents', 'Talents'), ('trappings', 'Trappings')):
             if lv.get(k):
                 v = lv[k] if isinstance(lv[k], str) else ', '.join(lv[k])
