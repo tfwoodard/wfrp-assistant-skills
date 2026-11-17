@@ -100,7 +100,8 @@ table block; a table the plan lists under "tables" is also written as an entry
 of its own in tables/ (when it gives a "slug"), with `about` and, when it is a
 roll table, its roll column's values as {"min", "max"}. The plan can also give
 a table's "title", say its read header is a "banner" printed across the
-columns (and that so are its first "banner_rows": N rows; one that is the title is dropped),
+columns (and that so are its first "banner_rows": N rows; one that is the title is dropped), name the "row_groups" its
+first column labels ([[label, rows], ...]: each label is printed once beside its group),
 or that its first row is its "header_row", and name its "columns" (when the header
 isn't printed or isn't read). A table's title printed inside its frame, read into the first
 row's cells, is taken out of them (`titles_stripped`). A row with only its first cell filled,
@@ -560,9 +561,38 @@ def strip_title(row, title):
     return list(row), False
 
 
+def label_row_groups(rows, groups, report, where, rid):
+    """A table whose first column labels groups of rows, each label printed once beside its group
+    (centred on it, or over two lines, or run across the first two cells of a group of one row).
+    The plan's "row_groups" names them in order, [[label, number of rows], ...]; every row of a
+    group then carries its label. The labels must be the first column's words, in order."""
+    if not groups:
+        return rows
+    out, at = [], 0
+    for label, n in groups:
+        part = [list(r) for r in rows[at:at + n]]
+        at += n
+        printed = ' '.join(r[0] for r in part if r[0].strip())
+        if len(part) == n == 1 and norm(printed + ' ' + part[0][1]) == norm(label):
+            part[0][1] = ''                   # one row, its name set across the first two cells
+        elif len(part) != n or norm(printed) != norm(label):
+            report['errors'].append({'error': f'{where}: table {rid} prints {printed!r} beside the {n} rows the '
+                                              f'plan groups as {label!r}'})
+            return rows
+        for r in part:
+            r[0] = label
+        out += part
+    if at != len(rows):
+        report['errors'].append({'error': f'{where}: table {rid} has {len(rows)} rows; the plan\'s row_groups '
+                                          f'cover {at}'})
+        return rows
+    return out
+
+
 def table_block(region, title, plan_t, report, where):
     cols, rows, banners, width, title = table_cells(region, title, plan_t, report, where)
     plan_t = plan_t or {}
+    rows = label_row_groups(rows, plan_t.get('row_groups'), report, where, region['id'])
     groups, kept = [], []
     for r in rows:                    # a row with only its first cell filled heads the rows below
         only = [c.strip() for c in r if c.strip()]

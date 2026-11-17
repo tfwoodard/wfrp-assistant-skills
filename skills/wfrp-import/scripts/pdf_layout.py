@@ -426,7 +426,12 @@ def segments(raw, gutters):
         sl = max(c['size'] for c in left[-1]['chars'])
         sr = max(c['size'] for c in right[0]['chars'])
         size = max(sl, sr)
-        if right[0]['x0'] - left[-1]['x1'] < max(4.0, 0.6 * size) and max(sl, sr) < 1.25 * min(sl, sr):
+        # A change of typeface as well, across more than a word space, makes a smaller jump
+        # enough: two columns' headings side by side, one in small capitals and one in capitals
+        # a little larger.
+        gap = right[0]['x0'] - left[-1]['x1']
+        faces = left[-1]['chars'][-1].get('fontname') != right[0]['chars'][0].get('fontname') and gap >= 0.4 * size
+        if gap < max(4.0, 0.6 * size) and max(sl, sr) < (1.2 if faces else 1.25) * min(sl, sr):
             return [('full', raw)]
     return [(names[i], parts[i]) for i in filled]
 
@@ -788,11 +793,12 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
 
 def keep_run_on(lines, page_no, height):
     """A column's last line that dips into the foot margin is still body text, not a running
-    foot: it sits one line below the line before it, at the same size, from the same left edge."""
+    foot: it sits one line below the line before it, at the same size, from the same left edge (or
+    indented under it, as a bullet's second line is)."""
     for prev, l in zip(lines, lines[1:]):
         if (l['furniture'] and not prev['furniture'] and l['text'].strip() != str(page_no) and
                 l['top'] > height / 2 and l['column'] == prev['column'] and l['size'] == prev['size'] and
-                abs(l['x0'] - prev['x0']) <= 2 and
+                -2 <= l['x0'] - prev['x0'] <= 2 * l['size'] and
                 0 < l['baseline'] - prev['baseline'] <= 1.5 * l['size']):
             l['furniture'] = False
 
