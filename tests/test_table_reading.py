@@ -73,6 +73,26 @@ class BandsInCapitalsTest(unittest.TestCase):
         self.assertIsNone(items.group_row(['OIL', '2 GC', '', '']))            # a price: an item
 
 
+class EmptyLastColumnTest(unittest.TestCase):
+    REGION = {'id': '1.1', 'page': 1, 'columns': ['Lamp', 'Price', ''],
+              'rows': [['Brass', '2', ''], ['Horn', '1', '']]}
+
+    def test_a_last_column_with_nothing_in_it_is_dropped_and_listed(self):
+        import convert_rules
+        report = {'errors': [], 'tables_to_confirm': []}
+        b = convert_rules.table_block(self.REGION, 'Lights for Sale', {}, report, 'Lamps')
+        self.assertEqual((b['columns'], b['rows']), (['Lamp', 'Price'], [['Brass', '2'], ['Horn', '1']]))
+        self.assertEqual(report['empty_columns'], [{'entry': 'Lamps', 'region': '1.1', 'dropped': 1}])
+
+    def test_a_column_with_one_cell_filled_stays(self):
+        import convert_rules
+        report = {'errors': [], 'tables_to_confirm': []}
+        region = dict(self.REGION, rows=[['Brass', '2', ''], ['Horn', '1', 'dim']])
+        b = convert_rules.table_block(region, 'Lights for Sale', {}, report, 'Lamps')
+        self.assertEqual(len(b['columns']), 3)
+        self.assertNotIn('empty_columns', report)
+
+
 class CellTextTest(unittest.TestCase):
     def test_a_small_word_set_above_the_line_reads_where_it_stands(self):
         import pdf_layout
