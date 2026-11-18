@@ -336,6 +336,18 @@ class SameNameTest(ConvertSpellsTest):
         self.assertEqual(report['same_name'][0]['relation'], 'replaces')
         self.assertEqual(self.load('spells--glow-test.json')['relations'], [{'role': 'replaces', 'to': 'spells/glow'}])
 
+    def test_another_casting_number_is_a_replacement(self):
+        lib, index = self.library()
+        path = os.path.join(lib, 'spells', 'glow.json')
+        with open(path) as f:
+            glow = json.load(f)
+        glow['fields'] = dict(glow['fields'], cn=3)               # the same words, a different number
+        with open(path, 'w') as f:
+            json.dump(glow, f)
+        r, report = self.again('--taken', f'spells={index}', '--library-data', lib)
+        self.assertEqual(report['same_name'][0]['relation'], 'replaces')
+        self.assertEqual(self.load('spells--glow-test.json')['relations'], [{'role': 'replaces', 'to': 'spells/glow'}])
+
     def test_the_plans_relation_stands(self):
         lib, index = self.library()
         with open(os.path.join(self.d, 'plan.json'), 'w') as f:
