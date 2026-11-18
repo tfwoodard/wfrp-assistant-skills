@@ -70,6 +70,13 @@ These cost real time on tfwoodard/dnd-assistant-skills; don't relearn them.
   then merge indexes, the log and `library.json` once (`merge_import.py`).
 - **Never retype a file.** Upload generated files unchanged, check each size
   against Drive, and compare downloads with `compare_download.py`.
+- **Slugs are for the tools; names are for people.** A slug's suffix
+  (`dagger-hepg`) only keeps two files apart, and no player or GM sees it. When
+  two entries of one name are different things (an elf-made dagger with its own
+  price beside the Rulebook's), rename the new one (`Dagger (Elven)`); a
+  different slug is not a fix. Most shared names need no rename: lore on one
+  subject combines, and a skill and the rules for using it both answer a
+  question about the skill. And say "renamed" only of a name that changed.
 - **Records point at rules; they don't copy them.** Characters hold choices and
   references; sheets are rebuilt from the library.
 

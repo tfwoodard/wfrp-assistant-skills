@@ -226,7 +226,7 @@ Each category folder in a `library-data/` holds:
 | `adds-to` | adds to that entry (more lore, optional rules, a variant) | use both: that entry first, then this one |
 | `replaces` | supersedes that entry (a revised career in a supplement, errata) | when both are in play, use this one and say the other exists |
 | `reprint-of` | the same text printed again (a Starter Set copy of a Rulebook talent) | use either; cite the one whose source comes first in play |
-| `distinct-from` | a different thing with the same name (the *Dodge* skill, the *Dodge* talent if any) | never combine them |
+| `distinct-from` | a different thing that could be taken for that entry: the same name in another category (the *Dodge* skill, the *Dodge* talent if any), or a near name in the same one (*Dagger (Elven)*, *Dagger*) | never combine them |
 | `updated-by` | an older edition's rules for this were updated by that entry | in a campaign of the newer edition this entry doesn't exist (§8) |
 | `counts-as` | for rules, also counts as that entry (a homebrew weapon that counts as a Hand Weapon) | use this entry's own stats; any rule naming that entry applies to this one too |
 
@@ -294,6 +294,15 @@ Slugs are lowercase, hyphenated, ASCII: `rat-catcher`, `strike-mighty-blow`,
 `ablaze`. Each source's entries keep their own files even when names match: if
 a slug is already taken by another source, add the source code
 (`rat-catcher-hb-tew`).
+
+A slug is the tools' own handle: it keeps files apart, and no player or GM ever
+sees it. What people see is the `name`. Two entries of one name are usually
+meant to be read together (more lore on a place, a skill and the rules for
+using it, a reprint), and then a suffix on the slug is all they need. Two
+different things of one name in one category are not: an elf-made dagger with
+its own price and qualities is not the Rulebook's dagger, and someone asking
+for "a dagger" must be able to tell them apart. Those get different names
+(`Dagger (Elven)`), and the slug follows the name.
 
 ### `_import-log.json`
 

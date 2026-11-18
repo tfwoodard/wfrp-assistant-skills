@@ -168,6 +168,15 @@ Read both entries before deciding, never decide from source precedence, and
 ask the Librarian whenever it isn't certain. The decisions live in the plan,
 so a re-import keeps them.
 
+A slug's suffix (`dagger-hepg`) keeps files apart and nothing more: nobody
+using the library sees it. That is enough when the two entries are read
+together (`adds-to`, `replaces`, `reprint-of`). When they are different things
+in one category (`distinct-from`: an elf-made dagger with its own price beside
+the Rulebook's), change the **name** in the plan (`rename` for a price table's
+items, the entry's `name` otherwise) so people can tell them apart; the slug
+follows. The converter refuses `distinct-from` between two entries of one name
+in one category.
+
 **GM-only material.** Mark it `audience: "gm"` in the plan: adventures and
 adventure hooks (boxed or printed in the text), and the NPCs a book offers as
 patrons or adversaries, with their profiles, ambitions and "as Patron" text.

@@ -318,13 +318,19 @@ def same_entry(a, b):
 
 def relate_same_name(cat, entry, rec, plan, library, report):
     """An entry that took another source's entry's name (the last under `same_name`) needs a
-    relation to it. The plan's stands; without one, the two texts are compared, when the
+    relation to it. The plan's stands (but not distinct-from: two different things in one
+    category need two names, since a slug's suffix is seen by no one); without one, the two texts are compared, when the
     library's entries are at hand (--library-data): the same name, fields and words make it a
     reprint-of, any difference a replaces. With neither it is an error: nobody decided."""
     item = report['same_name'][-1]
     theirs = item['taken']
     if entry.get('relations'):
         item['relation'] = 'from the plan'
+        if any(r == {'role': 'distinct-from', 'to': f'{cat}/{theirs}'} for r in entry['relations']):
+            # A slug's suffix is the tools' business: nobody using the library sees it.
+            report['errors'].append({'error': f'{cat}/{entry["slug"]}: {entry["name"]!r} is distinct from '
+                                              f'{cat}/{theirs} yet has its name. Rename it in the plan, so that '
+                                              'people can tell the two apart'})
         return
     path = os.path.join(library, cat, theirs + '.json') if library else None
     if not path or not os.path.exists(path):

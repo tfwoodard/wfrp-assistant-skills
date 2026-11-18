@@ -351,10 +351,19 @@ class SameNameTest(ConvertSpellsTest):
     def test_the_plans_relation_stands(self):
         lib, index = self.library()
         with open(os.path.join(self.d, 'plan.json'), 'w') as f:
-            json.dump(dict(PLAN, relations={'spells/glow-test': [{'role': 'distinct-from', 'to': 'spells/glow'}]}), f)
+            json.dump(dict(PLAN, relations={'spells/glow-test': [{'role': 'adds-to', 'to': 'spells/glow'}]}), f)
         r, report = self.again('--taken', f'spells={index}', '--library-data', lib)
         self.assertEqual(report['same_name'][0]['relation'], 'from the plan')
-        self.assertEqual(self.load('spells--glow-test.json')['relations'][0]['role'], 'distinct-from')
+        self.assertEqual(self.load('spells--glow-test.json')['relations'][0]['role'], 'adds-to')
+        self.assertEqual(report['errors'], [])
+
+    def test_two_different_things_of_one_name_must_be_renamed(self):
+        lib, index = self.library()
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(dict(PLAN, relations={'spells/glow-test': [{'role': 'distinct-from', 'to': 'spells/glow'}]}), f)
+        r, report = self.again('--taken', f'spells={index}', '--library-data', lib)
+        errors = [e['error'] for e in report['errors']]
+        self.assertTrue(any("'Glow' is distinct from spells/glow yet has its name. Rename it" in e for e in errors), errors)
 
     def test_with_nothing_to_go_by_it_is_an_error(self):
         lib, index = self.library()
