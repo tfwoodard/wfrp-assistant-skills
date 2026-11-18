@@ -42,9 +42,13 @@ PLAN = {
 }
 
 
-def draw_pages(path, bare=False):
+LETTERS = 'QRST'
+
+
+def draw_pages(path, bare=False, letters=False, plain_skills=False):
     """`bare`: a career printed with no species line and, in its levels, no status, trappings or
-    italic skill (a lamp sprite's)."""
+    italic skill (a lamp sprite's). `letters`: the levels of the career path are marked with a
+    glyph that reads as a letter, not with the scheme's icon. `plain_skills`: no skill is in italics."""
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     panel = ImageReader(Image.new('RGB', (40, 40), (230, 220, 190)))
@@ -100,7 +104,10 @@ def draw_pages(path, bare=False):
     text(65, py, 'Career Path', 'Helvetica-Bold', 18)
     py -= 22
     for n, (title, status, skills, talents, trappings) in enumerate(LEVELS, 1):
-        icon(n, 55, py + 1)
+        if letters:
+            text(55, py, LETTERS[n - 1])
+        else:
+            icon(n, 55, py + 1)
         text(65, py, title if bare else f'{title} — {status}', 'Helvetica-Bold')
         py -= 11
         for label, val in (('Skills:', skills), ('Talents:', talents), ('Trappings:', trappings))[:2 if bare else 3]:
@@ -109,7 +116,7 @@ def draw_pages(path, bare=False):
                 if k:
                     py -= 11
                     x = 65
-                if 'Melee (Basic)' in part and not bare:
+                if 'Melee (Basic)' in part and not bare and not plain_skills:
                     before, after = part.split('Melee (Basic)')
                     x = text(x + 3, py, before) if before else x + 3
                     x = text(x, py, 'Melee (Basic)', slant=True)
@@ -140,9 +147,9 @@ def run(script, *args):
 
 @unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the fixture PDF')
 class CareerInChapterTest(unittest.TestCase):
-    def convert(self, d, taken=(), plan=PLAN, bare=False):
+    def convert(self, d, taken=(), plan=PLAN, bare=False, errors=(), **drawn):
         pdf, layout, planf, out = (os.path.join(d, n) for n in ('pages.pdf', 'layout.json', 'plan.json', 'out'))
-        draw_pages(pdf, bare)
+        draw_pages(pdf, bare, **drawn)
         r = run('pdf_layout.py', pdf, '--pages', '1-2', '--boxes', '--icon-fonts', 'ZapfDingbats', '--out', layout)
         self.assertEqual(r.returncode, 0, r.stderr)
         with open(planf, 'w', encoding='utf-8') as f:
@@ -151,7 +158,7 @@ class CareerInChapterTest(unittest.TestCase):
         r = run('convert_rules.py', layout, '--plan', planf, '--out', out, *args)
         with open(os.path.join(out, '_report.json'), encoding='utf-8') as f:
             report = json.load(f)
-        self.assertEqual(report['errors'], [], r.stdout)
+        self.assertEqual([e['error'] for e in report['errors']], list(errors), r.stdout)
         with open(os.path.join(out, '_records.json'), encoding='utf-8') as f:
             records = json.load(f)
         return out, layout, report, records
@@ -211,6 +218,37 @@ class CareerInChapterTest(unittest.TestCase):
             self.assertIn(f'***{LEVELS[0][0]}***\n', md)
             r = run('check_coverage.py', layout, out)
             self.assertIn('every word', r.stdout, r.stdout + r.stderr)
+
+    def test_levels_marked_with_a_glyph_that_reads_as_a_letter(self):
+        icons = {lv: dict(spec, letter=LETTERS[int(lv) - 1]) for lv, spec in PLAN['level_icons'].items()}
+        with tempfile.TemporaryDirectory() as d:
+            out, layout, report, _ = self.convert(d, plan=dict(PLAN, level_icons=icons), letters=True)
+            with open(os.path.join(out, 'careers--lamp-warden.json'), encoding='utf-8') as f:
+                f = json.load(f)['fields']
+            self.assertEqual(f['levels'], [l[0] for l in LEVELS])           # the letter is no part of a title
+            self.assertEqual(f['status'], [l[1] for l in LEVELS])
+            self.assertEqual(f['advances']['1']['characteristics'], ['WS', 'T', 'Fel'])
+            self.assertEqual([x for x in report['left_out'] if x in LETTERS], list(LETTERS))
+            r = run('check_coverage.py', layout, out)
+            self.assertIn('every word', r.stdout, r.stdout + r.stderr)
+        with tempfile.TemporaryDirectory() as d:                             # a letter out of order is caught
+            icons['2'], icons['3'] = dict(icons['2'], letter='S'), dict(icons['3'], letter='R')
+            self.convert(d, plan=dict(PLAN, level_icons=icons), letters=True, errors=[
+                f"level 2 line {LEVELS[1][0]!r} has the icon of level 3", f"level 3 line {LEVELS[2][0]!r} has the icon of level 2"])
+
+    def test_a_career_with_no_skill_in_italics(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.convert(d, plain_skills=True, errors=[
+                '0 level 1 skills in italics (the skill for Earning money), not 1'])
+        entries = [dict(e, career={'class': 'Burghers', 'earning_skill': False}) if e.get('career') else e
+                   for e in PLAN['entries']]
+        with tempfile.TemporaryDirectory() as d:
+            out, _, report, records = self.convert(d, plan=dict(PLAN, entries=entries), plain_skills=True)
+            self.assertEqual(report['excused'], ['Lamp Warden: the plan says the book marks no skill for Earning money'])
+            self.assertIsNone(next(r for r in records if r['slug'] == 'lamp-warden')['earning_skill'])
+        with tempfile.TemporaryDirectory() as d:                             # the plan says none, the book has one
+            self.convert(d, plan=dict(PLAN, entries=entries), errors=[
+                '1 level 1 skills in italics (the skill for Earning money), not 0'])
 
     def test_a_slug_is_taken_only_within_its_category(self):
         with tempfile.TemporaryDirectory() as d:

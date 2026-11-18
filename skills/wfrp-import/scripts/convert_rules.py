@@ -366,7 +366,8 @@ def read_career(e, entries, lines, layout, plan, report):
     prose (its description, any sections on the pages after, its sidebars). Returns the species
     line's block, the `career_levels` block and the career's fields. A career that prints no
     species line names its "species" in the plan; one whose levels print no status, trappings or
-    skill for Earning money is "bare": true (a familiar's)."""
+    skill for Earning money is "bare": true (a familiar's); one whose book set no level 1 skill
+    in italics says "earning_skill": false, and the report's `excused` says the check was let off."""
     name, page = e['spec']['name'], e['spec']['page']
     missing = [k for k in ('level_icons', 'scheme_columns') if k not in plan]
     if missing:
@@ -401,7 +402,9 @@ def read_career(e, entries, lines, layout, plan, report):
     marks = [m for m in layout.get('marks', []) if m['page'] == on_page]
     shapes = [x for x in layout.get('shapes', []) if x['page'] == on_page]
     block, level_fields, used = convert_careers.career_levels(name, mine, marks, shapes, plan, report,
-                                                               bare=bool(e['spec']['career'].get('bare')))
+                                                               bare=bool(e['spec']['career'].get('bare')),
+                                                               earning_marked=e['spec']['career'].get('earning_skill', True)
+                                                               is not False)
     unread = [l['text'] for i, l in enumerate(mine) if i not in used] + \
         ([l['text'] for l in box[:start]] if not any(norm(l['text']).endswith(' advance scheme') for l in box[:start]) else [])
     if unread:

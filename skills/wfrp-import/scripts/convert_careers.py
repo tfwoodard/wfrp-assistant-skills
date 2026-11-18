@@ -17,8 +17,13 @@ read as text. PLAN.json (kept in Drive beside the source, never in the repo):
     }
 
 `level_icons` says how each career level is marked: a glyph in a font (part of
-the font's name) or a drawn shape with that many points. `scheme_columns` maps
+the font's name) or a drawn shape with that many points; and, where the level
+lines of the career path open with a glyph of the heading font that reads as a
+letter, that `"letter"` ({"2": {"pts": 12, "letter": "B"}}). `scheme_columns` maps
 each advance-scheme header label, lower-cased, to its characteristic code.
+
+A career whose book set no level 1 skill in italics says `"earning_skill": false`
+in the plan; its earning_skill is null and the report's `excused` says so.
 
 Each career page has: its name (a heading), the species who may enter it, its
 description, the "<Name> Advance Scheme" box (a header row of characteristics,
@@ -79,6 +84,19 @@ def icon_level(plan_icons, marks, shapes):
     return None
 
 
+def letter_level(plan_icons, line):
+    """The level a career-path line opens with, when the book marks levels with a glyph of the
+    heading font that reads as a letter (`"letter"` in the plan's level_icons): a lone letter,
+    not bold, before the bold title. Returns (level, the letter as printed) or (None, None)."""
+    spans = line['spans']
+    first = spans[0]['text'].strip() if len(spans) > 1 else ''
+    if len(first) == 1 and not spans[0]['bold'] and spans[1]['bold']:
+        for lv, spec in plan_icons.items():
+            if spec.get('letter') == first:
+                return int(lv), first
+    return None, None
+
+
 def near(items, top, bottom, x0=None, x1=None):
     return [i for i in items if i['bottom'] >= top and i['top'] <= bottom and
             (x0 is None or i['x1'] >= x0) and (x1 is None or i['x0'] <= x1)]
@@ -136,14 +154,21 @@ def read_path(career, lines, start, marks, shapes, plan, report, bare=False):
     i = start + 1
     while i < len(lines) and lines[i]['column'] == lines[start]['column']:
         l = lines[i]
-        m = LEVEL_LINE.match(plain(l['text']))
+        by_letter, letter = letter_level(plan['level_icons'], l)
+        text = plain(' '.join(sp['text'] for sp in l['spans'][1:])) if letter else plain(l['text'])
+        m = LEVEL_LINE.match(text)
         title_only = bare and l['bold'] and ':' not in l['text']
-        if (m or title_only) and l['spans'][0]['bold']:
+        if (m or title_only) and l['spans'][1 if letter else 0]['bold']:
             flush()
-            cur = {'title': plain(l['text']), '_raw': {}} if title_only else \
+            cur = {'title': text, '_raw': {}} if title_only else \
                 {'title': m.group('title'), 'status': m.group('status'), '_raw': {}}
-            lv = icon_level(plan['level_icons'], near(marks, l['top'] - 4, l['top'] + l['size'] + 2, None, l['x0']),
-                            near(shapes, l['top'] - 4, l['top'] + l['size'] + 2, None, l['x0']))
+            if letter:
+                lv = by_letter
+                report['left_out'].append(letter)          # the level's mark, read as a letter
+            else:
+                lv = icon_level(plan['level_icons'],
+                                near(marks, l['top'] - 4, l['top'] + l['size'] + 2, None, l['x0']),
+                                near(shapes, l['top'] - 4, l['top'] + l['size'] + 2, None, l['x0']))
             if lv != len(levels) + 1:
                 report['errors'].append({'career': career, 'error': f'level {len(levels) + 1} line '
                                          f'{cur["title"]!r} has the icon of level {lv}'})
@@ -179,11 +204,13 @@ def paragraphs(lines, report, career):
     return blocks
 
 
-def career_levels(name, lines, marks, shapes, plan, report, bare=False):
+def career_levels(name, lines, marks, shapes, plan, report, bare=False, earning_marked=True):
     """The "<Name> Advance Scheme" and "Career Path" among `lines` -> (the `career_levels` block,
     the fields they give: levels, status, earning_skill, advances; the indexes of the lines read).
     convert_rules.py reads a career printed inside a chapter of prose with this too. A `bare`
-    career (a familiar's) prints no status, trappings or skill for Earning money, and gets none."""
+    career (a familiar's) prints no status, trappings or skill for Earning money, and gets none.
+    `earning_marked` False is the plan saying the book set no level 1 skill in italics: the
+    career's earning_skill is then null, and the report says the check was excused."""
     used = set()
     si = next((i for i, l in enumerate(lines) if norm(l['text']) == norm(name + ' advance scheme')), None)
     scheme = None
@@ -225,9 +252,12 @@ def career_levels(name, lines, marks, shapes, plan, report, bare=False):
         lv_blocks.append(block)
         advances[str(n)] = adv
     earning = [plain(x) for x in (lv_blocks[0].get('skills', []) if lv_blocks else []) if all_italic(x)]
-    if len(earning) != (0 if bare else 1):
+    expected = 0 if bare or not earning_marked else 1
+    if len(earning) != expected:
         report['errors'].append({'career': name, 'error': f'{len(earning)} level 1 skills in italics '
-                                 f'(the skill for Earning money), not {0 if bare else 1}', 'got': earning})
+                                 f'(the skill for Earning money), not {expected}', 'got': earning})
+    elif not earning_marked:
+        report.setdefault('excused', []).append(f'{name}: the plan says the book marks no skill for Earning money')
     later = [f'level {n}: {plain(x)}' for n, l in enumerate(lv_blocks[1:], 2)
              for x in l.get('skills', []) if all_italic(x)]
     if later:
@@ -262,7 +292,8 @@ def convert(layout, plan, taken=()):
         else:
             used.add(ti + 1)
             species = split_items(plain(species_line['text']))
-        levels_block, level_fields, used_here = career_levels(name, lines, marks, shapes, plan, report)
+        levels_block, level_fields, used_here = career_levels(
+            name, lines, marks, shapes, plan, report, earning_marked=c.get('earning_skill', True) is not False)
         used |= used_here
         rest = [l for i, l in enumerate(lines) if i not in used]
         content = []
