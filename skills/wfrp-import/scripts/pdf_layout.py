@@ -639,6 +639,7 @@ def read_table(page, box, lines):
     rows = [[[] for _ in range(ncol)] for _ in range(len(edges) - 1)]
     used = set()
     seen = set()
+    note_from = None
     for l in sorted(within + tail, key=lambda l: (l['baseline'], l['x0'])):
         if id(l) in seen:
             continue
@@ -650,15 +651,40 @@ def read_table(page, box, lines):
             if r is None:
                 continue
             target = rows[r]
+        if target is not hdr_cells and r == len(rows) - 1 and any(rows[r]) and l['text'].lstrip().startswith('*'):
+            note_from = l['baseline']         # a footnote under the last row, with no rule between
+        if note_from is not None and l['baseline'] >= note_from:
+            continue
         used.add(id(l))
         for t, a, b in l['words']:
             c = next((i for i in range(ncol) if bounds[i] <= (a + b) / 2 < bounds[i + 1]), ncol - 1)
-            target[c].append(t)
-    rows = [[' '.join(c) for c in r] for r in rows]
+            target[c].append((l['baseline'], a, b, t))
+    rows = [[cell_text(c) for c in r] for r in rows]
     rows = [r for r in rows if any(r)]
     return {'bbox': [round(tx0, 1), round(min([h['top'] for h in header + first_row] + [rules[0]]), 1),
                      round(tx1, 1), round(end, 1)],
-            'columns': [' '.join(c) for c in hdr_cells], 'rows': rows, 'line_ids': used}
+            'columns': [cell_text(c) for c in hdr_cells], 'rows': rows, 'line_ids': used}
+
+
+def cell_text(words):
+    """A cell's words, (baseline, x0, x1, text), in reading order. Words set a little above or
+    below the line (a small "2H" inside brackets) read where they stand in it, touching what they
+    touch, not as a line of their own."""
+    out, line = [], []
+    for w in sorted(words):
+        if line and w[0] - line[0][0] > 3.0:
+            out.append(sorted(line, key=lambda x: x[1]))
+            line = []
+        line.append(w)
+    out.append(sorted(line, key=lambda x: x[1]))
+    text = ''
+    for line in out:
+        for k, (_, x0, _, t) in enumerate(line):
+            # A word set off the line, touching a bracket it sits in, has no space of its own.
+            raised = k and abs(line[k - 1][0] - line[k][0]) > 0.5 and x0 - line[k - 1][2] < 0.6
+            held = raised and (line[k - 1][3][-1] in '([' or t[0] in ')]')
+            text += ('' if not text or held else ' ') + t
+    return text
 
 
 def titled_tables(page, box, lines):
