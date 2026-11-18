@@ -56,7 +56,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from convert_rules import convert, heading_runs, read_taken, write_outputs  # noqa: E402
+from convert_rules import convert, heading_runs, read_taken, relate_again, write_outputs  # noqa: E402
 from entry_text import block_fields, fix_case, label_of, norm, plain, slugify, top_fields  # noqa: E402
 
 LABELS = {'cn': 'cn', 'range': 'range', 'target': 'target', 'targets': 'target', 'duration': 'duration'}
@@ -189,6 +189,7 @@ def convert_chapter(layout, plan, taken=(), library=None):
             ('kind', 'lore', 'cn', 'range', 'target', 'duration')
         rec.update({k: f.get(k) for k in keys})
         rec['section'] = e['section'] = section_of(e, spans, lines)
+        relate_again('spells', e, rec, library, rep)       # its fields are in now: compare those too
     return out, records, rep
 
 

@@ -78,8 +78,9 @@ Slugs. --taken CATEGORY=_index.json (repeatable) gives the slugs other sources' 
 category by category: an entry whose slug is taken in its own category gets the source's code
 after it, and is listed under `same_name`. Each needs a relation to the entry whose name it
 took: the plan's "relations" (replaces, reprint-of, adds-to, distinct-from), or, with
---library-data (the library's local library-data folder), the one their texts give: the same
-words are a reprint-of, any difference a replaces (`same_name` says which, for checking). With
+--library-data (the library's local library-data folder), the one comparing them gives: the
+same name, fields and words are a reprint-of, any difference (a price, a quality) a replaces
+(`same_name` says which, for checking). With
 neither it is an error. A table whose planned slug is taken is an error.
 
 Boxes (pdf_layout.py --boxes). A box becomes a sidebar, under its own title
@@ -242,7 +243,8 @@ def describe_items(found, describers, plan, report):
     entries marked "describes_items", move to that item, without the label. A label naming no
     item stays where it is and is listed under `labels_kept`; two items of one name are an error,
     unless the plan's "rename" ({"<table>/<name>" or "<table>/<group>/<name>": new name})
-    tells them apart."""
+    tells them apart. (The plan's "item_slugs", {"<table>/<name>": slug}, gives an item a slug
+    other than its name's, after any renaming.)"""
     for it in found:
         ren = plan.get('rename', {})
         new = ren.get(f'{it["region"]}/{it["fields"].get("group", "")}/{it["name"]}') or \
@@ -303,14 +305,22 @@ def all_text(value):
         return ''.join(all_text(v) for k, v in value.items() if k not in ('type', 'level', 'data'))
     if isinstance(value, list):
         return ''.join(all_text(v) for v in value)
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return str(value)                                  # a casting number, an encumbrance
     return re.sub(r'[\W_]+', '', plain(value).lower()) if isinstance(value, str) else ''
+
+
+def same_entry(a, b):
+    """Whether two entries say the same thing throughout: name, fields (a price, a quality, a
+    casting number) and text. An item's whole statement is its fields, so text alone won't do."""
+    return all(all_text(a.get(k)) == all_text(b.get(k)) for k in ('name', 'fields', 'content'))
 
 
 def relate_same_name(cat, entry, rec, plan, library, report):
     """An entry that took another source's entry's name (the last under `same_name`) needs a
     relation to it. The plan's stands; without one, the two texts are compared, when the
-    library's entries are at hand (--library-data): the same words make it a reprint-of, any
-    difference a replaces. With neither it is an error: nobody decided."""
+    library's entries are at hand (--library-data): the same name, fields and words make it a
+    reprint-of, any difference a replaces. With neither it is an error: nobody decided."""
     item = report['same_name'][-1]
     theirs = item['taken']
     if entry.get('relations'):
@@ -323,8 +333,23 @@ def relate_same_name(cat, entry, rec, plan, library, report):
         return
     with open(path, encoding='utf-8') as f:
         other = json.load(f)
-    role = 'reprint-of' if all_text(entry['content']) == all_text(other['content']) else 'replaces'
+    role = 'reprint-of' if same_entry(entry, other) else 'replaces'
     entry['relations'] = rec['relations'] = [{'role': role, 'to': f'{cat}/{theirs}'}]
+    item['relation'] = role
+
+
+def relate_again(cat, entry, rec, library, report):
+    """For a converter that fills an entry's fields after convert() compared it (a spell's
+    casting number and range): the comparison once more, with the fields in. A relation the
+    plan gave stands."""
+    item = next((x for x in report.get('same_name', []) if x['category'] == cat and x['name'] == entry['name'] and
+                 x.get('relation') in ('reprint-of', 'replaces')), None)
+    path = os.path.join(library, cat, item['taken'] + '.json') if item and library else None
+    if not path or not os.path.exists(path):
+        return
+    with open(path, encoding='utf-8') as f:
+        role = 'reprint-of' if same_entry(entry, json.load(f)) else 'replaces'
+    entry['relations'] = rec['relations'] = [{'role': role, 'to': f'{cat}/{item["taken"]}'}]
     item['relation'] = role
 
 
@@ -1121,6 +1146,7 @@ def convert(layout, plan, taken=(), library=None):
     describe_items(found_items, describers, plan, report)
     for it in found_items:
         add_entry({'name': it['name'], 'category': 'trappings', 'page': it['page'], 'section': it['section'],
+                   'slug': plan.get('item_slugs', {}).get(f'{it["region"]}/{it["name"]}'),
                    'fields': it['fields'], 'content': it.get('content', []), '_report': report,
                    '_library': library},
                   out, records, plan, taken, used_slugs)

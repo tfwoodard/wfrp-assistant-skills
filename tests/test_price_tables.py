@@ -230,6 +230,45 @@ class PriceTablePageTest(unittest.TestCase):
             errors = [e['error'] for e in json.load(f)['errors']]
         self.assertTrue(any("2 items named 'Wick Spool'" in e for e in errors), errors)
 
+    def again(self, tag, plan=PLAN, other=None):
+        """Convert once more: with `other`, another source's library holds that Snuffer."""
+        d = os.path.join(self.tmp.name, tag)
+        os.makedirs(os.path.join(d, 'lib', 'trappings'))
+        with open(os.path.join(d, 'plan.json'), 'w') as f:
+            json.dump(plan, f)
+        args = []
+        if other:
+            with open(os.path.join(d, 'lib', 'trappings', 'snuffer.json'), 'w') as f:
+                json.dump(other, f)
+            with open(os.path.join(d, 'index.json'), 'w') as f:
+                json.dump([{'slug': 'snuffer', 'source': 'OLD'}], f)
+            args = ['--taken', 'trappings=' + os.path.join(d, 'index.json'), '--library-data', os.path.join(d, 'lib')]
+        run('convert_rules.py', self.layout, '--plan', os.path.join(d, 'plan.json'), '--out', os.path.join(d, 'out'), *args)
+        with open(os.path.join(d, 'out', '_report.json')) as f:
+            report = json.load(f)
+        return os.path.join(d, 'out'), report
+
+    def test_an_item_the_same_throughout_is_a_reprint(self):
+        other = dict(self.load('trappings--snuffer.json'), source='OLD')
+        out, report = self.again('same', other=other)
+        self.assertEqual(report['errors'], [])
+        with open(os.path.join(out, 'trappings--snuffer-test.json')) as f:
+            self.assertEqual(json.load(f)['relations'], [{'role': 'reprint-of', 'to': 'trappings/snuffer'}])
+
+    def test_an_item_with_another_price_is_not_a_reprint(self):
+        other = dict(self.load('trappings--snuffer.json'), source='OLD')
+        other['fields'] = dict(other['fields'], price='9/–')         # the words about it are the same
+        out, report = self.again('dearer', other=other)
+        with open(os.path.join(out, 'trappings--snuffer-test.json')) as f:
+            self.assertEqual(json.load(f)['relations'], [{'role': 'replaces', 'to': 'trappings/snuffer'}])
+        self.assertEqual([s['relation'] for s in report['same_name']], ['replaces'])
+
+    def test_the_plan_can_give_an_item_its_slug(self):
+        out, report = self.again('slug', plan=dict(PLAN, item_slugs={'1.1/Snuffer': 'snuffer-keepers'}))
+        self.assertEqual(report['errors'], [])
+        self.assertTrue(os.path.exists(os.path.join(out, 'trappings--snuffer-keepers.json')))
+        self.assertFalse(os.path.exists(os.path.join(out, 'trappings--snuffer.json')))
+
 
 if __name__ == '__main__':
     unittest.main()
