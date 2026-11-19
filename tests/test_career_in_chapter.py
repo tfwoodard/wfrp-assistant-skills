@@ -48,11 +48,13 @@ LETTERS = 'QRSTU'
 FIFTH = ('Lamp Marshal', 'Gold 2', 'Lore (Oil), Leadership', 'Iron Will', 'Seal of the Harbour')
 
 
-def draw_pages(path, bare=False, letters=False, plain_skills=False, fifth=False):
+def draw_pages(path, bare=False, letters=False, plain_skills=False, fifth=False, first=1, scheme='Lamp Warden'):
     """`bare`: a career printed with no species line and, in its levels, no status, trappings or
     italic skill (a lamp sprite's). `letters`: the levels of the career path are marked with a
     glyph that reads as a letter, not with the scheme's icon. `plain_skills`: no skill is in italics.
-    `fifth`: the career has a fifth level, its icon a six-sided shape, advancing Int."""
+    `fifth`: the career has a fifth level, its icon a six-sided shape, advancing Int.
+    `first`: the career is entered part-way, and prints only the levels from there.
+    `scheme`: the name in the advance scheme's title, where it shortens the career's."""
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     panel = ImageReader(Image.new('RGB', (40, 40), (230, 220, 190)))
@@ -102,16 +104,19 @@ def draw_pages(path, bare=False, letters=False, plain_skills=False, fifth=False)
     body(320, y - 34, ['Wardens move between ports when a tower', 'falls dark for good.'])
     sy = y - 80
     c.drawImage(panel, 44, sy - (350 if fifth else 290), 250, 364 if fifth else 304)
-    text(100, sy, 'Lamp Warden Advance Scheme', 'Helvetica-Bold', 10)
+    text(100, sy, f'{scheme} Advance Scheme', 'Helvetica-Bold', 10)
     xs = [56 + i * 23 for i in range(len(COLS))]
     for x, col in zip(xs, COLS):
         text(x, sy - 16, 'Ag' if col == 'Agi' else col, 'Helvetica-Bold', 10)
     for col, lv in dict(SCHEME, **({FIFTH_COLUMN: 5} if fifth else {})).items():
-        icon(lv, xs[COLS.index(col)] + 2, sy - 32)
+        if lv >= first:
+            icon(lv, xs[COLS.index(col)] + 2, sy - 32)
     py = sy - 60
     text(65, py, 'Career Path', 'Helvetica-Bold', 18)
     py -= 22
     for n, (title, status, skills, talents, trappings) in enumerate(LEVELS + ([FIFTH] if fifth else []), 1):
+        if n < first:
+            continue
         if letters:
             text(55, py, LETTERS[n - 1])
         else:
@@ -259,6 +264,43 @@ class CareerInChapterTest(unittest.TestCase):
             self.convert(d, plan=dict(PLAN, level_icons=icons), fifth=True, errors=['5 career levels, not 4'])
         with tempfile.TemporaryDirectory() as d:                             # the plan expects five, four printed
             self.convert(d, plan=dict(PLAN, level_icons=icons, entries=five), errors=['4 career levels, not 5'])
+
+    def test_a_career_entered_part_way(self):
+        icons = dict(PLAN['level_icons'], **{'5': {'pts': 8}})
+        late = {'class': 'Burghers', 'first_level': 3, 'levels': 3, 'earning_skill': False}
+        entries = [dict(e, career=late) if e.get('career') else e for e in PLAN['entries']]
+        with tempfile.TemporaryDirectory() as d:
+            out, layout, report, records = self.convert(d, plan=dict(PLAN, level_icons=icons, entries=entries),
+                                                        fifth=True, first=3)
+            with open(os.path.join(out, 'careers--lamp-warden.json'), encoding='utf-8') as f:
+                entry = json.load(f)
+            f = entry['fields']
+            self.assertEqual(f['first_level'], 3)
+            self.assertEqual(f['levels'], [l[0] for l in LEVELS[2:]] + ['Lamp Marshal'])
+            self.assertEqual(sorted(f['advances']), ['3', '4', '5'])
+            self.assertEqual(f['advances']['3']['characteristics'], [c for c, lv in SCHEME.items() if lv == 3])
+            block = next(b for b in entry['content'] if b['type'] == 'career_levels')
+            self.assertEqual(block['first_level'], 3)
+            with open(os.path.join(out, 'careers--lamp-warden.md'), encoding='utf-8') as f:
+                self.assertIn(f'| 3 | {LEVELS[2][0]} |', f.read())
+            self.assertIn('every word', run('check_coverage.py', layout, out).stdout)
+        with tempfile.TemporaryDirectory() as d:                             # the plan doesn't say so
+            five = [dict(e, career={'class': 'Burghers', 'levels': 3, 'earning_skill': False}) if e.get('career') else e
+                    for e in PLAN['entries']]
+            self.convert(d, plan=dict(PLAN, level_icons=icons, entries=five), fifth=True, first=3, errors=[
+                f"level 1 line {LEVELS[2][0]!r} has the icon of level 3", f"level 2 line {LEVELS[3][0]!r} has the icon of level 4",
+                "level 3 line 'Lamp Marshal' has the icon of level 5"])
+
+    def test_a_scheme_titled_with_a_shorter_name(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.convert(d, scheme='Warden', errors=['no box holding its advance scheme'])
+        entries = [dict(e, career={'class': 'Burghers', 'scheme': 'Warden'}) if e.get('career') else e
+                   for e in PLAN['entries']]
+        with tempfile.TemporaryDirectory() as d:
+            out, layout, report, records = self.convert(d, plan=dict(PLAN, entries=entries), scheme='Warden')
+            self.assertEqual(next(r for r in records if r['slug'] == 'lamp-warden')['levels'], [l[0] for l in LEVELS])
+            self.assertIn('Warden Advance Scheme', report['left_out'])
+            self.assertIn('every word', run('check_coverage.py', layout, out).stdout)
 
     def test_a_career_with_no_skill_in_italics(self):
         with tempfile.TemporaryDirectory() as d:
