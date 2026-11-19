@@ -368,7 +368,8 @@ def read_career(e, entries, lines, layout, plan, report):
     line's block, the `career_levels` block and the career's fields. A career that prints no
     species line names its "species" in the plan; one whose levels print no status, trappings or
     skill for Earning money is "bare": true (a familiar's); one whose book set no level 1 skill
-    in italics says "earning_skill": false, one with a fifth level "levels": 5, and the report's `excused` says the check was let off."""
+    in italics says "earning_skill": false, one with a fifth level "levels": 5, one entered part-way "first_level": 3 with its "levels", one whose scheme is titled with a
+    shorter name that name as "scheme" ("Lamp Warden of the Reach" over a "Lamp Warden Advance Scheme"), and the report's `excused` says the check was let off."""
     name, page = e['spec']['name'], e['spec']['page']
     missing = [k for k in ('level_icons', 'scheme_columns') if k not in plan]
     if missing:
@@ -387,8 +388,9 @@ def read_career(e, entries, lines, layout, plan, report):
     fields = {'class': e['spec']['career'].get('class'), 'species': species}
     if not fields['class']:
         report['errors'].append({'career': name, 'error': 'the plan gives no class'})
+    titled = e['spec']['career'].get('scheme', name)      # the scheme's title may shorten the career's name
     bid = next((l['box'] for l in lines if l.get('box') and e['spec']['page'] <= l['page'] <= page + 1 and
-                norm(l['text']) == norm(name + ' advance scheme')), None)
+                norm(l['text']) == norm(titled + ' advance scheme')), None)
     if bid is None:
         report['errors'].append({'career': name, 'error': 'no box holding its advance scheme'})
         return species_block, None, fields
@@ -396,7 +398,7 @@ def read_career(e, entries, lines, layout, plan, report):
         if bid in other['boxes']:
             other['boxes'].remove(bid)
     box = [l for l in lines if l.get('box') == bid]
-    start = next(i for i, l in enumerate(box) if norm(l['text']) == norm(name + ' advance scheme'))
+    start = next(i for i, l in enumerate(box) if norm(l['text']) == norm(titled + ' advance scheme'))
     stop = next((i for i, l in enumerate(box) if i > start and norm(l['text']).endswith(' advance scheme')), len(box))
     mine = box[start:stop]            # a box can hold two careers' schemes, one after the other
     on_page = mine[0]['page']
@@ -406,7 +408,9 @@ def read_career(e, entries, lines, layout, plan, report):
                                                                bare=bool(e['spec']['career'].get('bare')),
                                                                earning_marked=e['spec']['career'].get('earning_skill', True)
                                                                is not False,
-                                                               count=e['spec']['career'].get('levels', 4))
+                                                               count=e['spec']['career'].get('levels', 4),
+                                                               first=e['spec']['career'].get('first_level', 1),
+                                                               titled=titled)
     unread = [l['text'] for i, l in enumerate(mine) if i not in used] + \
         ([l['text'] for l in box[:start]] if not any(norm(l['text']).endswith(' advance scheme') for l in box[:start]) else [])
     if unread:

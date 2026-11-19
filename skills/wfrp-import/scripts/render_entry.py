@@ -91,7 +91,7 @@ def md_career_levels(b):
     status = any(lv.get('status') for lv in b['levels'])      # a familiar's career prints none
     out = ['| Level | Title | Status | Characteristics |', '|---|---|---|---|'] if status else \
         ['| Level | Title | Characteristics |', '|---|---|---|']
-    for i, lv in enumerate(b['levels'], 1):
+    for i, lv in enumerate(b['levels'], b.get('first_level', 1)):
         out.append(f'| {i} | {cell(lv["title"])} | ' + (f'{cell(lv.get("status", ""))} | ' if status else '') +
                    f'{cell(", ".join(lv.get("characteristics", [])))} |')
     out.append('')
