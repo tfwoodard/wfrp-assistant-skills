@@ -22,7 +22,8 @@ lines of the career path open with a glyph of the heading font that reads as a
 letter, that `"letter"` ({"2": {"pts": 12, "letter": "B"}}). `scheme_columns` maps
 each advance-scheme header label, lower-cased, to its characteristic code.
 
-A career whose book set no level 1 skill in italics says `"earning_skill": false`
+A career the book gives a fifth level says `"levels": 5` (and `level_icons` then
+has a "5"). A career whose book set no level 1 skill in italics says `"earning_skill": false`
 in the plan; its earning_skill is null and the report's `excused` says so.
 
 Each career page has: its name (a heading), the species who may enter it, its
@@ -140,7 +141,7 @@ def read_scheme(career, lines, i, marks, shapes, plan, report):
     return levels
 
 
-def read_path(career, lines, start, marks, shapes, plan, report, bare=False):
+def read_path(career, lines, start, marks, shapes, plan, report, bare=False, count=4):
     """lines[start] is the "Career Path" heading. Returns the four levels and the index after them.
     A `bare` career's level lines are a title alone, with no status (a familiar's)."""
     levels, cur, label, buf = [], None, None, []
@@ -185,8 +186,8 @@ def read_path(career, lines, start, marks, shapes, plan, report, bare=False):
             break
         i += 1
     flush()
-    if len(levels) != 4:
-        report['errors'].append({'career': career, 'error': f'{len(levels)} career levels, not 4'})
+    if len(levels) != count:
+        report['errors'].append({'career': career, 'error': f'{len(levels)} career levels, not {count}'})
     return levels, i
 
 
@@ -204,7 +205,7 @@ def paragraphs(lines, report, career):
     return blocks
 
 
-def career_levels(name, lines, marks, shapes, plan, report, bare=False, earning_marked=True):
+def career_levels(name, lines, marks, shapes, plan, report, bare=False, earning_marked=True, count=4):
     """The "<Name> Advance Scheme" and "Career Path" among `lines` -> (the `career_levels` block,
     the fields they give: levels, status, earning_skill, advances; the indexes of the lines read).
     convert_rules.py reads a career printed inside a chapter of prose with this too. A `bare`
@@ -225,7 +226,7 @@ def career_levels(name, lines, marks, shapes, plan, report, bare=False, earning_
     if pi is None:
         report['errors'].append({'career': name, 'error': 'no Career Path'})
     else:
-        levels, end = read_path(name, lines, pi, marks, shapes, plan, report, bare)
+        levels, end = read_path(name, lines, pi, marks, shapes, plan, report, bare, count)
         used |= set(range(pi, end))
         report['left_out'].append(lines[pi]['text'])
 
@@ -293,7 +294,8 @@ def convert(layout, plan, taken=()):
             used.add(ti + 1)
             species = split_items(plain(species_line['text']))
         levels_block, level_fields, used_here = career_levels(
-            name, lines, marks, shapes, plan, report, earning_marked=c.get('earning_skill', True) is not False)
+            name, lines, marks, shapes, plan, report, earning_marked=c.get('earning_skill', True) is not False,
+            count=c.get('levels', 4))
         used |= used_here
         rest = [l for i, l in enumerate(lines) if i not in used]
         content = []

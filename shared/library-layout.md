@@ -68,7 +68,7 @@ location outside the library.
 │   ├── rules/                   rules prose, conditions, psychology, glossary
 │   ├── tables/                  reference tables (hit locations, criticals, random careers…)
 │   ├── species/
-│   ├── careers/                 one file per career, its four levels inside
+│   ├── careers/                 one file per career, its levels inside
 │   ├── skills/
 │   ├── talents/
 │   ├── spells/                  petty and arcane spells, lore spells, rituals, blessings, miracles
@@ -184,7 +184,7 @@ Each category folder in a `library-data/` holds:
   | rules      | `kind` (condition, psychology, procedure, glossary), `aliases` |
   | tables     | `about` (one line), `roll` (`d100`, `d10`…, when it is a roll table); `kind: cross-reference` on a cross-reference |
   | species    | `aliases` (e.g. "Halfling" for "Halflings") |
-  | careers    | `class` (Academics, Burghers, Courtiers, Peasants, Rangers, Riverfolk, Rogues, Warriors), `species` (who may roll it), `levels` (the four level titles), `status` (the four statuses, e.g. "Brass 3"), `earning_skill` (the level 1 skill printed in italics, tested when Earning money) |
+  | careers    | `class` (Academics, Burghers, Courtiers, Peasants, Rangers, Riverfolk, Rogues, Warriors), `species` (who may roll it), `levels` (the level titles: four, or five where a book adds a level), `status` (the four statuses, e.g. "Brass 3"), `earning_skill` (the level 1 skill printed in italics, tested when Earning money) |
   | skills     | `characteristic`, `advanced` (true/false), `grouped` (true/false) |
   | talents    | `max` (as printed, e.g. "Initiative Bonus"), `tests` |
   | spells     | `kind` (petty, arcane, lore, blessing, miracle, ritual), `lore` (lore or god), `cn`, `range`, `target`, `duration`; a ritual has `cn` (a number, or as printed: "The Daemon’s Willpower"), `type` (as printed: "Lore of Beasts", "Any Lore"; `lore` is the lore it names, or null), `learning_xp`, and in its entry `ingredients`, `conditions`, `sacrifices`, `consequences`, with no range, target or duration |
