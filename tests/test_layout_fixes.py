@@ -525,3 +525,49 @@ class HeadingsSideBySideTest(unittest.TestCase):
         lines = {l['text']: l for l in doc['lines']}
         self.assertFalse(lines['light it again before the tide.']['furniture'])
         self.assertTrue(lines['1']['furniture'])
+
+
+class BackdropTest(unittest.TestCase):
+    """A picture laid under half the page, bleeding off its edges, is not a panel: a few lines of
+    the column on it run past its edge, and a real panel may sit on it."""
+
+    def read(self, long_lines=True):
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf, out = os.path.join(tmp, 'p.pdf'), os.path.join(tmp, 'l.json')
+            c = canvas.Canvas(pdf, pagesize=A4)
+            w, h = A4
+
+            def text(x, y, s, font='Helvetica', size=9):
+                c.setFont(font, size)
+                c.drawString(x, y, s)
+
+            c.drawImage(ImageReader(Image.new('RGB', (40, 40), (200, 205, 210))), -6, -6, 296, h + 12)
+            text(60, h - 60, 'LAMP WARDEN', 'Helvetica-Bold', 16)
+            for k in range(16):
+                long = long_lines and k in (2, 9)
+                text(60, h - 90 - 12 * k, f'The wardens walk the {k} piers at dusk every day' + (' unfailingly' if long else ''))
+                text(330, h - 90 - 12 * k, f'Gulls circle the north tower, {k} of them, all day')
+            c.drawImage(ImageReader(Image.new('RGB', (40, 40), (230, 220, 190))), 56, h - 420, 220, 110)
+            text(64, h - 330, 'Wardens carry a horn lamp.')
+            text(64, h - 342, 'They are paid in oil.')
+            c.save()
+            r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'pdf_layout.py'), pdf, '--pages', '1',
+                                '--boxes', '--out', out], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            with open(out) as f:
+                return json.load(f), r.stdout + r.stderr
+
+    def test_two_lines_past_its_edge_make_it_no_box_and_the_panel_on_it_stays(self):
+        doc, said = self.read()
+        lines = {l['text']: l for l in doc['lines']}
+        whole = lines['The wardens walk the 2 piers at dusk every day unfailingly']      # not cut at the edge
+        self.assertIsNone(whole.get('box'))
+        self.assertIsNone(lines['LAMP WARDEN'].get('box'))
+        self.assertEqual([r['id'] for r in doc['regions']], ['1.1'])
+        self.assertEqual(lines['They are paid in oil.'].get('box'), '1.1')
+        self.assertIn('it bleeds off the page: not a box', said)
+
+    def test_with_no_line_past_its_edge_it_is_still_a_box(self):
+        doc, said = self.read(long_lines=False)
+        self.assertNotIn('bleeds off the page', said)
+        self.assertTrue(any(l.get('box') for l in doc['lines'] if l['text'] == 'LAMP WARDEN'))
