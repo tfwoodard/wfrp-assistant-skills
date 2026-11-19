@@ -514,12 +514,13 @@ def mask_opacity(im):
         return None
 
 
-def text_runs_over(box, words, page_no, notes):
+def text_runs_over(box, words, page_no, notes, page_size=None):
     """True when the page's text runs over the box's side edges rather than sitting inside it: a
     panel's text has a margin, but a picture's rectangle can lie under the text flowing past it.
     Such a box (a quarter or more of its lines with a word across an edge, or carrying on into it
     from a word space away) is set aside, and listed in
-    `notes`."""
+    `notes`. A box that bleeds off two or more edges of the page is a backdrop laid under part of
+    the page, not a panel set in it: one line across its edge is enough to set it aside."""
     x0, top, x1, bottom = box
     inside = [w for w in words if top <= (w['top'] + w['bottom']) / 2 <= bottom and
               x0 <= (w['x0'] + w['x1']) / 2 <= x1]
@@ -530,17 +531,20 @@ def text_runs_over(box, words, page_no, notes):
     # ...or a line of the page carries on into it, a word space from its edge.
     crossing |= {round(w['baseline']) for w in words if id(w) not in ids and round(w['baseline']) in rows and
                  (0 <= x0 - w['x1'] < RUN_ON_GAP or 0 <= w['x0'] - x1 < RUN_ON_GAP)}
-    if rows and len(crossing) >= max(1, RUN_OVER_SHARE * len(rows)):
+    bleeds = page_size is not None and sum((x0 <= 0.5, top <= 0.5, x1 >= page_size[0] - 0.5,
+                                            bottom >= page_size[1] - 0.5)) >= 2
+    if rows and len(crossing) >= (1 if bleeds else max(1, RUN_OVER_SHARE * len(rows))):
         if notes is not None:
             notes.append({'page': page_no, 'bbox': [round(v, 1) for v in box],
-                          'note': f'text runs over its edges ({len(crossing)} of {len(rows)} lines): not a box'})
+                          'note': f'text runs over its edges ({len(crossing)} of {len(rows)} lines)'
+                                  f'{", and it bleeds off the page" if bleeds else ""}: not a box'})
         return True
     return False
 
 
 def find_boxes(page, page_no, notes=None):
     """Boxed panels: background images that don't fill the page (sidebars, tables), clipped to the
-    page, largest first-inside-out; a box inside another is dropped. A picture cut out with a soft
+    page (the caller drops a box inside another: `outermost`). A picture cut out with a soft
     mask (an illustration: mostly see-through outside the figure) is not a panel, though its
     rectangle may run over the text beside it; a panel is opaque. Each image set aside, and each
     mask that couldn't be read (kept as a box), goes in `notes`."""
@@ -563,9 +567,14 @@ def find_boxes(page, page_no, notes=None):
                     notes.append(dict(where, note=f'illustration ({opaque:.0%} opaque): not a box'))
                 continue
         boxes.append((x0, top, x1, bottom))
-    boxes = [b for b in boxes if not any(o != b and o[0] <= b[0] and o[1] <= b[1] and o[2] >= b[2] and
-                                         o[3] >= b[3] for o in boxes)]
     return sorted(set(boxes), key=lambda b: (b[1], b[0]))
+
+
+def outermost(boxes):
+    """The boxes that lie inside no other. Asked once the boxes that are no panels (text running
+    over their edges) are gone, so that a panel on a backdrop outlives the backdrop."""
+    return [b for b in boxes if not any(o != b and o[0] <= b[0] and o[1] <= b[1] and o[2] >= b[2] and
+                                        o[3] >= b[3] for o in boxes)]
 
 
 def merge_near(values, tol=2.0):
@@ -767,7 +776,13 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
     if icon_text:
         words += icon_words(page, words, icon_text, marks_here, shapes_here)
     boxes = find_boxes(page, page_no, notes) if regions is not None else []
-    boxes = [b for b in boxes if not text_runs_over(b, words, page_no, notes)]
+    gone = [b for b in boxes if text_runs_over(b, words, page_no, notes, (page.width, page.height))]
+    within = lambda b, o: o != b and o[0] <= b[0] and o[1] <= b[1] and o[2] >= b[2] and o[3] >= b[3]
+    holds = lambda b: any(b[0] <= (w['x0'] + w['x1']) / 2 <= b[2] and b[1] <= (w['top'] + w['bottom']) / 2 <= b[3]
+                          for w in words)
+    # A box on a backdrop that was set aside outlives it only if it holds text (a panel); an empty
+    # one was part of the picture.
+    boxes = outermost([b for b in boxes if b not in gone and (holds(b) or not any(within(b, o) for o in gone))])
     in_box = {}
     for w in words:
         cx, cy = (w['x0'] + w['x1']) / 2, (w['top'] + w['bottom']) / 2
