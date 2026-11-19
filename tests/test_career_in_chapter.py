@@ -30,6 +30,8 @@ try:
 except ImportError:  # pragma: no cover
     HAVE_LIBS = False
 
+FIFTH_COLUMN = next(c for c in COLS if c not in SCHEME)
+
 PLAN = {
     'source': 'TEST', 'chapter': 'ch3',
     'level_icons': CAREER_PLAN['level_icons'],
@@ -42,13 +44,15 @@ PLAN = {
 }
 
 
-LETTERS = 'QRST'
+LETTERS = 'QRSTU'
+FIFTH = ('Lamp Marshal', 'Gold 2', 'Lore (Oil), Leadership', 'Iron Will', 'Seal of the Harbour')
 
 
-def draw_pages(path, bare=False, letters=False, plain_skills=False):
+def draw_pages(path, bare=False, letters=False, plain_skills=False, fifth=False):
     """`bare`: a career printed with no species line and, in its levels, no status, trappings or
     italic skill (a lamp sprite's). `letters`: the levels of the career path are marked with a
-    glyph that reads as a letter, not with the scheme's icon. `plain_skills`: no skill is in italics."""
+    glyph that reads as a letter, not with the scheme's icon. `plain_skills`: no skill is in italics.
+    `fifth`: the career has a fifth level, its icon a six-sided shape, advancing Int."""
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     panel = ImageReader(Image.new('RGB', (40, 40), (230, 220, 190)))
@@ -71,8 +75,12 @@ def draw_pages(path, bare=False, letters=False, plain_skills=False):
             p.moveTo(x, y); p.curveTo(x + 2, y + 4, x + 4, y + 4, x + 6, y); p.curveTo(x + 4, y - 4, x + 2, y - 4, x, y)
         elif level == 3:
             p.moveTo(x, y); p.lineTo(x + 6, y); p.lineTo(x + 3, y + 6); p.close()
-        else:
+        elif level == 4:
             p.moveTo(x, y); p.lineTo(x + 6, y); p.lineTo(x + 7, y + 4); p.lineTo(x + 3, y + 7); p.lineTo(x - 1, y + 4)
+            p.close()
+        else:
+            p.moveTo(x, y); p.lineTo(x + 2, y - 2); p.lineTo(x + 5, y - 2); p.lineTo(x + 7, y); p.lineTo(x + 7, y + 3)
+            p.lineTo(x + 3, y + 6); p.lineTo(x - 1, y + 3)
             p.close()
         c.drawPath(p, fill=1, stroke=0)
 
@@ -93,17 +101,17 @@ def draw_pages(path, bare=False, letters=False, plain_skills=False):
     body(50, y - 34, ['Lamp Wardens keep the harbour lights burning', 'through fog and storm, with oil and wick.'])
     body(320, y - 34, ['Wardens move between ports when a tower', 'falls dark for good.'])
     sy = y - 80
-    c.drawImage(panel, 44, sy - 290, 250, 304)
+    c.drawImage(panel, 44, sy - (350 if fifth else 290), 250, 364 if fifth else 304)
     text(100, sy, 'Lamp Warden Advance Scheme', 'Helvetica-Bold', 10)
     xs = [56 + i * 23 for i in range(len(COLS))]
     for x, col in zip(xs, COLS):
         text(x, sy - 16, 'Ag' if col == 'Agi' else col, 'Helvetica-Bold', 10)
-    for col, lv in SCHEME.items():
+    for col, lv in dict(SCHEME, **({FIFTH_COLUMN: 5} if fifth else {})).items():
         icon(lv, xs[COLS.index(col)] + 2, sy - 32)
     py = sy - 60
     text(65, py, 'Career Path', 'Helvetica-Bold', 18)
     py -= 22
-    for n, (title, status, skills, talents, trappings) in enumerate(LEVELS, 1):
+    for n, (title, status, skills, talents, trappings) in enumerate(LEVELS + ([FIFTH] if fifth else []), 1):
         if letters:
             text(55, py, LETTERS[n - 1])
         else:
@@ -228,13 +236,29 @@ class CareerInChapterTest(unittest.TestCase):
             self.assertEqual(f['levels'], [l[0] for l in LEVELS])           # the letter is no part of a title
             self.assertEqual(f['status'], [l[1] for l in LEVELS])
             self.assertEqual(f['advances']['1']['characteristics'], ['WS', 'T', 'Fel'])
-            self.assertEqual([x for x in report['left_out'] if x in LETTERS], list(LETTERS))
+            self.assertEqual([x for x in report['left_out'] if x in LETTERS], list(LETTERS[:4]))
             r = run('check_coverage.py', layout, out)
             self.assertIn('every word', r.stdout, r.stdout + r.stderr)
         with tempfile.TemporaryDirectory() as d:                             # a letter out of order is caught
             icons['2'], icons['3'] = dict(icons['2'], letter='S'), dict(icons['3'], letter='R')
             self.convert(d, plan=dict(PLAN, level_icons=icons), letters=True, errors=[
                 f"level 2 line {LEVELS[1][0]!r} has the icon of level 3", f"level 3 line {LEVELS[2][0]!r} has the icon of level 2"])
+
+    def test_a_career_with_a_fifth_level(self):
+        icons = dict(PLAN['level_icons'], **{'5': {'pts': 8}})
+        five = [dict(e, career={'class': 'Burghers', 'levels': 5}) if e.get('career') else e for e in PLAN['entries']]
+        with tempfile.TemporaryDirectory() as d:
+            out, layout, report, _ = self.convert(d, plan=dict(PLAN, level_icons=icons, entries=five), fifth=True)
+            with open(os.path.join(out, 'careers--lamp-warden.json'), encoding='utf-8') as f:
+                f = json.load(f)['fields']
+            self.assertEqual(f['levels'], [l[0] for l in LEVELS] + ['Lamp Marshal'])
+            self.assertEqual(f['status'][-1], 'Gold 2')
+            self.assertEqual(f['advances']['5']['characteristics'], [PLAN['scheme_columns'].get(FIFTH_COLUMN.lower(), FIFTH_COLUMN)])
+            self.assertIn('every word', run('check_coverage.py', layout, out).stdout)
+        with tempfile.TemporaryDirectory() as d:                             # five printed, the plan expects four
+            self.convert(d, plan=dict(PLAN, level_icons=icons), fifth=True, errors=['5 career levels, not 4'])
+        with tempfile.TemporaryDirectory() as d:                             # the plan expects five, four printed
+            self.convert(d, plan=dict(PLAN, level_icons=icons, entries=five), errors=['4 career levels, not 5'])
 
     def test_a_career_with_no_skill_in_italics(self):
         with tempfile.TemporaryDirectory() as d:
