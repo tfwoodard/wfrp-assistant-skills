@@ -105,7 +105,8 @@ columns (and that so are its first "banner_rows": N rows; one that is the title 
 first column labels ([[label, rows], ...]: each label is printed once beside its group),
 name the table "stacked" under it ({"title", "columns"}: set below with no rule between),
 or that its first row is its "header_row", and name its "columns" (when the header
-isn't printed or isn't read). A table's title printed inside its frame, read into the first
+isn't printed or isn't read). A last column empty in the header and every row is dropped
+(`empty_columns`). A table's title printed inside its frame, read into the first
 row's cells, is taken out of them (`titles_stripped`). A row with only its first cell filled,
 in a table of three or more columns, heads the rows below it (a group: `group_rows`); so does a
 row whose one filled cell is in capitals (a band across the columns), in any table.
@@ -366,7 +367,8 @@ def read_career(e, entries, lines, layout, plan, report):
     prose (its description, any sections on the pages after, its sidebars). Returns the species
     line's block, the `career_levels` block and the career's fields. A career that prints no
     species line names its "species" in the plan; one whose levels print no status, trappings or
-    skill for Earning money is "bare": true (a familiar's)."""
+    skill for Earning money is "bare": true (a familiar's); one whose book set no level 1 skill
+    in italics says "earning_skill": false, and the report's `excused` says the check was let off."""
     name, page = e['spec']['name'], e['spec']['page']
     missing = [k for k in ('level_icons', 'scheme_columns') if k not in plan]
     if missing:
@@ -401,7 +403,9 @@ def read_career(e, entries, lines, layout, plan, report):
     marks = [m for m in layout.get('marks', []) if m['page'] == on_page]
     shapes = [x for x in layout.get('shapes', []) if x['page'] == on_page]
     block, level_fields, used = convert_careers.career_levels(name, mine, marks, shapes, plan, report,
-                                                               bare=bool(e['spec']['career'].get('bare')))
+                                                               bare=bool(e['spec']['career'].get('bare')),
+                                                               earning_marked=e['spec']['career'].get('earning_skill', True)
+                                                               is not False)
     unread = [l['text'] for i, l in enumerate(mine) if i not in used] + \
         ([l['text'] for l in box[:start]] if not any(norm(l['text']).endswith(' advance scheme') for l in box[:start]) else [])
     if unread:
@@ -713,6 +717,13 @@ def table_cells(region, title, plan_t, report, where):
     if plan_t.get('header_row'):      # the first row read is the header (printed below a rule)
         labels = cols                 # what was read as the header is then each part's label
         cols, rows = rows[0], rows[1:]
+    dropped = 0                       # a last column with nothing in it, header or rows: a frame's edge
+    while len(cols) > 1 and rows and all(len(r) == len(cols) for r in rows) and \
+            not cols[-1].strip() and not any(r[-1].strip() for r in rows) and not any(c.strip() for c in labels[len(cols) - 1:]):
+        cols, rows, labels, dropped = cols[:-1], [r[:-1] for r in rows], labels[:len(cols) - 1], dropped + 1
+    if dropped:
+        report.setdefault('empty_columns', []).append({'entry': where, 'region': region['id'], 'dropped': dropped})
+        banners = [dict(b, span=min(b['span'], len(cols) - b['start'])) for b in banners if b['start'] < len(cols)]
     if plan_t.get('fold'):            # one table printed in side-by-side halves: read down each
         n = plan_t['fold']
         k = len(cols) // n
