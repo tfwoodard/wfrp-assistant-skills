@@ -5,6 +5,10 @@ description: Create, advance, and look after Warhammer Fantasy Roleplay (4e) cha
 
 # Character sheet
 
+When an answer depends on a rule's exact wording, send it as a file, by default
+and without asking, as layout §5 ("Exact wording") describes
+(`scripts/excerpt.py`); never write the book's text into the reply.
+
 Read `references/library-layout.md` for where data lives (§9 for characters),
 and `references/character-record.md` before writing or changing a record.
 

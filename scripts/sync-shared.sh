@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Copy shared reference files into every skill's references/ folder so each
-# skill is self-contained (required for claude.ai uploads).
+# Copy shared files into the skills so each skill is self-contained (required
+# for claude.ai uploads): shared/*.md into every skill's references/ folder, and
+# shared/scripts/*.py into the scripts/ folder of each skill listed for it below.
 # Run after editing anything in shared/. CI-friendly: use --check to fail on drift.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -18,6 +19,23 @@ for skill in skills/*/; do
         echo "out of date: $dest"; status=1
       fi
     else
+      cp "$f" "$dest"
+    fi
+  done
+done
+
+# shared scripts: "<file>:<skill> <skill> ..."
+for spec in "library.py:wfrp-character-sheet wfrp-rules-lookup" \
+            "excerpt.py:wfrp-character-sheet wfrp-rules-lookup"; do
+  f="shared/scripts/${spec%%:*}"
+  for skill in ${spec#*:}; do
+    dest="skills/$skill/scripts/$(basename "$f")"
+    if $check; then
+      if ! cmp -s "$f" "$dest"; then
+        echo "out of date: $dest"; status=1
+      fi
+    else
+      mkdir -p "skills/$skill/scripts"
       cp "$f" "$dest"
     fi
   done
