@@ -197,7 +197,10 @@ converter lists them in its report's `tables_to_confirm`; show each one's rows
 (or, for a long table, its size and first and last rows, offering the rest) and
 compare its row count with the page image. A table printed as a flowchart or
 picture is a `diagram`: transcribe it by hand, keeping every word, show it, and
-note it in the chapter's notes.
+note it in the chapter's notes. A table of text that no reader can take off the
+page (marks on lines of their own, labels beside the middle of their rows, cells
+that wrap) goes in the plan's `hand_tables`: the converter checks the transcript
+against the page letter for letter and refuses one that differs.
 
 **Grouped skills and talents.** `Lore (Any)`, `Melee (Basic)`: one entry for
 the group, with its specialisations listed in `fields`, as layout §4 says.

@@ -123,7 +123,12 @@ their first column are joined on it instead, each part's other columns named "<l
 for each plan (flow_tables()). A price table's "items" may name the book's own slips and
 repeats: "marks_without_notes", "listed_again", "listed_elsewhere" (items.item_rows()); the
 plan's "shared_labels" gives one description to several items (describe_items()), and an
-entry's "split_labels" makes entries of its bold-labelled paragraphs (split_at_labels()). A table printed without rules is
+entry's "split_labels" makes entries of its bold-labelled paragraphs (split_at_labels()).
+"hand_tables" are tables transcribed by hand and checked against the page (hand_tables());
+a text table with "keyed": true has rows that open with a key and wrap (keyed_text_table());
+an entry's "level_updates" reads single career levels offered in place of another career's
+(level_updates()); "describes_items": "headings" gives items the text under headings that
+name them; split headings take "fields", "rename" and "sidebars" (split_at_headings()). A table printed without rules is
 listed under "text_tables": its header line (the columns' words, together), its columns and how
 many rows follow; each row is split at its widest gaps, and a row without a clear gap is an
 error.

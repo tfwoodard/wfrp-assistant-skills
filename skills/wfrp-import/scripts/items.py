@@ -145,7 +145,7 @@ def item_rows(cols, rows, spec, notes, report, where):
                 marks += INNER_MARKS.findall(cell)
                 cell = INNER_MARKS.sub('', cell)
             f[key] = value(key, cell)
-        for mk in marks:
+        for mk in dict.fromkeys(marks):               # a mark on the name and on its group both: said once
             if mk in notes:
                 f.setdefault('notes', []).append(notes[mk])
                 used.add(mk)
