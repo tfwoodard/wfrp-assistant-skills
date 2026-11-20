@@ -85,6 +85,28 @@ class BoxProfileTest(unittest.TestCase):
         self.assertNotIn('spells', p)
         self.assertEqual(p['special'][0]['label'], 'Cold Magic')
 
+    def test_a_profile_wrapped_in_a_narrow_box(self):
+        lines = [line(('PIER MULE', True)), line(('M WS BS S T I', True)), line('6 20 – 35 40 15'),
+                 line(('Ag Dex Int WP Fel W', True)), line('25 – 10 15 20 18'),
+                 line(('Traits:', True), 'Stride, Weapon +5'), line(('The Casks', True)),
+                 line('It carries the oil casks.')]
+        p, after = creatures.box_profile(lines, self.report, 'Pier Mule')
+        self.assertEqual(self.report['errors'], [])
+        self.assertEqual(p['name'], 'Pier Mule')
+        self.assertNotIn('title', p)                         # the first header is not a title line
+        self.assertEqual(p['characteristics'], {'M': 6, 'WS': 20, 'BS': None, 'S': 35, 'T': 40, 'I': 15, 'Ag': 25,
+                                                'Dex': None, 'Int': 10, 'WP': 15, 'Fel': 20, 'W': 18})
+        self.assertEqual(p['Traits'] if 'Traits' in p else p['traits'], ['Stride', 'Weapon +5'])
+        self.assertEqual(self.report['left_out'], ['M WS BS S T I', 'Ag Dex Int WP Fel W'])
+        self.assertEqual([l['text'] for l in after], ['The Casks', 'It carries the oil casks.'])
+
+    def test_a_wrapped_profile_whose_second_row_falls_short_is_an_error(self):
+        lines = [line(('PIER MULE', True)), line(('M WS BS S T I', True)), line('6 20 – 35 40 15'),
+                 line(('Ag Dex Int WP Fel W', True)), line('25 – 10'), line(('Traits:', True), 'Stride')]
+        p, _ = creatures.box_profile(lines, self.report, 'Pier Mule')
+        self.assertIsNone(p)
+        self.assertIn('6 characteristics', self.report['errors'][0]['error'])
+
     def test_values_that_do_not_match_the_header_are_an_error(self):
         p, after = creatures.box_profile([line(('FOG WISP', True)), line((HEAD, True)), line('4 30 35')],
                                          self.report, 'Fog Wisp')

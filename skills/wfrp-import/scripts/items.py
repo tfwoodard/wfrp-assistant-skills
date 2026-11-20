@@ -12,6 +12,7 @@ from entry_text import fix_case, norm, plain
 
 TWO_HANDED = re.compile(r'^\(2H\)\s*')
 MARKS = re.compile(r'(\*+)$')
+INNER_MARKS = re.compile(r'(?<=[\w)])(\*+)(?=\s*,)')      # after one of a list's values: "Reload 4*, Salvo 9"
 NONE = {'', '–', '—', '-'}
 LIST_FIELDS = {'qualities'}
 
@@ -68,8 +69,18 @@ def value(key, cell):
 def item_rows(cols, rows, spec, notes, report, where):
     """The items a table lists: [{"name", "fields"}] in printed order. `spec` gives the item
     `kind` and `fields` ({column header: field}); the first column is the name. Each mark that
-    points at no footnote, and each footnote nothing points at, is an error."""
+    points at no footnote, and each footnote nothing points at, is an error; the book's own
+    slip, a mark it prints no footnote for, is named in the spec's "marks_without_notes"
+    ([item names]): the mark stays on the value as printed and the item is listed under
+    `excused`. "listed_again" (["<group>/<name>"]) names a row that repeats an item of an
+    earlier group: the first item takes both groups, the row is left out and the report's
+    `listed_again` says so. "listed_elsewhere" names a row repeating an item another chapter
+    of the book has given already: the row is left out, and `listed_again` says so."""
     fields = spec.get('fields', {})
+    loose = {norm(n) for n in spec.get('marks_without_notes', ())}
+    again = set(spec.get('listed_again', ()))
+    elsewhere = set(spec.get('listed_elsewhere', ()))
+    emptied = set()                                   # groups a row was left out of
     missing = [h for h in fields if h not in cols]
     if missing:
         report['errors'].append({'error': f'{where}: no column {", ".join(map(repr, missing))} in {cols}'})
@@ -85,6 +96,24 @@ def item_rows(cols, rows, spec, notes, report, where):
                 group = string.capwords(group.lower())
             continue
         name = plain(row[0]).strip()
+        if f'{group}/{MARKS.sub("", name).strip()}' in again:
+            # The same item listed again under another group (a shot two guns take): one item.
+            first = next((it for it in items if it['name'] == MARKS.sub('', name).strip()), None)
+            if first is None:
+                report['errors'].append({'error': f'{where}: "listed_again" names {group}/{name}, but no row '
+                                                  'above it has that name'})
+            else:
+                first['fields']['group'] = f'{first["fields"].get("group", "")}, {group}'.strip(', ')
+                report.setdefault('listed_again', []).append({'where': where, 'item': name, 'group': group})
+                report['left_out'].append(' '.join(c for c in row if c))
+            continue
+        if f'{group}/{MARKS.sub("", name).strip()}' in elsewhere:
+            # An item another chapter of the book lists, with its description: that entry stands.
+            report.setdefault('listed_again', []).append({'where': where, 'item': name, 'group': group,
+                                                          'first': 'in another chapter'})
+            report['left_out'].append(' '.join(c for c in row if c))
+            emptied.add(group)
+            continue
         if not name:
             report['errors'].append({'error': f'{where}: a row with no name: {row}'})
             continue
@@ -101,9 +130,16 @@ def item_rows(cols, rows, spec, notes, report, where):
         for header, key in fields.items():
             cell = row[cols.index(header)].strip()
             cm = MARKS.search(cell)
-            if cm:                                   # a mark after a value ("+SB+6*")
+            if cm and cm.group(1) not in notes and norm(name) in loose:
+                report.setdefault('excused', []).append(
+                    f'{where}: {name!r} is marked {cm.group(1)!r} in {header!r} and the plan says the book '
+                    'prints no such footnote: the mark stays on the value')
+            elif cm:                                 # a mark after a value ("+SB+6*")
                 marks.append(cm.group(1))
                 cell = MARKS.sub('', cell).strip()
+            if key in LIST_FIELDS:                   # ...or after one of a list's values
+                marks += INNER_MARKS.findall(cell)
+                cell = INNER_MARKS.sub('', cell)
             f[key] = value(key, cell)
         for mk in marks:
             if mk in notes:
@@ -115,6 +151,8 @@ def item_rows(cols, rows, spec, notes, report, where):
     for mk in notes:
         if mk not in used:
             report['errors'].append({'error': f'{where}: footnote {mk!r} marks no item'})
+    for g in sorted(emptied - {it['fields'].get('group') for it in items}):
+        report['left_out'].append(g)                  # a group whose only rows are listed elsewhere
     return items
 
 

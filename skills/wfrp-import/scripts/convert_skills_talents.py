@@ -49,7 +49,7 @@ from entry_text import field_text, label_of, merge_lines, new_paragraph, plain, 
 CHARACTERISTICS = ('WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel')
 SKILL_HEADING = re.compile(r'^(?P<name>.+?)\s+\((?P<char>' + '|'.join(CHARACTERISTICS) +
                            r')\)\s+(?P<kind>basic|advanced)(?P<grouped>,\s*grouped)?\s*$', re.I)
-TALENT_LABELS = {'max': 'max', 'maximum': 'max', 'test': 'tests', 'tests': 'tests'}
+TALENT_LABELS = {'max': 'max', 'maximum': 'max', 'test': 'tests', 'tests': 'tests', 'bonus tests': 'tests'}
 SPECIALISATIONS = ('specialisations', 'specializations', 'specialties')
 
 

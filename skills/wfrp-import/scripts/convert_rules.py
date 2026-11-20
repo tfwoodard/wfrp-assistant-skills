@@ -56,7 +56,8 @@ a subheading. "subheadings" names lines inside an entry, printed at body size
 "not_headings" ([{"page", "text"}]) lines printed large that are body text (a
 signature); a line either names that isn't found is an error. An entry's
 "headings_as_rows" ([heading column, text column]) makes its headings and the
-text under each one table (a timeline: dates and events). Lines with no
+text under each one table (a timeline: dates and events; "row_bands" names the
+headings that are eras, heading the rows below them). Lines with no
 letter or digit printed below body size (flourishes) are left out and listed
 under `ornaments`. Text before the first planned entry (the
 chapter's title page) is left out and listed, unless the plan gives an
@@ -94,7 +95,8 @@ hooks; lines above its first heading are the page's text set over its edge, and 
 above the box: `returned_to_text`), read it as a stat block ("profile": the fields of a
 "stat_blocks" entry, creatures.box_profile(), with skills, talents, spells, trappings, marks
 and other labelled paragraphs; a profile block in any other entry's text),
-read it as the page's own text ("text": a tinted backdrop the layout took for a box),
+read it as the page's own text ("text": a tinted backdrop the layout took for a box; or
+"text_lines": 2, only its first lines, where a box overlaps the end of the column above it),
 or mark it a diagram ("diagram": a flowchart or picture with words, left out
 and listed for transcription by hand). A box read as a ruled table becomes a
 table block; a table the plan lists under "tables" is also written as an entry
@@ -111,11 +113,17 @@ row's cells, is taken out of them (`titles_stripped`). A row with only its first
 in a table of three or more columns, heads the rows below it (a group: `group_rows`); so does a
 row whose one filled cell is in capitals (a band across the columns), in any table.
 "continued_in" lists boxes
-on later pages holding the rest of its rows, which join it. "fold": 2 reads a table
+on later pages holding the rest of its rows, which join it (a header printed again over them is
+left out). "fold": 2 reads a table
 printed in two side-by-side halves (the same columns twice) down the left half, then the right;
 with "fold_join" (and "header_row", the parts' labels printed above them) parts that share
 their first column are joined on it instead, each part's other columns named "<label>: <column>";
-"from_columns": N reads a box's unruled lines, set in N columns, as a table. A table printed without rules is
+"from_columns": N reads a box's unruled lines, set in N columns, as a table.
+"flowed": [a table's plan, ...] reads a box of roll tables flowed down its columns, one table
+for each plan (flow_tables()). A price table's "items" may name the book's own slips and
+repeats: "marks_without_notes", "listed_again", "listed_elsewhere" (items.item_rows()); the
+plan's "shared_labels" gives one description to several items (describe_items()), and an
+entry's "split_labels" makes entries of its bold-labelled paragraphs (split_at_labels()). A table printed without rules is
 listed under "text_tables": its header line (the columns' words, together), its columns and how
 many rows follow; each row is split at its widest gaps, and a row without a clear gap is an
 error.
@@ -239,12 +247,55 @@ def split_at_headings(content, lines, spec, report, where):
     return keep, subs
 
 
+def split_at_labels(content, lines, spec, report, where):
+    """An entry's "split_labels" ({"category", "kind", "names": [...] or {name: kind}}): each
+    paragraph opening with one of those names as a bold label ("**Hooked:** ...") becomes an
+    entry of its own, without the label, and takes the blocks after it up to the next named
+    label or the next heading (a quality's own labelled cases stay with it). The rest stays
+    the entry's. A name with no such paragraph is an error. Returns (the entry's content, the
+    new entries)."""
+    opt = spec['split_labels']
+    names = opt['names'] if isinstance(opt['names'], dict) else {n: opt.get('kind') for n in opt['names']}
+    kinds = {norm(n): k for n, k in names.items()}
+    keep, subs, cur, after = [], [], None, 0
+    for b in content:
+        lab = items.label(b['text']) if b['type'] == 'paragraph' else None
+        if lab and norm(lab[0]) in kinds and norm(lab[0]) not in {norm(x['name']) for x in subs}:
+            kind = kinds[norm(lab[0])]
+            hit = next((i for i, l in enumerate(lines) if i >= after and
+                        norm(plain(l['text'])).startswith(norm(lab[0]))), None)
+            if hit is None:
+                report['errors'].append({'error': f'{where}: no page for the label {lab[0]!r}'})
+            after = hit + 1 if hit is not None else after
+            cur = {'name': lab[0], 'category': opt['category'], 'kind': kind,
+                   'page': lines[hit]['page'] if hit is not None else spec['page'], 'section': spec['name'],
+                   'content': [{'type': 'paragraph', 'text': lab[1]}],
+                   'audience': opt.get('audience', spec.get('audience')),
+                   'fields': dict({'kind': kind} if kind else {},
+                                  **{f: bool(re.search(pat, lab[0])) for f, pat in opt.get('name_flags', {}).items()})}
+            subs.append(cur)
+            report['left_out'].append(lab[0])         # the label: the entry's name again
+        elif b['type'] == 'heading':
+            cur = None
+            keep.append(b)
+        elif cur is not None:
+            cur['content'].append(b)
+        else:
+            keep.append(b)
+    for n in names:
+        if norm(n) not in {norm(x['name']) for x in subs}:
+            report['errors'].append({'error': f'{where}: split_labels, but no paragraph is labelled {n!r}'})
+    return keep, subs
+
+
 def describe_items(found, describers, plan, report):
     """Paragraphs that open with an item's name as a bold label ("**Coat:** Protects ..."), in
     entries marked "describes_items", move to that item, without the label. A label naming no
     item stays where it is and is listed under `labels_kept`; two items of one name are an error,
     unless the plan's "rename" ({"<table>/<name>" or "<table>/<group>/<name>": new name})
-    tells them apart. (The plan's "item_slugs", {"<table>/<name>": slug}, gives an item a slug
+    tells them apart; a label two renamed items share goes to the one whose table is in the
+    describing entry. The plan's "shared_labels" ({label: [item names]}) gives one description
+    of several items ("Lance and Demi-Lance") to each of them, label and all. (The plan's "item_slugs", {"<table>/<name>": slug}, gives an item a slug
     other than its name's, after any renaming.)"""
     for it in found:
         ren = plan.get('rename', {})
@@ -266,6 +317,16 @@ def describe_items(found, describers, plan, report):
             if not lab:
                 continue
             match = [it for it in found if items.same_item(it['name'], lab[0])]
+            if len(match) > 1:        # two of one name once renamed: the one whose table is in this entry
+                match = [it for it in match if it['section'] == where] or match
+            shared = [it for n in plan.get('shared_labels', {}).get(lab[0], ()) for it in found
+                      if norm(it['name']) == norm(n)]
+            if shared:                # one description of several items ("Lance and Demi-Lance"): to each
+                for it in shared:
+                    it.setdefault('content', []).append({'type': 'paragraph', 'text': b['text']})
+                content.remove(b)
+                report.setdefault('descriptions_shared', []).append({'label': lab[0], 'items': [it['name'] for it in shared]})
+                continue
             if len(match) == 1:
                 match[0].setdefault('content', []).append({'type': 'paragraph', 'text': lab[1]})
                 content.remove(b)
@@ -295,6 +356,11 @@ def free_slug(slug, cat, name, plan, taken, used_slugs, report):
         if theirs and report is not None:
             report.setdefault('same_name', []).append({'category': cat, 'name': name, 'taken': slug})
         slug = f'{slug}-{plan["source"].lower()}'
+        if slug in own and own[slug] != plan['chapter'] and report is not None:
+            # ...and so would the one that took the source's code in another chapter.
+            report['errors'].append({'error': f'{cat}/{slug} ({name}): {plan["source"]} {own[slug]} already has an '
+                                              'entry with this slug; give this one a "slug" in the plan, or, for an '
+                                              'item the book lists again, name its row in "listed_elsewhere"'})
     used_slugs.add((cat, slug))
     return slug
 
@@ -450,19 +516,26 @@ def add_entry(spec, out, records, plan, taken, used_slugs):
         relate_same_name(cat, entry, rec, plan, spec.get('_library'), spec['_report'])
 
 
-def headings_to_rows(content, columns, report, where):
+def headings_to_rows(content, columns, report, where, bands=()):
     """An entry's run of headings, each followed by its text (a timeline's dates, a glossary's
     terms), as one table with `columns` [heading, text]: each heading a row, its paragraphs joined
     in the second cell. Text before the first heading stays as it is; anything else under a
-    heading (a list, a sidebar) is an error."""
+    heading (a list, a sidebar) is an error. The headings the plan names as `bands` (a timeline's
+    eras) have no text of their own: each heads the rows below it, as a table's group."""
     head = next((i for i, b in enumerate(content) if b['type'] == 'heading'), None)
     if head is None:
         report['errors'].append({'error': f'{where}: headings_as_rows, but the entry has no headings'})
         return content
-    rows = []
+    rows, groups, named, under_band = [], [], {norm(x) for x in bands}, None
     for b in content[head:]:
-        if b['type'] == 'heading':
+        if b['type'] == 'heading' and norm(b['text']) in named:
+            groups.append({'before': len(rows), 'text': b['text']})
+            under_band = b['text']
+        elif b['type'] == 'heading':
             rows.append([b['text'], ''])
+            under_band = None
+        elif under_band:
+            report['errors'].append({'error': f'{where}: {under_band!r} is a band in the plan, but has text under it'})
         elif b['type'] == 'paragraph':
             rows[-1][1] = (rows[-1][1] + ' ' + b['text']).strip()
         else:
@@ -471,8 +544,13 @@ def headings_to_rows(content, columns, report, where):
     empty = [r[0] for r in rows if not r[1]]
     if empty:
         report['errors'].append({'error': f'{where}: no text under {", ".join(map(repr, empty))}'})
+    unmet = [x for x in bands if norm(x) not in {norm(g['text']) for g in groups}]
+    if unmet:
+        report['errors'].append({'error': f'{where}: no heading for the band {", ".join(map(repr, unmet))}'})
     block = {'type': 'table', 'title': '', 'columns': list(columns), 'rows': rows,
              'data': table_data(list(columns), rows, report, where, None)}
+    if groups:
+        block['groups'] = groups
     return content[:head] + [block]
 
 
@@ -490,14 +568,16 @@ def page_column(line, gutters):
 
 
 def boxes_as_text(lines, boxes_plan, report, gutters=None):
-    """Boxes the plan marks "text" (a tinted backdrop read as a box) are read as the page's
-    columns: their lines lose the box and take the page column (from its `gutters`) they sit
+    """Boxes the plan marks "text" (a tinted backdrop read as a box), and the first "text_lines"
+    lines of a box that overlaps the end of a column, are read as the page's columns: their lines lose the box and take the page column (from its `gutters`) they sit
     in, and the page is read again, top to bottom between its full-width lines, column by
     column from the left."""
     pages = {}
     for bid, bp in boxes_plan.items():
-        if bp.get('text'):
+        if bp.get('text') or bp.get('text_lines'):
             hit = [l for l in lines if l.get('box') == bid]
+            if not bp.get('text'):                   # only its first lines: the box overlaps the column's end
+                hit = hit[:bp['text_lines']]
             if not hit:
                 report['errors'].append({'error': f'the plan reads box {bid} as text, but it has no lines'})
             for l in hit:
@@ -833,18 +913,133 @@ def column_tables(lines, regions, tables_plan, report):
             l['table'] = True
 
 
-def convert(layout, plan, taken=(), library=None):
-    report = {'errors': [], 'questions': [], 'left_out': [], 'tables_to_confirm': [], 'diagrams': [], 'sizes': {}}
-    regions = {r['id']: dict(r) for r in layout.get('regions', [])}
+def join_continued(regions, plan, report):
+    """A table continued in other boxes (the plan's "continued_in") takes their rows. A header
+    printed again over the rest is left out: it is said once. Returns the boxes joined on."""
     merged = set()
-    for bid, t in plan.get('tables', {}).items():       # a table continued in another box
+    for bid, t in plan.get('tables', {}).items():
         for cont in t.get('continued_in', []):
             if cont in regions and regions[cont].get('kind') == 'table' and bid in regions:
                 regions[bid]['rows'] = regions[bid]['rows'] + regions[cont]['rows']
                 merged.add(cont)
+                again = ' '.join(regions[cont].get('columns') or [])
+                if again.strip():
+                    report['left_out'].append(again)
             else:
                 plan.setdefault('_missing', []).append(cont)
+    return merged
+
+
+ROLL_RANGE = re.compile(r'^\d{1,3}\s*[–—-]\s*\d{1,3}$|^\d{1,3}$')
+DICE = re.compile(r'^\d*d\d+$', re.I)
+
+
+def flow_tables(regions, lines, plan, report):
+    """A box of roll tables flowed down its columns (the plan's "flowed": [a table's plan, one
+    for each, in printed order]): each table is a line in capitals (its title), a header
+    opening with the dice ("1d100 Place") and rows that open with a roll ("01–05"); a table
+    runs on from the foot of one column to the top of the next, and a row's text may wrap
+    above and below its roll. The words are placed by where they are printed, since the
+    layout reads such a box as one wide table. The first table keeps the box's id, the others
+    take "<box>.2", "<box>.3"; the box's lines above the first title stay its text. The
+    titles are left out (the plan's "title" names each table)."""
+    for bid, t in list(plan.get('tables', {}).items()):
+        specs = t.get('flowed')
+        if not specs or bid not in regions:
+            continue
+        own = [l for l in lines if l.get('box') == bid and l.get('words')]
+        words = [(l['baseline'], a, b, w, l) for l in own for w, a, b in l['words']]
+        starts = []                                   # the x where each column's rolls begin
+        for x in sorted(a for _, a, _, w, _ in words if ROLL_RANGE.match(w) and '–' in w or DICE.match(w)):
+            if not starts or x - starts[-1] > 12:
+                starts.append(x)
+        if not starts:
+            report['errors'].append({'error': f'table {bid}: "flowed", but no line opens with a roll'})
+            continue
+        tables, cur, top, owner = [], None, None, {}  # owner: (column, baseline) -> its table
+        for c, x0 in enumerate(starts):
+            x1 = starts[c + 1] - 6 if c + 1 < len(starts) else float('inf')
+            mine = [w for w in words if x0 - 6 <= w[1] < x1]
+            by_line = {}
+            for w in mine:
+                by_line.setdefault(round(w[0], 1), []).append(w)
+            segment = []                              # (baseline, roll or None, text) under one header
+
+            def close():
+                rolls = [r for r in segment if r[1]]
+                for k, (base, roll, text) in enumerate(rolls):
+                    lo = (rolls[k - 1][0] + base) / 2 if k else float('-inf')
+                    hi = (rolls[k + 1][0] + base) / 2 if k + 1 < len(rolls) else float('inf')
+                    cur['rows'].append([roll, ' '.join(t for b, _, t in segment if lo < b <= hi and t)])
+                if segment and not rolls:
+                    report['errors'].append({'error': f'table {bid}: text with no roll beside it: '
+                                                      f'{" ".join(t for _, _, t in segment)!r}'})
+                segment.clear()
+
+            bases = sorted(by_line)
+            leads = {b: (min(by_line[b], key=lambda w: w[1])[3] if min(w[1] for w in by_line[b]) < x0 + 6 else '')
+                     for b in bases}
+            for n, base in enumerate(bases):
+                ws = sorted(by_line[base], key=lambda w: w[1])
+                lead = leads[base]
+                text = ' '.join(w[3] for w in ws)
+                # A title: capitals, with the dice header on the next line.
+                titled = text.isupper() and n + 1 < len(bases) and bool(DICE.match(leads[bases[n + 1]]))
+                if (top is None and not titled) or (top is not None and base < top):
+                    continue                          # above the first title: the box's own text
+                if titled:
+                    if cur:
+                        close()
+                    cur = {'title': text, 'columns': None, 'rows': []}
+                    tables.append(cur)
+                    top = base if top is None else top
+                    report['left_out'].append(text)
+                elif DICE.match(lead):                # the header; printed again where a table runs on
+                    close()
+                    head = [lead, ' '.join(w[3] for w in ws[1:])]
+                    if cur['columns'] is None:
+                        cur['columns'] = head
+                    else:
+                        report['left_out'].append(' '.join(head))
+                elif ROLL_RANGE.match(lead):
+                    segment.append((base, lead, ' '.join(w[3] for w in ws[1:])))
+                else:
+                    segment.append((base, None, text))
+                owner[(c, base)] = len(tables) - 1
+            if cur:
+                close()
+        if len(tables) != len(specs):
+            report['errors'].append({'error': f'table {bid}: "flowed" plans {len(specs)} tables, but the box '
+                                              f'holds {len(tables)}: {[x["title"] for x in tables]}'})
+            continue
+        sids = [bid if k == 0 else f'{bid}.{k + 1}' for k in range(len(tables))]
+        for sid, tab, spec in zip(sids, tables, specs):
+            if tab['columns'] is None or any(not r[1] for r in tab['rows']):
+                report['errors'].append({'error': f'table {sid} ({tab["title"]}): no header, or a roll with no text'})
+            regions[sid] = dict(regions[bid], id=sid, kind='table', columns=tab['columns'] or ['', ''], rows=tab['rows'])
+            plan['tables'][sid] = dict({x: y for x, y in t.items() if x != 'flowed'} if sid == bid else {}, **spec)
+        for l in own:                                 # a line read across the columns: one line in each
+            parts = {}
+            for w, a, b in l['words']:
+                c = max((n for n, x in enumerate(starts) if a >= x - 6), default=0)
+                if (c, round(l['baseline'], 1)) in owner:
+                    parts.setdefault(c, []).append([w, a, b])
+            if parts:
+                at = next(n for n, x in enumerate(lines) if x is l)
+                lines[at:at + 1] = [
+                    {**{k: v for k, v in l.items() if k != 'heading'}, 'words': ws, 'text': ' '.join(w for w, _, _ in ws),
+                     'x0': ws[0][1], 'x1': ws[-1][2], 'box': sids[owner[(c, round(l['baseline'], 1))]], 'table': True}
+                    for c, ws in sorted(parts.items())]
+        report.setdefault('flowed_tables', []).append(
+            {'box': bid, 'tables': [{'title': x['title'], 'rows': len(x['rows'])} for x in tables]})
+
+
+def convert(layout, plan, taken=(), library=None):
+    report = {'errors': [], 'questions': [], 'left_out': [], 'tables_to_confirm': [], 'diagrams': [], 'sizes': {}}
+    regions = {r['id']: dict(r) for r in layout.get('regions', [])}
+    merged = join_continued(regions, plan, report)
     lines = [dict(l) for l in layout['lines'] if not l['furniture']]
+    flow_tables(regions, lines, plan, report)
     body = layout.get('body_size', 0)
     orn = [l for l in lines if l['size'] < body and not re.search(r'[^\W_]', l['text']) and
            not re.match(r'^\s*[•●▪]', l['text'])]
@@ -1103,10 +1298,13 @@ def convert(layout, plan, taken=(), library=None):
                 content.append(dict({'type': 'sidebar', 'title': title, 'content': inner},
                                     **({'_sub': e['box_sub'][bid]} if bid in e.get('box_sub', {}) else {})))
         if spec.get('headings_as_rows'):
-            content = headings_to_rows(content, spec['headings_as_rows'], report, name)
+            content = headings_to_rows(content, spec['headings_as_rows'], report, name, spec.get('row_bands', ()))
         split = []
         if spec.get('split_headings'):
             content, split = split_at_headings(content, e['lines'], spec, report, name)
+        if spec.get('split_labels'):
+            content, more = split_at_labels(content, e['lines'], spec, report, name)
+            split += more
         if spec.get('stat_blocks') and not spec.get('category'):
             report['errors'].append({'error': f'{name}: stat_blocks needs a category (creatures)'})
         if spec.get('describes_items'):

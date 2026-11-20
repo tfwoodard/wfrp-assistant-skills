@@ -328,7 +328,8 @@ def field_text(run):
 def top_fields(seg, labels, report, name, usual=()):
     """The field lines an entry opens with ("Max: 2", "Range: Touch"), each a bold label in
     `labels` (printed label, lower case -> field name). A field runs on to the next line when that
-    line starts in lower case or the field has an unclosed bracket; each run-on is listed under the
+    line starts in lower case, the field has an unclosed bracket, or it stops on a word that
+    cannot end it ("... a weapon with the"); each run-on is listed under the
     report's `field_lines_joined`, a label printed other than as in `usual` under
     `labels_as_printed`, and a label among them not set in bold under `labels_not_bold`. Returns (how many lines were read, one line carrying the fields block or
     None, {field name: text})."""
@@ -349,7 +350,8 @@ def top_fields(seg, labels, report, name, usual=()):
             text = field_text(run)
             if label_of(nxt) or nxt.get('heading') or nxt.get('box') or nxt.get('block'):
                 break
-            if not (re.match(r'^[a-z]', plain(nxt['text'])) or text.count('(') > text.count(')')):
+            if not (re.match(r'^[a-z]', plain(nxt['text'])) or text.count('(') > text.count(')') or
+                    re.search(r'\b(the|a|an|with|of|to|and|or|for|in|on)$', text)):
                 break
             run.append(nxt)
             report.setdefault('field_lines_joined', []).append({'entry': name, 'label': lab, 'text': field_text(run)})
