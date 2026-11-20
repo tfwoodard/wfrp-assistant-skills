@@ -93,6 +93,54 @@ class EmptyLastColumnTest(unittest.TestCase):
         self.assertNotIn('empty_columns', report)
 
 
+class ContinuedTableTest(unittest.TestCase):
+    def regions(self, again):
+        return {'1.1': {'id': '1.1', 'kind': 'table', 'columns': ['Lamp', 'Price'], 'rows': [['Brass', '2']]},
+                '2.1': {'id': '2.1', 'kind': 'table', 'columns': again, 'rows': [['Horn', '1']]}}
+
+    def test_a_header_printed_again_over_the_rest_is_left_out_once(self):
+        import convert_rules
+        regions, report = self.regions(['Lamp', 'Price']), {'left_out': []}
+        merged = convert_rules.join_continued(regions, {'tables': {'1.1': {'continued_in': ['2.1']}}}, report)
+        self.assertEqual(merged, {'2.1'})
+        self.assertEqual(regions['1.1']['rows'], [['Brass', '2'], ['Horn', '1']])
+        self.assertEqual(report['left_out'], ['Lamp Price'])
+
+    def test_a_continuation_with_no_header_leaves_nothing_out(self):
+        import convert_rules
+        regions, report = self.regions(['', '']), {'left_out': []}
+        convert_rules.join_continued(regions, {'tables': {'1.1': {'continued_in': ['2.1']}}}, report)
+        self.assertEqual(report['left_out'], [])
+
+    def test_a_box_that_is_not_there_is_remembered(self):
+        import convert_rules
+        plan = {'tables': {'1.1': {'continued_in': ['9.9']}}}
+        self.assertEqual(convert_rules.join_continued(self.regions(['', '']), plan, {'left_out': []}), set())
+        self.assertEqual(plan['_missing'], ['9.9'])
+
+
+class BoxOverTheColumnsEndTest(unittest.TestCase):
+    """A box that overlaps the last line of the column above it: the plan's "text_lines" gives
+    that line back to the page, and the rest is still the box."""
+
+    def lines(self):
+        mk = lambda t, y, box=None, col='left': {'text': t, 'page': 1, 'baseline': y, 'x0': 60, 'x1': 280,
+                                                 'column': col, 'box': box}
+        return [mk('The wardens walk the piers at dusk and', 100), mk('trim every wick.', 112, '1.1', 'box'),
+                mk('A LATE LAMP', 130, '1.1', 'box'), mk('One lamp is always lit late.', 142, '1.1', 'box'),
+                mk('Gulls circle the tower.', 100, None, 'right')]
+
+    def test_only_the_first_lines_join_the_page(self):
+        import convert_rules
+        report = {'errors': []}
+        out = convert_rules.boxes_as_text(self.lines(), {'1.1': {'text_lines': 1}}, report, {'1': [300]})
+        self.assertEqual(report['errors'], [])
+        self.assertEqual([(l['text'], l['box']) for l in out],
+                         [('The wardens walk the piers at dusk and', None), ('trim every wick.', None),
+                          ('Gulls circle the tower.', None), ('A LATE LAMP', '1.1'), ('One lamp is always lit late.', '1.1')])
+        self.assertEqual(out[1]['column'], 'left')
+
+
 class CellTextTest(unittest.TestCase):
     def test_a_small_word_set_above_the_line_reads_where_it_stands(self):
         import pdf_layout
@@ -155,6 +203,35 @@ class PagesTest(unittest.TestCase):
         self.assertEqual(region['rows'][-1], ['Great', '9 GC', '3 days'])
         self.assertIn('*Brass lamps burn twice as long in still air.',
                       [l['text'] for l in doc['lines'] if l.get('box') and not l.get('table')])
+
+    def test_a_table_set_a_little_wider_than_its_panel(self):
+        def draw(c, w, h):
+            c.drawImage(ImageReader(Image.new('RGB', (40, 40), (230, 220, 190))), 80, h - 230, 300, 150)
+            c.setLineWidth(0.5)
+            c.setFont('Helvetica-Bold', 9)
+            for x, s in ((84, 'Lamp'), (174, 'Price'), (254, 'Burns')):
+                c.drawString(x, h - 100, s)
+            c.setFont('Helvetica', 9)
+            y = h - 104
+            for lamp, price, burns in (('Brass', '2 GC', '4 hours'), ('Horn', '1 GC', '1 hour'), ('Great', '9 GC', '3 days')):
+                c.line(72, y, 370, y)                                # the rules start left of the panel
+                c.line(170, y, 170, y - 18)
+                c.line(250, y, 250, y - 18)
+                y -= 13
+                c.drawString(84, y, lamp)
+                c.drawString(174, y, price)
+                c.drawString(254, y, burns)
+                y -= 5
+            c.line(72, y, 370, y)
+            for k in range(14):
+                c.drawString(60, h - 300 - 11 * k, 'Keepers trim the wicks at dusk every day.')
+                c.drawString(400, h - 110 - 11 * k, 'Gulls circle the tower.')
+
+        with tempfile.TemporaryDirectory() as d:
+            _, doc = self.layout(d, draw)
+        region = doc['regions'][0]
+        self.assertEqual(region['columns'], ['Lamp', 'Price', 'Burns'])
+        self.assertEqual(region['rows'], [['Brass', '2 GC', '4 hours'], ['Horn', '1 GC', '1 hour'], ['Great', '9 GC', '3 days']])
 
     def test_a_chapter_title_over_two_lines_is_left_out_whole(self):
         def draw(c, w, h):

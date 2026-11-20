@@ -48,13 +48,15 @@ LETTERS = 'QRSTU'
 FIFTH = ('Lamp Marshal', 'Gold 2', 'Lore (Oil), Leadership', 'Iron Will', 'Seal of the Harbour')
 
 
-def draw_pages(path, bare=False, letters=False, plain_skills=False, fifth=False, first=1, scheme='Lamp Warden'):
+def draw_pages(path, bare=False, letters=False, plain_skills=False, fifth=False, first=1, scheme='Lamp Warden',
+               no_dash=0):
     """`bare`: a career printed with no species line and, in its levels, no status, trappings or
     italic skill (a lamp sprite's). `letters`: the levels of the career path are marked with a
     glyph that reads as a letter, not with the scheme's icon. `plain_skills`: no skill is in italics.
     `fifth`: the career has a fifth level, its icon a six-sided shape, advancing Int.
     `first`: the career is entered part-way, and prints only the levels from there.
-    `scheme`: the name in the advance scheme's title, where it shortens the career's."""
+    `scheme`: the name in the advance scheme's title, where it shortens the career's.
+    `no_dash`: the level whose line is printed without its dash."""
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     panel = ImageReader(Image.new('RGB', (40, 40), (230, 220, 190)))
@@ -121,7 +123,7 @@ def draw_pages(path, bare=False, letters=False, plain_skills=False, fifth=False,
             text(55, py, LETTERS[n - 1])
         else:
             icon(n, 55, py + 1)
-        text(65, py, title if bare else f'{title} — {status}', 'Helvetica-Bold')
+        text(65, py, title if bare else f'{title} {status}' if n == no_dash else f'{title} — {status}', 'Helvetica-Bold')
         py -= 11
         for label, val in (('Skills:', skills), ('Talents:', talents), ('Trappings:', trappings))[:2 if bare else 3]:
             x = text(65, py, label, 'Helvetica-Bold')
@@ -300,6 +302,15 @@ class CareerInChapterTest(unittest.TestCase):
             out, layout, report, records = self.convert(d, plan=dict(PLAN, entries=entries), scheme='Warden')
             self.assertEqual(next(r for r in records if r['slug'] == 'lamp-warden')['levels'], [l[0] for l in LEVELS])
             self.assertIn('Warden Advance Scheme', report['left_out'])
+            self.assertIn('every word', run('check_coverage.py', layout, out).stdout)
+
+    def test_a_level_line_printed_without_its_dash(self):
+        with tempfile.TemporaryDirectory() as d:
+            out, layout, report, records = self.convert(d, no_dash=3)
+            career = next(r for r in records if r['slug'] == 'lamp-warden')
+            self.assertEqual((career['levels'], career['status']), ([l[0] for l in LEVELS], [l[1] for l in LEVELS]))
+            self.assertEqual([q['text'] for q in report['questions'] if q['kind'] == 'level-without-dash'],
+                             [f"{LEVELS[2][0] + ' ' + LEVELS[2][1]!r}: read as a level line though it has no dash"])
             self.assertIn('every word', run('check_coverage.py', layout, out).stdout)
 
     def test_a_career_with_no_skill_in_italics(self):

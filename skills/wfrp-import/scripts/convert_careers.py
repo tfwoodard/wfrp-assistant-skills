@@ -64,7 +64,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_entry import render  # noqa: E402
 from entry_text import join_lines, marked, new_paragraph, norm, plain, slugify, split_items  # noqa: E402
 
-LEVEL_LINE = re.compile(r'^(?P<title>.+?)\s*[—–]\s*(?P<status>(?:Brass|Silver|Gold)\s+\d+)$')
+# A level's line: "Title — Silver 3". The dash is missing now and then ("First Warden Gold 2").
+LEVEL_LINE = re.compile(r'^(?P<title>.+?)\s*(?P<dash>[—–]?)\s*(?P<status>(?:Brass|Silver|Gold)\s+\d+)$')
 LABELS = ('Skills', 'Talents', 'Trappings')
 
 
@@ -166,6 +167,9 @@ def read_path(career, lines, start, marks, shapes, plan, report, bare=False, cou
             flush()
             cur = {'title': text, '_raw': {}} if title_only else \
                 {'title': m.group('title'), 'status': m.group('status'), '_raw': {}}
+            if m and not m.group('dash'):
+                report['questions'].append({'career': career, 'kind': 'level-without-dash',
+                                            'text': f'{text!r}: read as a level line though it has no dash'})
             if letter:
                 lv = by_letter
                 report['left_out'].append(letter)          # the level's mark, read as a letter

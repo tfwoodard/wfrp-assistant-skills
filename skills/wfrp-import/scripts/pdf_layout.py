@@ -116,6 +116,9 @@ THIRD_SHARE = 0.2                        # ...and the least share of its words e
 SHAPE_MAX = 20                           # points: larger drawings aren't icons
 BOX_MIN = (100, 24)                      # points: a smaller image isn't a boxed panel
 RUN_ON_GAP = 4.0                         # points: a word this near a box's edge is on the same line
+STANDFIRST_LINES = 8       # an opening paragraph across the page may run to this many lines
+STANDFIRST_SHARE = 0.2     # of the words under it, at least this share on each side of a gutter
+RULE_SLACK = 10.0                        # points: a table's rules may reach this far past its panel's sides
 RUN_OVER_SHARE = 0.25                    # a box with this share of its lines crossing its edges is no panel
 PANEL_OPAQUE = 0.75                      # a masked image less opaque than this is an illustration
 TILT_MIN = 0.5                           # degrees: text turned less than this is level
@@ -350,6 +353,38 @@ def find_gutters(words, width, left=0.0, three=True):
             return thirds
     g = find_gutter(words, width, left)
     return [] if g is None else [g]
+
+
+def gutters_under_a_standfirst(words, width, left=0.0, three=True):
+    """`find_gutters`, and where the whole page shows none, once more without its first few lines
+    (up to STANDFIRST_LINES): an opening paragraph set across the page, over the columns. The
+    lines left out still cross the gutters found, so they are read full-width. A blank that
+    does not part two columns (`side_by_side`) is no gutter: a page of full-width text beside a
+    picture, whose short last lines leave one."""
+    found = find_gutters(words, width, left, three)
+    if found:
+        return found
+    tops = sorted({w['baseline'] for w in body_words(words)})
+    for k in range(2, min(STANDFIRST_LINES, len(tops) - 1) + 1):
+        below = [w for w in words if w['baseline'] > tops[k - 1]]
+        found = find_gutters(below, width, left, three)
+        # Columns, not a blank beside one block of text: each side of a gutter holds its share.
+        if found and all(side_by_side(below, g) for g in found):
+            return found
+    return []
+
+
+def side_by_side(words, g):
+    """The words left and right of `g` are two columns: each side holds its share of them
+    (STANDFIRST_SHARE), and the two run down the page together: of the shorter side's lines, at
+    least half have a line of the other side level with them (a block at the top left and
+    another at the bottom right are not columns, though a wide line or two may reach across)."""
+    sides = [[w['baseline'] for w in words if ((w['x0'] + w['x1']) / 2 < g) == left] for left in (True, False)]
+    if min(map(len, sides)) < max(1, STANDFIRST_SHARE * len(words)):
+        return False
+    rows = [{int(b // 14) for b in side} for side in sides]
+    few, many = sorted(rows, key=len)
+    return sum(1 for r in few if {r - 1, r, r + 1} & many) >= 0.5 * len(few)
 
 
 def word_size(w):
@@ -593,7 +628,11 @@ def read_table(page, box, lines):
     text, their words in reading order."""
     x0, top, x1, bottom = box
     inside = lambda o: o['x0'] >= x0 - 2 and o['x1'] <= x1 + 2 and o['top'] >= top - 2 and o['bottom'] <= bottom + 2
-    hl = [l for l in page.lines if inside(l) and abs(l['top'] - l['bottom']) < 1 and l['x1'] - l['x0'] > 20]
+    # A table may be set a little wider than the panel behind it: its rules count while they
+    # start or end within RULE_SLACK of the panel's sides.
+    about = lambda o: o['x0'] >= x0 - RULE_SLACK and o['x1'] <= x1 + RULE_SLACK and o['top'] >= top - 2 and \
+        o['bottom'] <= bottom + 2
+    hl = [l for l in page.lines if about(l) and abs(l['top'] - l['bottom']) < 1 and l['x1'] - l['x0'] > 20]
     vl = [l for l in page.lines if inside(l) and abs(l['x0'] - l['x1']) < 1 and l['bottom'] - l['top'] > 6]
     bands = [r for r in page.rects if inside(r) and r['x1'] - r['x0'] > 15 and 4 < r['bottom'] - r['top'] < 60]
     rules = merge_near([l['top'] for l in hl] + [r['top'] for r in bands] + [r['bottom'] for r in bands])
@@ -660,8 +699,9 @@ def read_table(page, box, lines):
             if r is None:
                 continue
             target = rows[r]
-        if target is not hdr_cells and r == len(rows) - 1 and any(rows[r]) and l['text'].lstrip().startswith('*'):
-            note_from = l['baseline']         # a footnote under the last row, with no rule between
+        if target is not hdr_cells and r == len(rows) - 1 and l['text'].lstrip().startswith('*'):
+            note_from = l['baseline']         # a footnote under the last row, with no rule between,
+                                              # or in a ruled row of its own at the foot of the table
         if note_from is not None and l['baseline'] >= note_from:
             continue
         used.add(id(l))
@@ -795,9 +835,9 @@ def page_lines(page, page_no, icon_fonts=(), marks=None, shapes=None, regions=No
     body = [w for w in words if id(w) not in in_box]
     sizes = sorted(c['size'] for w in body for c in w['chars'])
     usual = sizes[len(sizes) // 2] * 1.4 if sizes else 0
-    gutters = find_gutters([w for w in body if w['top'] >= page.height * MARGIN_TOP and
-                            w['bottom'] <= page.height * (1 - MARGIN_BOTTOM) and
-                            max(c['size'] for c in w['chars']) <= usual], page.width)
+    gutters = gutters_under_a_standfirst([w for w in body if w['top'] >= page.height * MARGIN_TOP and
+                                          w['bottom'] <= page.height * (1 - MARGIN_BOTTOM) and
+                                          max(c['size'] for c in w['chars']) <= usual], page.width)
     out = order_lines(body, gutters, page_no, page.height)
     keep_run_on(out, page_no, page.height)
     out += tilted_lines(tilted, page_no, page.width, page.height)

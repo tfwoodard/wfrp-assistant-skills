@@ -19,6 +19,7 @@ import re
 from entry_text import fix_case, join_lines, plain
 
 HEADER = re.compile(r'^M\s+WS\s+BS\b')
+CHARACTERISTICS = {'M', 'WS', 'BS', 'S', 'T', 'I', 'Ag', 'Agi', 'Dex', 'Int', 'WP', 'Fel', 'W'}
 LABELS = {'Traits': 'traits', 'Optional': 'optional_traits'}
 LABEL = re.compile(r'\*{2,3}(' + '|'.join(LABELS) + r')\*{2,3}:?\s*|\*{2,3}(' + '|'.join(LABELS) + r'):\*{2,3}\s*')
 NAME_WORDS = 12
@@ -117,6 +118,14 @@ def box_profile(lines, report, where):
     if h is None or h + 1 >= len(lines):
         report['errors'].append({'error': f'{where}: a profile box with no characteristics header'})
         return None, lines
+    # The rest of a wrapped profile, set after another line of the box (beside it, in print):
+    # brought up under the first half.
+    for j in range(h + 3, len(lines) - 1):
+        words = plain(lines[j]['text']).split()
+        if words and all(w in CHARACTERISTICS for w in words) and \
+                len(plain(lines[j + 1]['text']).split()) == len(words):
+            lines = lines[:h + 2] + lines[j:j + 2] + lines[h + 2:j] + lines[j + 2:]
+            break
     names = plain(lines[h]['text']).split()
     vals = plain(lines[h + 1]['text']).split()
     if len(vals) != len(names):
@@ -124,7 +133,18 @@ def box_profile(lines, report, where):
                                           f'reads {lines[h + 1]["text"]!r}'})
         return None, lines
     report['left_out'].append(plain(lines[h]['text']))        # the header: kept as the characteristics' keys
-    above = [fix_case(plain(l['text'])) for l in lines[:h]]
+    first = h
+    # A narrow box wraps the profile: the rest of the header, then the rest of the values.
+    while h + 3 < len(lines) and plain(lines[h + 2]['text']).split() and \
+            all(w in CHARACTERISTICS for w in plain(lines[h + 2]['text']).split()):
+        more, their = plain(lines[h + 2]['text']).split(), plain(lines[h + 3]['text']).split()
+        if len(their) != len(more):
+            report['errors'].append({'error': f'{where}: {len(more)} characteristics, but the row under them '
+                                              f'reads {lines[h + 3]["text"]!r}'})
+            return None, lines
+        report['left_out'].append(plain(lines[h + 2]['text']))
+        names, vals, h = names + more, vals + their, h + 2
+    above = [fix_case(plain(l['text'])) for l in lines[:first]]
     prof = {'name': above[0] if above else where}
     if len(above) > 1:
         prof['title'] = ' '.join(above[1:])
