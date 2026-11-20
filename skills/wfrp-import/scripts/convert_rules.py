@@ -851,11 +851,93 @@ def table_cells(region, title, plan_t, report, where):
     return cols, rows, banners, width, title
 
 
+CELL_GAP = 8.0      # points: words further apart than this on a line are in different cells
+
+
+def keyed_rows(run, ncol, report, where):
+    """The rows of an unruled table whose last column wraps: every row opens with a key (the
+    first column), set level with any one line of its text, which may run above and below it.
+    Cells start at the columns' left edges, found from where the lines' cells begin; a line of
+    text belongs to the key nearest it. Returns the rows, or None after an error."""
+    cells = []                                        # (baseline, x0, text)
+    for l in run:
+        cur = None
+        for w, a, b in l['words']:
+            if cur is None or a - cur[3] > CELL_GAP:
+                cur = [l['baseline'], a, [w], b]
+                cells.append(cur)
+            else:
+                cur[2].append(w)
+                cur[3] = b
+    starts = []
+    for x in sorted(c[1] for c in cells):
+        if not starts or x - starts[-1][-1] > CELL_GAP:
+            starts.append([x])
+        else:
+            starts[-1].append(x)
+    starts = [s[0] for s in sorted(starts, key=len, reverse=True)[:ncol]]
+    starts.sort()
+    if len(starts) != ncol:
+        report['errors'].append({'error': f'{where}: {ncol} columns planned, but its cells start at {len(starts)} places'})
+        return None
+    col = lambda x: max(k for k, s in enumerate(starts) if x >= s - CELL_GAP / 2) if x >= starts[0] - CELL_GAP / 2 else 0
+    keys = sorted({c[0] for c in cells if col(c[1]) == 0})
+    if not keys:
+        report['errors'].append({'error': f'{where}: no line opens with a key'})
+        return None
+    rows = [[[] for _ in range(ncol)] for _ in keys]
+    for base, x, words, _ in sorted(cells, key=lambda c: (c[0], c[1])):
+        k = min(range(len(keys)), key=lambda n: abs(keys[n] - base))
+        rows[k][col(x)].append(' '.join(words))
+    rows = [[' '.join(c) for c in r] for r in rows]
+    short = [r[0] for r in rows if not r[-1]]
+    if short:
+        report['errors'].append({'error': f'{where}: no text beside {", ".join(map(repr, short))}'})
+        return None
+    return rows
+
+
+def keyed_text_table(lines, t, i, report, where):
+    """A "keyed" text table (see keyed_rows): it runs from its header to the end of its page, or
+    to the line the plan's "ends_before" starts. "more" ([pages]) lists pages where it goes on
+    under the same header; the header there, and any line above it that is also printed above
+    the first header (the title and its note, said again), are left out once."""
+    def body(page, at):
+        end = next((k for k in range(at + 1, len(lines)) if lines[k]['page'] != page or lines[k].get('block') or
+                    (t.get('ends_before') and norm(plain(lines[k]['text'])).startswith(norm(t['ends_before'])))), len(lines))
+        return at + 1, end
+    a, b = body(t['page'], i)
+    rows = keyed_rows(lines[a:b], len(t['columns']), report, where)
+    drop, run = set(), lines[i:b]
+    above = {norm(plain(l['text'])) for l in lines[:i] if l['page'] == t['page']}
+    for page in t.get('more', []):
+        j = next((k for k, l in enumerate(lines) if l['page'] == page and norm(plain(l['text'])) == norm(t['header'])), None)
+        if j is None:
+            report['errors'].append({'error': f'{where}: no header on page {page}'})
+            return lines
+        a2, b2 = body(page, j)
+        more = keyed_rows(lines[a2:b2], len(t['columns']), report, f'{where}, page {page}')
+        rows = rows + more if rows is not None and more is not None else None
+        again = [k for k in range(j) if lines[k]['page'] == page and norm(plain(lines[k]['text'])) in above]
+        report['left_out'] += [lines[k]['text'] for k in again + [j]]
+        drop |= set(again) | set(range(j, b2))
+    if rows is None:
+        return lines
+    cols = t['columns']
+    block = {'type': 'table', 'title': t.get('title', ''), 'columns': cols, 'rows': rows,
+             'data': table_data(cols, rows, report, where, t.get('roll_column'))}
+    report['tables_to_confirm'].append({'entry': where, 'region': 'text', 'page': t['page'], 'title': block['title'],
+                                        'columns': len(cols), 'rows': len(rows)})
+    merged = merge_lines(run, block)
+    return [merged if k == i else l for k, l in enumerate(lines) if (k not in drop and not i < k < b) or k == i]
+
+
 def text_tables(lines, plans, report):
     """Tables printed without rules, as the plan describes them: the header line (its words, which
     must be the columns' words), then `rows` lines, each split into cells at its widest gaps. The
     lines are replaced by one carrying the table block. A row whose gap is no wider than the gaps
-    between its words is not a table row: an error."""
+    between its words is not a table row: an error. With "keyed": true the table's last column
+    wraps and each row opens with a key (keyed_text_table())."""
     for t in plans:
         where = f'text table {t["header"]!r} on page {t["page"]}'
         i = next((k for k, l in enumerate(lines) if l['page'] == t['page'] and not l.get('block') and
@@ -865,6 +947,9 @@ def text_tables(lines, plans, report):
             continue
         if norm(' '.join(t['columns'])) != norm(t['header']):
             report['errors'].append({'error': f'{where}: the columns {t["columns"]} are not its words'})
+            continue
+        if t.get('keyed'):
+            lines = keyed_text_table(lines, t, i, report, where)
             continue
         run = lines[i:i + 1 + t['rows']]
         rows = []
