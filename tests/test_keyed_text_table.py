@@ -90,5 +90,97 @@ class KeyedTextTableTest(unittest.TestCase):
         self.assertIn("no such line", report["errors"][0]["error"])
 
 
+class SideBySideTest(unittest.TestCase):
+    """A glossary set twice across the page: word and meaning, word and meaning."""
+    HEAD = 'Word Meaning Word Meaning'
+
+    def page_one(self):
+        return [ln(1, 60, (250, 'KEEPER WORDS'), heading=5),
+                ln(1, 95, (60, 'Word'), (130, 'Meaning'), (310, 'Word'), (380, 'Meaning')),
+                ln(1, 110, (60, 'Arn'), (130, 'A lamp.'), (380, 'Oil that has')),
+                ln(1, 116, (310, 'Dru')),                               # the right copy's key, between its lines
+                ln(1, 122, (60, 'Bek'), (130, 'A wick, or the'), (380, 'gone thick.')),
+                ln(1, 134, (130, 'keeper who trims it.')),
+                ln(1, 150, (60, 'Cal'), (130, 'Fog.'), (310, 'Eth'), (380, 'A bell.'))]
+
+    def page_two(self):
+        return [ln(2, 95, (60, 'Word'), (130, 'Meaning')),
+                ln(2, 97, (310, 'Word'), (380, 'Meaning')),             # the second copy's header, a line of its own
+                ln(2, 110, (60, 'Fen'), (130, 'A stair.'), (310, 'Gol'), (380, 'A gull.'))]
+
+    def plan(self, **kw):
+        return [dict({'page': 1, 'header': self.HEAD, 'columns': ['Word', 'Meaning'], 'keyed': True, 'side_by_side': 2,
+                      'title': 'Keeper Words'}, **kw)]
+
+    def test_the_left_copy_is_read_down_then_the_right(self):
+        report = {'errors': [], 'left_out': [], 'tables_to_confirm': []}
+        out = convert_rules.text_tables(self.page_one(), self.plan(), report)
+        self.assertEqual(report['errors'], [])
+        block = next(l['block'] for l in out if l.get('block'))
+        self.assertEqual(block['rows'], [['Arn', 'A lamp.'], ['Bek', 'A wick, or the keeper who trims it.'], ['Cal', 'Fog.'],
+                                         ['Dru', 'Oil that has gone thick.'], ['Eth', 'A bell.']])
+        self.assertEqual(block['columns'], ['Word', 'Meaning'])
+        self.assertEqual(report['left_out'], ['Word Meaning'])            # the header over the second copy
+
+    def test_it_goes_on_where_a_copys_header_sits_on_its_own_line(self):
+        report = {'errors': [], 'left_out': [], 'tables_to_confirm': []}
+        out = convert_rules.text_tables(self.page_one() + self.page_two(), self.plan(more=[2]), report)
+        self.assertEqual(report['errors'], [])
+        block = next(l['block'] for l in out if l.get('block'))
+        self.assertEqual(block['rows'][-2:], [['Fen', 'A stair.'], ['Gol', 'A gull.']])
+        self.assertEqual(len(block['rows']), 7)
+        self.assertEqual(sorted(report['left_out']), ['Word Meaning', 'Word Meaning', 'Word Meaning'])
+        self.assertEqual(len(out), 2)
+
+    def test_cells_that_start_in_too_few_places_are_an_error(self):
+        report = {'errors': [], 'left_out': [], 'tables_to_confirm': []}
+        lines = [self.page_one()[1], ln(1, 110, (60, 'Arn'), (130, 'A lamp.'))]
+        convert_rules.text_tables(lines, self.plan(), report)
+        self.assertIn('do not start at 4 places', report['errors'][0]['error'])
+
+
+class BlocksTest(unittest.TestCase):
+    """A roll table printed as three blocks across the page, each under the header again."""
+
+    def lines(self):
+        head = lambda col: dict(ln(1, 80, (60, 'Roll'), (130, 'Lamp'), (200, 'Keeper')), column=col)
+        row = lambda col, y, r, a, b: dict(ln(1, y, (60, r), (130, a), (200, b)), column=col)
+        return [ln(1, 50, (60, 'Roll for a name.')),
+                head('left'), row('left', 92, '1', 'Arn', 'Bek'), row('left', 104, '2', 'Cal', 'Dru'),
+                dict(ln(1, 60, (250, 'LAMP NAMES'), heading=5), column='middle'),
+                head('middle'), row('middle', 92, '3', 'Eth', 'Fen'), row('middle', 104, '4', 'Gol', 'Hul'),
+                head('right'), row('right', 92, '5', 'Ith', 'Jor'),
+                ln(1, 200, (60, 'Keepers take the name they roll.'))]
+
+    def plan(self, **kw):
+        return [dict({'page': 1, 'header': 'Roll Lamp Keeper', 'columns': ['Roll', 'Lamp', 'Keeper'], 'rows': [2, 2, 1],
+                      'title_line': 'LAMP NAMES', 'title': 'Lamp Names', 'roll_column': 0}, **kw)]
+
+    def test_the_blocks_are_one_table_and_the_title_is_said_once(self):
+        report = {'errors': [], 'left_out': [], 'tables_to_confirm': []}
+        entries = []
+        out = convert_rules.text_tables(self.lines(), self.plan(), report, entries)
+        self.assertEqual(report['errors'], [])
+        self.assertEqual([l['text'] for l in out if not l.get('block')], ['Roll for a name.', 'Keepers take the name they roll.'])
+        block = out[1]['block']
+        self.assertEqual(block['rows'], [['1', 'Arn', 'Bek'], ['2', 'Cal', 'Dru'], ['3', 'Eth', 'Fen'], ['4', 'Gol', 'Hul'], ['5', 'Ith', 'Jor']])
+        self.assertEqual(report['left_out'], ['Roll Lamp Keeper', 'Roll Lamp Keeper', 'LAMP NAMES'])
+        self.assertEqual(entries, [])
+
+    def test_with_a_slug_it_is_an_entry_and_may_be_that_alone(self):
+        report = {'errors': [], 'left_out': [], 'tables_to_confirm': []}
+        entries = []
+        out = convert_rules.text_tables(self.lines(), self.plan(slug='lamp-names', in_text=False), report, entries)
+        self.assertEqual([l['text'] for l in out], ['Roll for a name.', 'Keepers take the name they roll.'])
+        self.assertEqual((entries[0][0]['slug'], len(entries[0][1]['rows'])), ('lamp-names', 5))
+
+    def test_fewer_headers_than_blocks_or_no_title_line_is_an_error(self):
+        report = {'errors': [], 'left_out': [], 'tables_to_confirm': []}
+        convert_rules.text_tables(self.lines(), self.plan(rows=[2, 2, 1, 1]), report)
+        convert_rules.text_tables(self.lines(), self.plan(title_line='LAMPS'), report)
+        self.assertIn('4 blocks planned, but the header is printed 3 times', report['errors'][0]['error'])
+        self.assertIn("no line 'LAMPS' among its blocks", report['errors'][1]['error'])
+
+
 if __name__ == '__main__':
     unittest.main()
