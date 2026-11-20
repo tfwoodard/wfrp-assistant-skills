@@ -199,7 +199,9 @@ def split_at_headings(content, lines, spec, report, where):
     entry: it and its text stay the entry's, and the headings after it take its kind. Returns
     (the entry's content, the new entries). "name_flags" ({field: regex}) gives each new entry a
     field that is true when its name matches ({"rated": "Rating"} for "Armour (Rating)").
-    "field_labels" and "text_labels" are read in each new entry as an entry's own are (a
+    "fields" gives every new entry the same fields (a group of runes its "lore"), and "rename"
+    ({heading: name}) a name of its own to a heading that is a different thing from another
+    of that name. "field_labels" and "text_labels" are read in each new entry as an entry's own are (a
     potion's "Onset Time"; a cursed item's "Description"). The new entries take its "audience",
     or the entry's own. A box the plan sends "to" one of the new entries by name goes with it;
     any other box of the entry lands where its text does: after the last heading's, unless
@@ -230,11 +232,14 @@ def split_at_headings(content, lines, spec, report, where):
                 report['errors'].append({'error': f'{where}: no page for the heading {b["text"]!r}'})
             page = lines[hit]['page'] if hit is not None else spec['page']
             after = hit + 1 if hit is not None else after
-            subs.append({'name': b['text'], 'category': opt['category'], 'kind': kind,
+            if b['text'] in opt.get('rename', {}):    # two of one name that are different things
+                report.setdefault('renamed', []).append({'from': b['text'], 'to': opt['rename'][b['text']], 'in': where})
+                report['left_out'].append(b['text'])
+            subs.append({'name': opt.get('rename', {}).get(b['text'], b['text']), 'category': opt['category'], 'kind': kind,
                          '_at': reading_place(lines[hit]) if hit is not None else [page, 0, 0],
                          'page': page, 'section': spec['name'], 'content': [],
                          'audience': opt.get('audience', spec.get('audience')),
-                         'fields': dict({'kind': kind} if kind else {},
+                         'fields': dict({'kind': kind} if kind else {}, **opt.get('fields', {}),
                                         **{f: bool(re.search(pat, b['text']))
                                            for f, pat in opt.get('name_flags', {}).items()})})
         elif subs and subs[-1] is None:
@@ -317,7 +322,9 @@ def describe_items(found, describers, plan, report):
     unless the plan's "rename" ({"<table>/<name>" or "<table>/<group>/<name>": new name})
     tells them apart; a label two renamed items share goes to the one whose table is in the
     describing entry. The plan's "shared_labels" ({label: [item names]}) gives one description
-    of several items ("Lance and Demi-Lance") to each of them, label and all. (The plan's "item_slugs", {"<table>/<name>": slug}, gives an item a slug
+    of several items ("Lance and Demi-Lance") to each of them, label and all. An entry marked
+    "describes_items": "headings" also gives an item the text under a heading that is its name
+    (the heading is left out; headings naming no item are listed under `headings_kept`). (The plan's "item_slugs", {"<table>/<name>": slug}, gives an item a slug
     other than its name's, after any renaming.)"""
     for it in found:
         ren = plan.get('rename', {})
@@ -333,7 +340,37 @@ def describe_items(found, describers, plan, report):
         if len(its) > 1:
             report['errors'].append({'error': f'{len(its)} items named {its[0]["name"]!r} '
                                               f'(tables {", ".join(i["region"] for i in its)}): rename them'})
-    for where, content in describers:
+    for where, content, *mode in describers:
+        if mode and mode[0] == 'headings':            # ...or stand under a heading that is the item's name
+            k = 0
+            while k < len(content):
+                b = content[k]
+                match = [it for it in found if items.same_item(it['name'], b['text'])] if b['type'] == 'heading' else []
+                if len(match) > 1:
+                    match = [it for it in match if it['section'] == where] or match
+                shared = [it for n in plan.get('shared_labels', {}).get(b['text'], ()) for it in found
+                          if norm(it['name']) == norm(n)] if b['type'] == 'heading' else []
+                if shared:                            # a heading over several items, or one named otherwise
+                    end = next((n for n in range(k + 1, len(content)) if content[n]['type'] == 'heading' and
+                                content[n]['level'] <= b['level']), len(content))
+                    for it in shared:
+                        it.setdefault('content', []).extend(([dict(b, level=2)] if len(shared) > 1 else []) + content[k + 1:end])
+                    if len(shared) == 1:
+                        report['left_out'].append(b['text'])
+                    del content[k:end]
+                    report.setdefault('descriptions_shared', []).append({'label': b['text'], 'items': [it['name'] for it in shared]})
+                    continue
+                if len(match) != 1:
+                    if b['type'] == 'heading':
+                        report.setdefault('headings_kept', []).append({'entry': where, 'heading': b['text'], 'items': len(match)})
+                    k += 1
+                    continue
+                end = next((n for n in range(k + 1, len(content)) if content[n]['type'] == 'heading' and
+                            content[n]['level'] <= b['level']), len(content))
+                match[0].setdefault('content', []).extend(content[k + 1:end])
+                del content[k:end]
+                report.setdefault('descriptions_moved', []).append(match[0]['name'])
+                report['left_out'].append(b['text'])  # the heading: the item's name again
         for b in list(content):
             lab = items.label(b['text']) if b['type'] == 'paragraph' else None
             if not lab:
@@ -1566,7 +1603,7 @@ def convert(layout, plan, taken=(), library=None):
         if spec.get('stat_blocks') and not spec.get('category'):
             report['errors'].append({'error': f'{name}: stat_blocks needs a category (creatures)'})
         if spec.get('describes_items'):
-            describers.append((name, content))
+            describers.append((name, content, spec['describes_items']))
         cat = 'careers' if career else spec.get('category', 'rules')
         fields = {'kind': spec.get('kind', 'procedure')} if cat == 'rules' else \
             ({'kind': spec['kind']} if spec.get('kind') else {})

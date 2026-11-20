@@ -10,7 +10,7 @@ import string
 
 from entry_text import fix_case, norm, plain
 
-TWO_HANDED = re.compile(r'^\(2H\)\s*')
+TWO_HANDED = re.compile(r'^\(2H\)?\s+|^\(2H\)')
 MARKS = re.compile(r'(\*+)$')
 INNER_MARKS = re.compile(r'(?<=[\w)])(\*+)(?=\s*,)')      # after one of a list's values: "Reload 4*, Salvo 9"
 NONE = {'', '–', '—', '-'}
@@ -49,10 +49,13 @@ def footnotes(lines):
 
 def group_row(row):
     """A row naming the group of the rows below: its first cell empty, the text in the others; or
-    a band in capitals read into several cells, the first among them ("HERBS" "AND" "DRAUGHTS")."""
+    a band in capitals read into several cells, the first among them ("HERBS" "AND" "DRAUGHTS"),
+    or into the first cell alone, with nothing beside it."""
     filled = [c.strip() for c in row if c.strip()]
     if row and not row[0].strip() and filled:
         return ' '.join(filled)
+    if len(row) > 2 and filled == [row[0].strip()] and filled[0].isupper() and not any(ch.isdigit() for ch in filled[0]):
+        return filled[0]                              # the band set at the left: "BLACKPOWDER" and nothing beside it
     if (len(filled) > 1 and len(filled) < len(row) and all(c.isupper() for c in filled) and
             not any(ch.isdigit() for c in filled for ch in c)):
         return ' '.join(filled)
@@ -95,7 +98,8 @@ def item_rows(cols, rows, spec, notes, report, where):
             if group.isupper():                       # too short for fix_case ("TIN")
                 group = string.capwords(group.lower())
             continue
-        name = plain(row[0]).strip()
+        named = MARKS.search(row[0].strip())          # a mark on the name itself (plain() would drop it)
+        name = plain(MARKS.sub('', row[0].strip())).strip()
         if f'{group}/{MARKS.sub("", name).strip()}' in again:
             # The same item listed again under another group (a shot two guns take): one item.
             first = next((it for it in items if it['name'] == MARKS.sub('', name).strip()), None)
@@ -124,7 +128,7 @@ def item_rows(cols, rows, spec, notes, report, where):
             name = TWO_HANDED.sub('', name)
             f['two_handed'] = True
             report['left_out'].append('(2H)')        # printed before the name; kept as two_handed
-        m = MARKS.search(name)
+        m = named or MARKS.search(name)
         marks = [x for x in (m.group(1) if m else '', gmarks) if x]
         name = MARKS.sub('', name).strip()
         for header, key in fields.items():
