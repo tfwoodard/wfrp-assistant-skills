@@ -320,6 +320,29 @@ whichever the source uses.
 If something came from a house rule, say so instead, and say whether it is a
 library or a campaign house rule.
 
+### Exact wording
+
+The skills are for help at the table, where a ruling can turn on a rule's exact
+words. The goal: anyone in the group gets the library's wording at once,
+without asking for it in a particular way, and without the book's text being
+written out in Claude's reply (Claude doesn't reproduce book text in its own
+words, however the copy is owned).
+
+So whenever an answer depends on exact wording (the user asks for it, or the
+ruling turns on a phrase), Claude sends the wording as a file, by default and
+without asking first, and its reply paraphrases and cites:
+
+- With a library folder a script can read (§1, or a copy fetched into one),
+  `scripts/excerpt.py <ref> [<ref> …] --library <root> --campaign <slug> --out
+  <file>` writes each entry, or a part of one by heading path
+  (`rules/advancing-through-your-career#Skill Advances`), unchanged with its
+  citation, and prints only what it wrote. Several refs go in one file.
+- Without one, the entry's own `.md` file from the library is the file.
+
+Send it with the surface's file tool so it shows in the conversation. Where a
+surface has no way to send a file, give the file's link from the Drive
+connector. The same holds for GM-only entries, sent only to the GM.
+
 ## 6. Importing
 
 ### Who imports where
@@ -483,7 +506,12 @@ GM's material overrides the library unless they reorder it.
 2. Keep entries whose `source` is in `sources`, then apply `allowed`. Drop
    entries with `audience: gm` unless the user is the campaign's GM. Drop
    entries of another edition that are `updated-by` an entry.
-3. Entries that share a name follow their `relations` (§4), not source order.
+3. Entries that share a name follow their `relations` (§4), not source order:
+   an entry that adds to another is used with it, after it; a replacement is
+   used instead of what it replaces (when both are in play, the replaced entry
+   isn't offered); of a reprint and its original, cite the one whose source
+   comes first in `sources`; distinct entries are kept apart (say which one
+   you mean when the question could be either).
 4. If a filter removes everything the user asked for, say which rule removed it
    rather than quietly widening the search. If the source is in play but the
    relevant chapter isn't imported yet (§3 chapter status), say that instead of

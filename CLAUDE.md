@@ -15,9 +15,11 @@ Google Drive library imported from the group's own PDFs.
 - `wfrp-library.config.json` is gitignored and must stay that way. The
   library's Drive folder ID and local path go there or in the claude.ai
   Project's instructions, never in a tracked file.
-- `shared/library-layout.md` is the source of truth for the library format. After
-  editing anything in `shared/`, run `./scripts/sync-shared.sh` and commit the
-  synced `skills/*/references/` copies. `./scripts/sync-shared.sh --check` verifies them.
+- `shared/library-layout.md` is the source of truth for the library format, and
+  `shared/scripts/` for the library reader and excerpt tool the players' skills
+  use. Edit those, never a skill's copy. After editing anything in `shared/`,
+  run `./scripts/sync-shared.sh` and commit the synced `skills/*/references/`
+  and `skills/*/scripts/` copies. `./scripts/sync-shared.sh --check` verifies them.
 - Bump `version` in `.claude-plugin/plugin.json` when skills change.
 - Player and GM skills are shared as zips in the library's Drive (layout §7);
   the Librarian's skills (`wfrp-library-setup`, `wfrp-import`) stay in the repo.
