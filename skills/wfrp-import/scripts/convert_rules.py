@@ -184,6 +184,14 @@ def read_labelled(content, labels, fields, report, name, text_labels=()):
     return labelled_to_fields(content, labels, text_labels)
 
 
+def reading_place(line, gutters=None):
+    """Where a line comes in reading order: its page, its column, how far down. A box's line
+    has no page column of its own: with the page's `gutters`, its column is the one it starts in."""
+    col = sum(line['x0'] > g - 20 for g in gutters) if gutters is not None else \
+        {'left': 0, 'full': 0, 'middle': 1, 'right': 2}.get(line.get('column'), 0)
+    return [line['page'], col, line['top']]
+
+
 def split_at_headings(content, lines, spec, report, where):
     """An entry's "split_headings" ({"category", "kind"}): each of its top subheadings, with the
     blocks under it, becomes an entry of its own (a list of weapon qualities); the text before
@@ -196,7 +204,8 @@ def split_at_headings(content, lines, spec, report, where):
     or the entry's own. A box the plan sends "to" one of the new entries by name goes with it;
     any other box of the entry lands where its text does: after the last heading's, unless
     "sidebars": "entry" keeps them all with the entry (boxes about the whole section, set
-    after its last short heading)."""
+    after its last short heading), or "sidebars": "placed" gives each to the heading it follows
+    in reading order (a box beside each of a run of long sections)."""
     opt = spec['split_headings']
     dividers = {norm(k): v for k, v in opt.get('dividers', {}).items()}
     kind, seen = opt.get('kind'), set()
@@ -207,7 +216,8 @@ def split_at_headings(content, lines, spec, report, where):
     top = min(heads)
     keep, subs, after = [], [], 0
     sent = [b for b in content if b.get('_sub')]          # boxes the plan sends "to" a new entry
-    for b in [b for b in content if not b.get('_sub')]:
+    placed = [b for b in content if '_at' in b]           # boxes that go with the heading they follow
+    for b in [b for b in content if not b.get('_sub') and '_at' not in b]:
         if b['type'] == 'heading' and b['level'] == top and norm(b['text']) in dividers:
             kind = dividers[norm(b['text'])]          # "Armour Flaws": the headings after it are flaws
             seen.add(norm(b['text']))
@@ -221,6 +231,7 @@ def split_at_headings(content, lines, spec, report, where):
             page = lines[hit]['page'] if hit is not None else spec['page']
             after = hit + 1 if hit is not None else after
             subs.append({'name': b['text'], 'category': opt['category'], 'kind': kind,
+                         '_at': reading_place(lines[hit]) if hit is not None else [page, 0, 0],
                          'page': page, 'section': spec['name'], 'content': [],
                          'audience': opt.get('audience', spec.get('audience')),
                          'fields': dict({'kind': kind} if kind else {},
@@ -239,6 +250,12 @@ def split_at_headings(content, lines, spec, report, where):
     for d in set(dividers) - seen:
         report['errors'].append({'error': f'{where}: no divider heading {d!r}'})
     subs = [x for x in subs if x]
+    for b in placed:
+        box = {k: v for k, v in b.items() if k != '_at'}
+        home = next((x for x in reversed(subs) if x['_at'] <= b['_at']), None)
+        (home['content'] if home else keep).append(box)
+    for x in subs:
+        del x['_at']
     for b in sent:
         home = next((x for x in subs if norm(x['name']) == norm(b['_sub'])), None)
         if home is None:
@@ -1533,8 +1550,11 @@ def convert(layout, plan, taken=(), library=None):
                     report['left_out'].append(title)      # the entry's own name, as its heading
                 content += inner
             else:
+                at = {}
+                if (spec.get('split_headings') or {}).get('sidebars') == 'placed' and bl:
+                    at = {'_at': reading_place(bl[0], (layout.get('gutters') or {}).get(str(bl[0]['page']), []))}     # for split_at_headings: which heading it follows
                 content.append(dict({'type': 'sidebar', 'title': title, 'content': inner},
-                                    **({'_sub': e['box_sub'][bid]} if bid in e.get('box_sub', {}) else {})))
+                                    **({'_sub': e['box_sub'][bid]} if bid in e.get('box_sub', {}) else at)))
         if spec.get('headings_as_rows'):
             content = headings_to_rows(content, spec['headings_as_rows'], report, name, spec.get('row_bands', ()))
         split = []
