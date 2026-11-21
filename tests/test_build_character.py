@@ -110,6 +110,9 @@ def library(root, house_rules=()):
          'fields': {'effects': [{'on': 'xp', 'add': 40, 'at': 0, 'applies': {'how': ['rolled']}},
                                 {'on': 'xp', 'add': 20, 'at': 0, 'applies': {'how': ['one-of-three']}}]}},
         {'slug': 'characteristics', 'name': 'Numbers', 'content': [para('Keep the dice, or move them about.')]},
+        {'slug': 'species-skills-and-talents', 'name': 'What a Folk Teaches', 'content': [para('One well, one a little.')]},
+        {'slug': 'career-skills-and-talents', 'name': 'What a Calling Teaches', 'content': [para('Share out ten.')]},
+        {'slug': 'advance-characteristics', 'name': 'Calling Numbers', 'content': [para('Share out three.')]},
         {'slug': 'advancing-through-your-career', 'name': 'Advancing', 'content': [
             table('Characteristic and Skill Improvement XP Costs', ['Advances', 'Characteristics', 'Skills'],
                   [['0 to 5', '20', '8'], ['6 to 10', '35', '12']]),
@@ -468,6 +471,60 @@ class CreationXP(Case):
         self.assertIsNone(m['xp']['at_creation']['xp'])
         self.assertEqual(m['xp']['at_creation']['steps'][1]['xp'], 0)  # a chosen calling gives nothing
         self.assertTrue(any("doesn't say how the species was settled" in n for n in m['notes']))
+
+
+class CreationGrants(Case):
+    GRANTS = {
+        'species-skills-and-talents': [
+            {'id': 'skills', 'how': 'species', 'kind': 'skill', 'from': 'species', 'picks': [{'count': 1, 'advances': 5}, {'count': 1, 'advances': 3}], 'at': 0},
+            {'id': 'talents', 'how': 'species', 'kind': 'talent', 'from': 'species', 'at': 0}],
+        'career-skills-and-talents': [
+            {'id': 'skills', 'how': 'career', 'kind': 'skill', 'from': 'first-career-level', 'total': 10, 'most': 6, 'at': 0},
+            {'id': 'talent', 'how': 'career', 'kind': 'talent', 'from': 'first-career-level', 'count': 1, 'at': 0}],
+        'advance-characteristics': [
+            {'id': 'numbers', 'how': 'career', 'kind': 'characteristic', 'from': 'first-career-level', 'total': 3, 'at': 0}]}
+
+    def grant(self, **only):
+        for slug, gs in self.GRANTS.items():
+            if only and slug not in only: continue
+            p = os.path.join(self.root, 'library-data', 'rules', slug + '.json')
+            with open(p) as f: e = json.load(f)
+            e['fields'] = {'grants': gs}
+            with open(p, 'w') as f: json.dump(e, f)
+
+    def made(self, *extra):
+        r = record()
+        r['advances'] += [{'skill': 'skills/rowing', 'count': 6, 'how': 'career'}, {'skill': 'skills/tending', 'specialisation': 'Nets', 'count': 4, 'how': 'career'},
+                          {'characteristic': 'I', 'count': 2, 'how': 'career'}, {'characteristic': 'T', 'count': 1, 'how': 'career'}] + list(extra)
+        return r
+
+    def test_without_grants_creation_is_not_checked_and_says_so(self):
+        m = self.build(self.made())
+        self.assertEqual(m['creation'], [])
+        self.assertTrue(any('carry no grants yet' in n for n in m['notes']))
+
+    def test_what_creation_gave_is_checked_against_the_grants(self):
+        self.grant()
+        m = self.build(self.made())
+        self.assertEqual(self.ids(m), [])
+        self.assertEqual([(c['id'], c['given'], c['left']) for c in m['creation']],
+                         [('skills', {5: 1, 3: 1}, {}), ('talents', 2, None), ('skills', 10, 0), ('talent', 0, 1), ('numbers', 3, 0)])
+
+    def test_too_much_or_from_the_wrong_list_is_a_difference(self):
+        self.grant()
+        m = self.build(self.made({'skill': 'skills/signals', 'specialisation': 'Flag', 'count': 1, 'how': 'species'},
+                                 {'characteristic': 'WP', 'count': 1, 'how': 'career'},
+                                 {'talent': 'talents/steady', 'how': 'career'}, {'talent': 'talents/far-sight', 'how': 'career'}))
+        self.assertEqual(self.ids(m), ['creation:species-skills-and-talents/skills:signals-flag', 'creation:species-skills-and-talents/skills',
+                                       'creation:career-skills-and-talents/talent', 'creation:advance-characteristics/numbers:wp',
+                                       'creation:advance-characteristics/numbers'])
+        r = self.made()
+        r['advances'][-4]['count'] = 7                       # more than 6 in one skill, 11 in all
+        self.assertIn('at most 6 in one', ' '.join(d['text'] for d in self.build(r)['differences']))
+
+    def test_a_line_no_grant_covers_is_a_difference(self):
+        self.grant(**{'species-skills-and-talents': 1})
+        self.assertIn('creation:career-skill', self.ids(self.build(self.made())))
 
 
 class SpellsAndTrappings(Case):

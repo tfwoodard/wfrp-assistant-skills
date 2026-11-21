@@ -9,6 +9,8 @@ it replaces (the converters' --formulas-from); if one is ever lost it is simply 
     set_formulas.py ENTRY.json --effects '[{"on": "WP", "add": 5, "at": 1}]'
     set_formulas.py ENTRY.json --checks '[{"id": "one-lore", "read": "One lore unless ...", "at": 0}]'
     set_formulas.py TABLE.json --row "Salt Dreams" --effects '[{"on": "WP", "add": 10}]'
+    set_formulas.py RULE.json --grants '[{"id": "skills", "how": "species", "kind": "skill", "from": "species",
+                                          "picks": [{"count": 3, "advances": 5}], "at": 1}]'
     set_formulas.py ENTRY.json --effects '[]'           # an empty list takes that kind off
     set_formulas.py ENTRY.json --show
 
@@ -25,12 +27,12 @@ from convert_rules import formula_problem, norm  # noqa: E402
 from render_entry import render  # noqa: E402
 
 
-def set_formulas(entry, effects=None, checks=None, row=None):
+def set_formulas(entry, effects=None, checks=None, row=None, grants=None):
     """Change `entry` in place; returns what changed as text. Raises ValueError for a formula that
     doesn't fit the entry."""
     f = entry.setdefault('fields', {})
     said = []
-    for kind, items in (('effects', effects), ('checks', checks)):
+    for kind, items in (('effects', effects), ('checks', checks), ('grants', grants)):
         if items is None:
             continue
         if row is None:
@@ -39,6 +41,8 @@ def set_formulas(entry, effects=None, checks=None, row=None):
             if items: f[kind] = items
             else: f.pop(kind, None)
             said.append(f'{kind}: {len(items)}' if items else f'{kind}: none')
+        elif kind == 'grants':
+            raise ValueError('a table row takes "effects" and "checks"')
         else:
             rows = {k: dict(v) for k, v in f.get('rows', {}).items()}
             printed = [str(c) for b in entry.get('content', []) if b.get('type') == 'table'
@@ -60,21 +64,23 @@ def main():
     ap.add_argument('entry')
     ap.add_argument('--effects', help='JSON list')
     ap.add_argument('--checks', help='JSON list')
+    ap.add_argument('--grants', help='JSON list: what a creation rule gives (ADR 0007)')
     ap.add_argument('--row', help="the table row the formulas are for, by a cell's whole text")
     ap.add_argument('--show', action='store_true', help="print the entry's formulas and its numbered blocks")
     a = ap.parse_args()
     with open(a.entry, encoding='utf-8') as fh:
         entry = json.load(fh)
     if a.show:
-        print(json.dumps({k: v for k, v in entry.get('fields', {}).items() if k in ('effects', 'checks', 'rows')}, ensure_ascii=False, indent=1))
+        print(json.dumps({k: v for k, v in entry.get('fields', {}).items() if k in ('effects', 'checks', 'grants', 'rows')}, ensure_ascii=False, indent=1))
         for i, b in enumerate(entry.get('content', [])):
             print(f'{i}: {b.get("type")} {(b.get("text") or b.get("title") or "")[:70]}')
         return 0
-    if a.effects is None and a.checks is None:
-        ap.error('give --effects, --checks or --show')
+    if a.effects is None and a.checks is None and a.grants is None:
+        ap.error('give --effects, --checks, --grants or --show')
     try:
         said = set_formulas(entry, json.loads(a.effects) if a.effects is not None else None,
-                            json.loads(a.checks) if a.checks is not None else None, a.row)
+                            json.loads(a.checks) if a.checks is not None else None, a.row,
+                            json.loads(a.grants) if a.grants is not None else None)
     except ValueError as x:
         print(f'{a.entry}: {x}', file=sys.stderr)
         return 1

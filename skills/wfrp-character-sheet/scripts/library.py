@@ -17,7 +17,7 @@ only from the campaign's sources in play (library-layout.md §8). An entry that 
 play is another *version-of* is chosen between by the campaign's source order. Players never see `gm/` data or entries marked
 `audience: gm`; pass gm=True for the GM.
 """
-import html as _html
+import html as _html, unicodedata
 import json
 import os
 import re
@@ -25,7 +25,10 @@ import sys
 
 
 def norm(s):
+    """A name as compared: quotes straightened, accents dropped ("Elthárin" is "eltharin"), spaces
+    collapsed, lower case."""
     s = (s or "").replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
+    s = "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
     return re.sub(r"\s+", " ", s).strip().lower()
 
 

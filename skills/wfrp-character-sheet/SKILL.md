@@ -167,6 +167,8 @@ that may be taken once whatever its specialisation, a prerequisite), together
 with every entry the sheet lists under "Rules that add to these talents" (a
 later book's change to the talent decides, not the talent's own text), and
 that each talent that changes a number has its effect, on its entry or in the
-record (the sheet's "What rules add" lists what was applied). Do the same before saying a
+record (the sheet's "What rules add" lists what was applied). What the species and
+the first career gave at creation is checked against the grants on the creation
+rules; where those carry none yet, the sheet says so, and you read the rules. Do the same before saying a
 purchase is or isn't allowed. Change nothing until the player or GM
 agrees.
