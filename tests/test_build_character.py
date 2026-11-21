@@ -97,6 +97,8 @@ def library(root, house_rules=()):
          'fields': {'kind': 'melee', 'group': 'Basic', 'enc': '2', 'reach': 'Long', 'damage': '+SB+3', 'qualities': []}},
         {'slug': 'oilskin', 'name': 'Oilskin', 'fields': {'kind': 'armour', 'enc': '1', 'locations': 'Arms, Body', 'armour_points': '1'}},
         {'slug': 'cap', 'name': 'Cap', 'fields': {'kind': 'armour', 'enc': '1', 'locations': 'Head', 'armour_points': '1'}},
+        {'slug': 'lamp', 'name': 'Lamp', 'fields': {'enc': '1'}},
+        {'slug': 'satchel', 'name': 'Satchel', 'fields': {'enc': '1'}},
         {'slug': 'satchel', 'name': 'Satchel', 'fields': {'kind': 'container', 'enc': '1', 'carries': '2'}},
         {'slug': 'lamp', 'name': 'Lamp', 'fields': {'kind': 'tool', 'enc': '1'}},
         {'slug': 'anchor', 'name': 'Anchor', 'fields': {'kind': 'item', 'enc': '6'}}])
@@ -116,6 +118,12 @@ def library(root, house_rules=()):
         {'slug': 'species-skills-and-talents', 'name': 'What a Folk Teaches', 'content': [para('One well, one a little.')]},
         {'slug': 'career-skills-and-talents', 'name': 'What a Calling Teaches', 'content': [para('Share out ten.')]},
         {'slug': 'advance-characteristics', 'name': 'Calling Numbers', 'content': [para('Share out three.')]},
+        {'slug': 'class-trappings', 'name': 'What a Class Carries', 'content': [
+            para('Take your class list.'),
+            para('**Watchers**: Coat, Satchel containing 1d10 Wicks, a Flint *or* Steel, Oilcan **Rivermen**: Pole')]},
+        {'slug': 'career-trappings', 'name': 'Calling Gear', 'content': [para('Take your calling list.'), {'type': 'sidebar', 'title': '', 'content': [
+            table('Starting Wealth', ['Status Tier', 'Starting Wealth'],
+                  [['Brass', '2d10 brass pennies per Status Level'], ['Silver', '1 silver shilling per Status Level']])]}]},
         {'slug': 'keepers-of-the-isles', 'name': 'Keepers of the Isles', 'content': [
             {'type': 'heading', 'level': 2, 'text': 'North Isle'}, para('**Skills**: Rowing, Watch **Talents**: Quick, Far Sight')]},
         {'slug': 'advancing-through-your-career', 'name': 'Advancing', 'content': [

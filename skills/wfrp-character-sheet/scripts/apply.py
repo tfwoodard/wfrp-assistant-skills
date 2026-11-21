@@ -14,6 +14,12 @@ Commands:
                                               the starting characteristics, all ten, as rolled or
                                               allocated (before anything a talent adds)
   points --fate N --resilience N              the extra points the species gives to share out
+  item "NAME" [--qty N] [--id ID] [--in ID] [--worn] [--stowed] [--enc N] [--notes TEXT]
+                                              a trapping: the library's entry when one has that name,
+                                              otherwise the name (give --enc); --id names a container,
+                                              --in puts it in one
+  money [--gc N] [--ss N] [--d N]             the purse: the coins given are set, the rest kept
+  finish                                      ends creation: says what creation still had to give
   buy --characteristic CODE [--count N]       advances in a characteristic (WS, Int ...)
   buy --skill "NAME" [--count N]              advances in a skill, named as the books print it:
                                               "Charm", "Lore (Reikland)"
@@ -131,7 +137,7 @@ def start(lib, a):
            "species": {"ref": ref["species"], **({"origin": find_origin(lib, a.origin)} if a.origin else {}), "how": a.species_how},
            "careers": [{"ref": ref["career"], "level": 1, "how": a.career_how}],
            "characteristics": {"initial": {}}, "extra_points": {}, "advances": [], "spells": [], "trappings": [],
-           "xp": {"total": 0}, "state": {}, "changelog": []}
+           "xp": {"total": 0}, "state": {}, "changelog": [], "creating": True}
     return new, [f"Started {a.name}: {lib.entry(ref['species'])['name']}" +
                  (f" ({new['species']['origin'].split('#')[-1]})" if a.origin else "") + f", {lib.entry(ref['career'])['name']} 1"]
 
@@ -166,6 +172,47 @@ def settle_creation_xp(new, lib, said, started=False):
         said.append("XP from creation: not worked out yet (" + "; ".join(
             f"{s['step']} {s['how'] or 'not said'}" for s in m["xp"]["at_creation"]["steps"] if s["xp"] is None) + ")")
     said += [f"Differs from the rules: {d['text']} `{d['id']}`" for d in m["differences"]]
+
+
+def item(record, lib, a):
+    new = copy.deepcopy(record)
+    names = {}
+    for _, r in lib.index("trappings"):
+        if bc.norm(r["name"]) == bc.norm(a.name): names.setdefault(lib.current(f"trappings/{r['slug']}"), r["name"])
+    line = {"ref": next(iter(names))} if len(names) == 1 else {"name": a.name}
+    for k in ("qty", "id", "enc", "notes"):
+        if getattr(a, k) is not None: line[k] = getattr(a, k)
+    for k in ("worn", "stowed"):
+        if getattr(a, k): line[k] = True
+    if a.in_ and not any(t.get("id") == a.in_ for t in new.get("trappings", [])):
+        sys.exit(f"no trapping has the id '{a.in_}': add the container with --id first")
+    if a.in_: line["in"] = a.in_
+    new.setdefault("trappings", []).append(line)
+    said = [f"Trapping: {a.name}" + (f" x{a.qty}" if a.qty else "") + (f" (`{line['ref']}`)" if "ref" in line else "")]
+    if "ref" not in line:
+        said.append(f"Note: no one trapping in play is named '{a.name}'" + (f" ({len(names)} are)" if names else "") +
+                    ("; its Encumbrance is " + (str(a.enc) if a.enc is not None else "not given: add --enc")))
+    return new, said
+
+
+def finish(record, lib):
+    new = copy.deepcopy(record)
+    b = bc.Builder(copy.deepcopy(record), lib)
+    m = b.build()
+    said = ["Creation finished"]
+    for g in m.get("creation", []):
+        left = g["left"] if not isinstance(g["left"], dict) else ", ".join(f"{n} at {v}" for v, n in g["left"].items())
+        if left: said.append(f"Left ungiven ({g['rule'].split('/')[-1]}, {g['id']}): {left}")
+        if g.get("to_take"): said.append(f"Not taken from the species: {', '.join(g['to_take'])}")
+    st = b.starting() or {}
+    for k in ("class", "career"):
+        for it in ((st.get(k) or {}).get("items") or []):
+            for x in [it] + it.get("contains", []):
+                if not x["have"]: said.append(f"Not among the trappings: {x['text']} ({k})")
+    if not any((new.get("money") or {}).values()): said.append("The purse is empty: starting money not recorded")
+    said += [f"Differs from the rules: {d['text']} `{d['id']}`" for d in m["differences"]]
+    new.pop("creating", None)
+    return new, said
 
 
 def buy(record, lib, a):
@@ -250,6 +297,13 @@ def main():
     ini = sub.add_parser("initial")
     ini.add_argument("values", nargs="+")
     ini.add_argument("--how", required=True, choices=("rolled", "rearranged", "rerolled", "allocated"))
+    it = sub.add_parser("item")
+    it.add_argument("name"); it.add_argument("--qty", type=int); it.add_argument("--id"); it.add_argument("--in", dest="in_")
+    it.add_argument("--enc", type=int); it.add_argument("--notes")
+    it.add_argument("--worn", action="store_true"); it.add_argument("--stowed", action="store_true")
+    mo = sub.add_parser("money")
+    for k in ("--gc", "--ss", "--d"): mo.add_argument(k, type=int)
+    sub.add_parser("finish")
     pt = sub.add_parser("points")
     pt.add_argument("--fate", type=int, required=True); pt.add_argument("--resilience", type=int, required=True)
     for p in (b, sub.add_parser("log")):
@@ -275,6 +329,16 @@ def main():
             said = [f"Extra points: Fate {a.fate}, Resilience {a.resilience}"]
         new.setdefault("changelog", []).append({"date": date, "text": said[0]})
         settle_creation_xp(new, lib, said, a.cmd == "start")
+    elif a.cmd in ("item", "money", "finish"):
+        if a.cmd == "item": new, said = item(record, lib, a)
+        elif a.cmd == "money":
+            new = copy.deepcopy(record)
+            purse = new.setdefault("money", {})
+            for k in ("gc", "ss", "d"):
+                if getattr(a, k) is not None: purse[k] = getattr(a, k)
+            said = ["Money: " + ", ".join(f"{purse.get(k, 0)} {k}" for k in ("gc", "ss", "d"))]
+        else: new, said = finish(record, lib)
+        new.setdefault("changelog", []).append({"date": date, "text": said[0]})
     elif a.cmd == "log":
         new = copy.deepcopy(record)
         new.setdefault("changelog", []).append({"date": a.date or datetime.date.today().isoformat(),
