@@ -50,6 +50,7 @@ SETTINGS = {"talent_cost": ("rising", "flat"),                       # 100, 200,
 # the numbers a rule's effect can add to (ADR 0005)
 TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption"}
 ANY = re.compile(r"^any\b", re.I)
+ONE = re.compile(r"^any one\b|\s+or\s+|\s*/\s*", re.I)     # a listed name that is one choice: "Lore (Any One)", "Art (A or B)"
 ROLL = re.compile(r"^\d+(\s*[–-]\s*\d+)?$")          # a table's dice column: "36–40"
 
 
@@ -199,10 +200,67 @@ class Builder:
             talents.append(opts[0] if len(opts) == 1 else {"choose_one": opts})
         return {"skills": split_list(m.group(1)), "talents": talents}
 
+    def skill_slots(self):
+        """The skills each career level reached lists, one slot per listed name:
+        [{career, level, listed, kind, choice, assumed}]. A name is *exact* ("Charm", "Lore (Magic)"),
+        *open* ("Lore (Any)": every specialisation), or *one* choice ("Lore (Any One)", "Art
+        (Calligraphy or Engraving)"): the one specialisation the character took for it. The record
+        says which on the career (`choices`: {"Lore (Any One)": "Empire"}); without that it is taken
+        to be the most advanced skill the name covers that no exact name or earlier choice of the
+        career already accounts for, and the sheet says it was assumed."""
+        if hasattr(self, "_slots"): return self._slots
+        have = {}
+        for a in self.ledger:
+            if a.get("skill"):
+                k = (self.lib.current(a["skill"]), a.get("specialisation"))
+                have[k] = have.get(k, 0) + int(a.get("count", 0))
+        choices = {self.lib.current(c.get("ref") or ""): c.get("choices") or {} for c in self.rec.get("careers", [])}
+        slots, seen = [], set()
+        for cref, n, f in self.lists()["levels"]:
+            for listed in f.get("skills", []):
+                if (cref, listed) in seen: continue
+                seen.add((cref, listed))
+                lref, lspec = self.lib.named("skills", listed)
+                kind = "exact" if not lspec else "one" if ONE.search(lspec) else "open" if ANY.match(lspec) else "exact"
+                slots.append({"career": cref, "level": n, "listed": listed, "kind": kind, "choice": None, "assumed": False,
+                              "ref": self.lib.current(lref) if lref else None})
+        used = set()
+        for sl in slots:
+            if sl["kind"] != "one": continue
+            said = choices.get(sl["career"], {}).get(sl["listed"])
+            if said:
+                if not self.offered("skills", sl["listed"], sl["ref"], said):
+                    self.differ(f"career-choice:{slug(sl['listed'])}", f"The record takes {said} for the career's {sl['listed']}, "
+                                f"which that name doesn't cover.", sl["career"])
+                    continue
+                sl["choice"] = (sl["ref"], next((sp for (r, sp) in have if r == sl["ref"] and sp and norm(sp) == norm(said)), said))
+            else:
+                exact = {(x["ref"], norm(self.lib.named("skills", x["listed"])[1] or "")) for x in slots
+                         if x["career"] == sl["career"] and x["kind"] == "exact"}
+                cand = sorted(((-v, sp) for (r, sp), v in have.items() if r == sl["ref"] and sp and
+                               self.offered("skills", sl["listed"], r, sp) and (r, norm(sp)) not in exact and (sl["career"], r, sp) not in used))
+                if cand:
+                    sl["choice"], sl["assumed"] = (sl["ref"], cand[0][1]), True
+            if sl["choice"]: used.add((sl["career"],) + sl["choice"])
+        assumed = [f"{x['listed']} = {self.lib.entry(x['ref'])['name']} ({x['choice'][1]})" for x in slots if x["assumed"]]
+        if assumed:
+            self.note("Taken as the career's choices, from the advances in the record: " + "; ".join(assumed) +
+                      ". Write them on the career in the record (`choices`) to settle them.")
+        self._slots = slots
+        return slots
+
+    def slot_covers(self, sl, ref, spec):
+        if sl["kind"] == "one":
+            return bool(sl["choice"]) and sl["choice"][0] == ref and spec is not None and norm(sl["choice"][1]) == norm(spec)
+        return self.offered("skills", sl["listed"], ref, spec)
+
     def in_career(self, category, ref, spec, talents_level=None):
         """The career level that lists it, for skills from any level reached; talents only from the
-        current level when talents_level is given."""
-        key = "skills" if category == "skills" else "talents"
+        current level when talents_level is given. A skill listed as one choice is in the career
+        only as the specialisation chosen for it (skill_slots)."""
+        if category == "skills":
+            return next(((sl["career"], sl["level"]) for sl in self.skill_slots() if self.slot_covers(sl, ref, spec)), None)
+        key = "talents"
         for cref, n, f in self.lists()["levels"]:
             if talents_level is not None and (cref, n) != talents_level: continue
             if any(self.offered(category, x, ref, spec) for x in f.get(key, [])):
@@ -775,9 +833,9 @@ class Builder:
                 listed_skills = [x for lv in upto for x in lv.get("skills", [])]
                 short = [x for x in dict.fromkeys(chars) if m["characteristics"].get(x, {}).get("advances", 0) < want]
                 # each skill the character has counts once, under whichever listed name covers it
+                mine = [sl for sl in self.skill_slots() if sl["career"] == cref and sl["level"] <= n]
                 done = sum(1 for (ref, name), v in skills.items() if v >= want and any(
-                    self.offered("skills", listed, ref, (re.search(r"\((.+)\)$", name) or [None, None])[1])
-                    for listed in dict.fromkeys(listed_skills)))
+                    self.slot_covers(sl, ref, (re.search(r"\((.+)\)$", name) or [None, None])[1]) for sl in mine))
                 tal = any(self.in_career("talents", tl["ref"], (re.search(r"\((.+)\)$", tl["name"]) or [None, None])[1], (cref, n))
                           for tl in m["talents"])
                 why = []
