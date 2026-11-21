@@ -10,8 +10,10 @@ Resilience and Resolve, Corruption, Encumbrance, XP), the career, a "To do" box 
 still to complete, differences from the rules, what the record says is to settle, what the build
 couldn't work out), skills and talents; (2) weapons, armour by location, trappings in their
 containers, money, spells each with a one-line summary of what it does (the entry's `summary`),
-ambitions, psychology and mutations; (3) a page to mark in play: Wounds, Fortune and Resolve as
-boxes, and every condition in play with boxes to count it. Accepted differences, house rules and
+ambitions, psychology and mutations (these follow on from the first page, so no page is left
+nearly empty); (3) a page of its own to mark in play: Wounds, Fortune, Resolve and Corruption as
+boxes, Advantage (a tally at +10 each, or one box where a house rule sets `"advantage": "on-off"`),
+and every condition in play with boxes to count it. Accepted differences, house rules and
 what rules add are on the markdown sheet (build_character.py --md), not the printed one.
 
 The PDF is printed with Playwright when it is installed, otherwise with a local Chrome, Edge or
@@ -201,7 +203,7 @@ def page_two(m):
                                                        for x in st[key]) + "</ul>")
     if side:
         out.append(f'<div class="cols"><div>{"".join(side[:len(side) // 2 + len(side) % 2])}</div><div>{"".join(side[len(side) // 2 + len(side) % 2:])}</div></div>')
-    return '<div class="page new">' + "".join(out) + "</div>"
+    return '<div class="page">' + "".join(out) + "</div>"
 
 
 def page_play(m, conditions=()):
@@ -214,8 +216,17 @@ def page_play(m, conditions=()):
     def row(label, n, filled, note=""):
         return f'<div class="trk"><span class="lab">{e(label)} <span class="cite">{e(note)}</span></span>{boxes(n, filled)}</div>'
     out.append("<h2>Wounds</h2>" + row(f"Wounds ({w['max']})", w["max"], w["taken"]))
-    out.append("<h2>Fortune and Resolve</h2>" + row(f"Fortune ({f['fortune']})", f["fortune"], st.get("fortune_spent", 0)) +
-               row(f"Resolve ({r['resolve']})", r["resolve"], st.get("resolve_spent", 0)))
+    co = m["corruption"]
+    out.append("<h2>Fortune, Resolve and Corruption</h2>" + row(f"Fortune ({f['fortune']})", f["fortune"], st.get("fortune_spent", 0)) +
+               row(f"Resolve ({r['resolve']})", r["resolve"], st.get("resolve_spent", 0)) +
+               row(f"Corruption ({co['threshold']})", max(co["threshold"], co["points"]), co["points"]))
+    adv = m.get("advantage") or {"style": "count"}
+    if adv["style"] == "on-off":
+        out.append("<h2>Advantage</h2>" + f'<div class="trk"><span class="lab">Advantage</span>{boxes(1)}'
+                   f'<span class="cite">&nbsp;{e(adv.get("house_rule") or "had or not")}</span></div>')
+    else:
+        out.append("<h2>Advantage</h2>" + f'<div class="trk"><span class="lab">Advantage <span class="cite">+10 each</span></span>{boxes(10)}'
+                   f'<span class="cite">&nbsp;{e(adv.get("cite") or "")}</span></div>')
     have = {}
     for x in st.get("conditions") or []:
         n = x if isinstance(x, str) else x.get("name")

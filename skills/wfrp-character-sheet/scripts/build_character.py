@@ -46,7 +46,9 @@ RULE = {"non-career": "rules/advancing-through-your-career#Non-career Advances",
 HOW = ("species", "career", "xp", "free", "imported")
 # What a campaign's house rule may set (campaign.json house_rules[].set, layout §8); the first is the books' way.
 SETTINGS = {"talent_cost": ("rising", "flat"),                       # 100, 200, 300 ... or 100 each time
-            "talents_from": ("current-level", "levels-reached")}     # which career levels sell their talents
+            "talents_from": ("current-level", "levels-reached"),     # which career levels sell their talents
+            "advantage": ("count", "on-off")}                        # counted up and down, or had or not
+ADVANTAGE = "rules/advantage"
 # the numbers a rule's effect can add to (ADR 0005)
 TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption", "spell_cost", "xp"}
 SCALED = {"spell_cost"}            # targets an effect multiplies ("multiply": 0.5) rather than adds to
@@ -339,6 +341,12 @@ class Builder:
         m["career"]["to_complete"] = self.gaps        # levels left behind unfinished, whether or not that is accepted
         for k in SETTINGS: self.setting(k)
         m["house_rules"] = self.set_by
+        try:
+            adv_cite = self.cite(self.lib.current(ADVANTAGE))
+        except RefError:
+            adv_cite = None
+        m["advantage"] = {"style": self.setting("advantage"), "cite": adv_cite or None,
+                          **({"house_rule": self.set_by["advantage"]["text"]} if "advantage" in self.set_by else {})}
         m["differences"], m["accepted"] = self.settle()
         m["notes"] = self.notes
         m["incomplete"] = list(rec.get("incomplete", []))
