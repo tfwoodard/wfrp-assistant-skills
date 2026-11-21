@@ -333,8 +333,8 @@ class SameNameTest(ConvertSpellsTest):
     def test_any_difference_is_a_replacement(self):
         lib, index = self.library(change='Your lamp glows without oil, for an hour.')
         r, report = self.again('--taken', index, '--library-data', lib)      # a bare path: the spells index
-        self.assertEqual(report['same_name'][0]['relation'], 'replaces')
-        self.assertEqual(self.load('spells--glow-test.json')['relations'], [{'role': 'replaces', 'to': 'spells/glow'}])
+        self.assertEqual(report['same_name'][0]['relation'], 'version-of')
+        self.assertEqual(self.load('spells--glow-test.json')['relations'], [{'role': 'version-of', 'to': 'spells/glow'}])
 
     def test_another_casting_number_is_a_replacement(self):
         lib, index = self.library()
@@ -345,8 +345,8 @@ class SameNameTest(ConvertSpellsTest):
         with open(path, 'w') as f:
             json.dump(glow, f)
         r, report = self.again('--taken', f'spells={index}', '--library-data', lib)
-        self.assertEqual(report['same_name'][0]['relation'], 'replaces')
-        self.assertEqual(self.load('spells--glow-test.json')['relations'], [{'role': 'replaces', 'to': 'spells/glow'}])
+        self.assertEqual(report['same_name'][0]['relation'], 'version-of')
+        self.assertEqual(self.load('spells--glow-test.json')['relations'], [{'role': 'version-of', 'to': 'spells/glow'}])
 
     def test_the_plans_relation_stands(self):
         lib, index = self.library()
@@ -365,11 +365,20 @@ class SameNameTest(ConvertSpellsTest):
         errors = [e['error'] for e in report['errors']]
         self.assertTrue(any("'Glow' is distinct from spells/glow yet has its name. Rename it" in e for e in errors), errors)
 
-    def test_with_nothing_to_go_by_it_is_an_error(self):
+    def test_with_nothing_to_compare_it_is_taken_to_be_a_version_and_says_so(self):
         lib, index = self.library()
         r, report = self.again('--taken', f'spells={index}')
+        self.assertEqual(r.returncode, 0, report['errors'])
+        self.assertEqual(self.load('spells--glow-test.json')['relations'], [{'role': 'version-of', 'to': 'spells/glow'}])
+        self.assertIn('assumed', report['same_name'][0]['relation'])
+
+    def test_a_plan_still_writing_the_marks_old_name_is_refused(self):
+        lib, index = self.library()
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(dict(PLAN, relations={'spells/glow-test': [{'role': 'replaces', 'to': 'spells/glow'}]}), f)
+        r, report = self.again('--taken', f'spells={index}')
         self.assertEqual(r.returncode, 1)
-        self.assertTrue(any('spells/glow' in e['error'] and '--library-data' in e['error'] for e in report['errors']))
+        self.assertTrue(any('now written "version-of"' in e['error'] for e in report['errors']), report['errors'])
 
 
 if __name__ == '__main__':

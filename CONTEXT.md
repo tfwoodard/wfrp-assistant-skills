@@ -38,7 +38,7 @@ How the import reads one chapter: which headings start entries, which category e
 _Avoid_: Config, mapping
 
 **Version**:
-One of two or more entries for the same thing in different sources (a weapon as the Rulebook prints it and as a supplement revises it), joined by a *replaces* mark. A campaign uses the version from the source that comes first in its sources.
+One of two or more entries for the same thing in different sources (a weapon as the Rulebook prints it and as a supplement revises it), joined by a *version-of* mark. A campaign uses the version from the source that comes first in its sources.
 _Avoid_: Override, duplicate
 
 **Entry**:
@@ -46,7 +46,7 @@ One imported game item, such as a career, talent, spell, creature, rule, or tabl
 _Avoid_: Record, item
 
 **Relation**:
-How an entry relates to an entry of the same name elsewhere: it *adds to* it, *replaces* it, is a *reprint of* it, or is *distinct from* it. An older edition's entry can be *updated by* a newer edition's. An entry can also *count as* another for rules purposes.
+How an entry relates to an entry of the same name elsewhere: it *adds to* it, is a *version of* it, is a *reprint of* it, or is *distinct from* it. An older edition's entry can be *updated by* a newer edition's. An entry can also *count as* another for rules purposes.
 _Avoid_: Override (as the general term), duplicate
 
 **Audience**:

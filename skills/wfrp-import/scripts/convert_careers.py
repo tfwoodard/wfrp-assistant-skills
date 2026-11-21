@@ -325,6 +325,9 @@ def convert(layout, plan, taken=()):
                  'section': name, 'page': page, 'level': 1, 'fields': fields, 'content': content}
         rel = plan.get('relations', {}).get(slug)
         if rel:
+            if any(r.get('role') == 'replaces' for r in rel):
+                report['errors'].append({'career': name, 'error': 'the plan relates it with "replaces": the mark is '
+                                                                  'now written "version-of" (layout §4)'})
             entry['relations'] = rel
         entries.append(entry)
         rec = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],

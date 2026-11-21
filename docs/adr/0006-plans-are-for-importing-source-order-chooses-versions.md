@@ -56,3 +56,14 @@ kept, and a campaign says which books it uses and which come first.
 - Still open: whether the import should treat a shared name as a version by
   default, without a line in the plan, leaving plans to state only the
   exceptions. That would take most of the remaining relations out of plans.
+
+## Later, the same day: both open points settled
+
+- **The mark is renamed `version-of`.** Every entry, index and plan that wrote
+  `replaces` is rewritten once (`migrate_version_of.py`); readers accept the old
+  name too, so a library part-way through keeps working. A plan that still
+  writes `replaces` is refused.
+- **A shared name is a version by default.** An entry that takes another
+  source's entry's exact name in its category is written `version-of` it by
+  the converter (or `reprint-of`, when the texts are compared and identical),
+  with no line in the plan. Plans state only the exceptions.

@@ -42,8 +42,9 @@ Read `references/library-layout.md` for where data lives and how to cite it.
      `scripts/excerpt.py` with the refs `find_entry.py` gave. Don't quote the
      rule in the reply alongside the file.
    - If two sources in play have an entry of that name, follow the entries'
-     relations (layout §8): use an entry with the one it adds to, a replacement
-     instead of what it replaces, and say which you mean when they're distinct.
+     relations (layout §8): use an entry with the one it adds to; of versions
+     of one thing, the one from the source the campaign lists first (say the
+     other exists); and say which you mean when they're distinct.
    - For tests, give the difficulty modifier and what SL means for this one.
    - Mention any house rule that changes the answer, and rules that interact
      with it (Ablaze + Prone, Fear + Broken).
