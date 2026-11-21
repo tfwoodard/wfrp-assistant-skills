@@ -47,6 +47,7 @@ HOW = ("species", "career", "xp", "free", "imported")
 # the numbers a rule's effect can add to (ADR 0005)
 TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption"}
 ANY = re.compile(r"^any\b", re.I)
+ROLL = re.compile(r"^\d+(\s*[–-]\s*\d+)?$")          # a table's dice column: "36–40"
 
 
 def split_list(text):
@@ -235,8 +236,17 @@ class Builder:
         m["trappings"], m["armour"], m["encumbrance"] = self.trappings()
         m["xp"] = self.xp()
         self.levels_complete(m)
-        for k in ("money", "ambitions", "psychology", "mutations", "details"):
+        for k in ("money", "ambitions", "details"):
             if rec.get(k) not in (None, "", [], {}): m[k] = rec[k]
+        for k in ("psychology", "mutations"):          # plain words as written; table rows with what they say
+            named = iter([r for r in self.rows() if r["list"] == k])
+            items = []
+            for x in rec.get(k) or []:
+                if not isinstance(x, dict): items.append(x)
+                elif self.lib.current(x.get("table") or "") and any(r["list"] == k and norm(r["name"]) == norm(x.get("row") or "") for r in self.rows()):
+                    r = next(named)
+                    items.append({kk: r[kk] for kk in ("name", "table", "cells", "why", "cite", "notes") if r.get(kk)})
+            if items: m[k] = items
         st = rec.get("state", {})
         m["state"] = {"wounds_taken": st.get("wounds_taken", 0), "fortune_spent": st.get("fortune_spent", 0),
                       "resolve_spent": st.get("resolve_spent", 0), "conditions": st.get("conditions", []),
@@ -346,7 +356,42 @@ class Builder:
                     self.note(f"{ref}: an effect on '{f.get('on')}', which isn't a number the sheet has, so it isn't applied. Read the entry.")
                 elif self.applies(f.get("applies"), ref):
                     out.append({"on": f["on"], "add": f.get("add", 0), "from": ref, "times": times, "at": f.get("at")})
+        for row in self.rows():
+            for f in row["formulas"].get("effects", []):
+                if f.get("on") not in TARGETS:
+                    self.note(f"{row['from']}: an effect on '{f.get('on')}', which isn't a number the sheet has, so it isn't applied. Read the row.")
+                elif self.applies(f.get("applies"), row["from"]):
+                    out.append({"on": f["on"], "add": f.get("add", 0), "from": row["from"], "times": 1})
         self._effects = out
+        return out
+
+    def rows(self):
+        """The table rows the record names under psychology and mutations ({table, row, from}: a
+        mutation rolled, a trait a talent gives by a table): [{list, name, table, cells, from, why,
+        formulas}], with the formulas the table's entry carries for that row."""
+        if hasattr(self, "_rows"): return self._rows
+        out = []
+        for key in ("psychology", "mutations"):
+            for x in self.rec.get(key) or []:
+                if not isinstance(x, dict): continue
+                ref, e = self.entry(x.get("table"), key.title())
+                if not e: continue
+                want = norm(x.get("row") or "")
+                hits = [r for b in e.get("content", []) if b.get("type") == "table" for r in b.get("rows", [])
+                        if want in [norm(str(c)) for c in r]]
+                if len(hits) != 1:
+                    self.differ(f"row:{ref.split('/')[-1]}/{slug(x.get('row'))}",
+                                f"{key.title()}: '{x.get('row')}' names {len(hits)} rows of {e['name']}; it must name one.", ref)
+                    continue
+                name = next(str(c) for c in hits[0] if norm(str(c)) == want)
+                formulas = next((v for k, v in (e.get("fields", {}).get("rows") or {}).items() if norm(k) == want), None)
+                if formulas is None:
+                    self.note(f"{name} ({e['name']}): the row carries no formula, so nothing it does to a number is "
+                              f"applied. Read the row, and write any effect in the record.")
+                out.append({"list": key, "name": name, "table": ref, "cells": [str(c) for c in hits[0] if norm(str(c)) != want and not ROLL.match(str(c).strip())],
+                            "from": f"{ref}#{name}", "why": x.get("from"), "formulas": formulas or {},
+                            "cite": self.cite(ref), **({"notes": x["notes"]} if x.get("notes") else {})})
+        self._rows = out
         return out
 
     def effects(self, on):
@@ -878,7 +923,10 @@ def markdown(m):
     for title, key in (("Ambitions", "ambitions"), ("Psychology", "psychology"), ("Mutations", "mutations")):
         v = m.get(key)
         if v:
-            L += ["", f"## {title}"] + ([f"- {k}: {x}" for k, x in v.items() if x] if isinstance(v, dict) else [f"- {x}" for x in v])
+            L += ["", f"## {title}"] + ([f"- {k}: {x}" for k, x in v.items() if x] if isinstance(v, dict) else [
+                f"- {x}" if isinstance(x, str) else
+                f"- {x['name']}" + (f" ({'; '.join(x['cells'])})" if x.get("cells") else "") +
+                (f", from `{x['why']}`" if x.get("why") else "") + f" {x.get('cite', '')}".rstrip() for x in v])
     if m.get("effects"):
         L += ["", "## What rules add", "Already in the numbers above."]
         L += [f"- {CHAR_NAME.get(e['on'], e['on'].title())} {'+' if e['add'] >= 0 else ''}{e['add']}: `{e['from']}`" for e in m["effects"]]

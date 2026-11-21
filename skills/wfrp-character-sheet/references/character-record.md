@@ -77,6 +77,7 @@ shows up on the next build, and nothing in the record goes stale.
 | `xp` | `total` earned (including the creation bonus). `spent` only when it can't be worked out from `advances` (an imported character); otherwise leave it out. |
 | `trappings` | Library trappings by `ref`, or anything else by `name` with its `enc`. `id` names a container so other lines can be `in` it (only the container's own Encumbrance counts); `worn` takes 1 off; `stowed` is owned but not carried. Armour counts on the sheet's locations only when `worn`. |
 | `state` | What changes in play. Wounds left, Fortune and Resolve left are worked out. |
+| `psychology`, `mutations` | Each item is plain words (`"Animosity (Sigmarites)"`), or a row of a table in the library: `{ "table": "tables/<slug>", "row": "<the row's name as its cell prints it>", "from": "<the entry that gave it, if one did>", "notes": "" }`. Write a row that way whenever the table is in the library: the sheet then shows what the row says with its citation, and the build applies the formulas the table's entry carries for that row. A row without a formula is noted on the sheet: read it. |
 | `exceptions` | Differences from the rules the group has settled for this character, by the difference's `id`, with `why`, and `house_rule` when a campaign house rule is the reason. See below. |
 | `incomplete` | Things the player still has to settle; the sheet shows them at the top until they're fixed. |
 | `changelog` | Every change, newest last. |
@@ -91,7 +92,8 @@ A rule's effect is written once, on the entry that states it (ADR 0005), as
 number of the entry's block that says so and `applies` (`species`, `career`,
 `class`) narrows it to the characters it is about. The build adds the effects
 of every entry the character uses (species, careers, talents, skills, spells,
-trappings) and of the entries in play that add to those, lists them on the
+trappings), of the table rows it names under `psychology` and `mutations`,
+and of the entries in play that add to those, lists them on the
 sheet under "What rules add", and says when it leaves one out because it
 doesn't know a word in it. A record line repeating an entry's effect is not
 counted twice; the sheet says the line can go.

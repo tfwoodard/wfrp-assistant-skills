@@ -217,6 +217,18 @@ class ConvertRulesTest(unittest.TestCase):
         self.assertNotIn('checks', rec)
         self.assertEqual(report['formulas'], [{'entry': 'rules/smoked', 'effects': 1}, {'entry': 'rules/smoked', 'checks': 1}])
 
+    def test_a_tables_rows_take_formulas_by_a_cell_naming_one_row(self):
+        r, out, layout, report = self.formulas({'tables/wick-lengths': {'rows': {'short': {'effects': [{'on': 'I', 'add': -5}]}}}})
+        self.assertEqual(r.returncode, 0, report['errors'])
+        self.assertEqual(self.load(out, 'tables--wick-lengths.json')['fields']['rows'], {'short': {'effects': [{'on': 'I', 'add': -5}]}})
+        self.assertNotIn('rows', next(x for x in self.load(out, '_records.json') if x['slug'] == 'wick-lengths'))
+        for f, why in (({'rows': {'Tiny': {'effects': [{'on': 'I', 'add': 1}]}}}, '"Tiny" names 0 rows'),
+                       ({'rows': {'Short': {}}}, 'row "Short" needs'),
+                       ({'rows': {'Short': {'effects': [{'on': 'I'}]}}}, 'row "Short": an effect needs'),
+                       ({'rows': []}, '"rows" is an object')):
+            r, out, layout, report = self.formulas({'tables/wick-lengths': f})
+            self.assertTrue(any(why in e['error'] for e in report['errors']), (why, report['errors']))
+
     def test_a_malformed_formula_is_an_error(self):
         for f, why in (({'rules/smoke': {'effects': []}}, 'no entry rules/smoke'),
                        ({'rules/smoked': {'effects': [{'on': 'I', 'add': 1, 'at': 99}]}}, '"at" must be the number'),
