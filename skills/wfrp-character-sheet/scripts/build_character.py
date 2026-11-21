@@ -409,7 +409,8 @@ class Builder:
                             f"{name} isn't among the species' talents or those of a career level reached.",
                             RULE["non-career"])
             out.append({"name": name, "ref": ref, "times": g["times"], "max": mx, "max_text": f.get("max"),
-                        "tests": f.get("tests"), "cite": self.cite(ref) if e else ""})
+                        "tests": f.get("tests"), "cite": self.cite(ref) if e else "",
+                        **({"added_by": self.lib.added_by(ref)} if self.lib.added_by(ref) else {})})
         self.choose_one(got)
         return sorted(out, key=lambda t: t["name"])
 
@@ -806,6 +807,10 @@ def markdown(m):
         v = m.get(key)
         if v:
             L += ["", f"## {title}"] + ([f"- {k}: {x}" for k, x in v.items() if x] if isinstance(v, dict) else [f"- {x}" for x in v])
+    more = [(t["name"], t["added_by"]) for t in m["talents"] if t.get("added_by")]
+    if more:
+        L += ["", "## Rules that add to these talents", "The build doesn't apply these: read them when checking the character."]
+        L += [f"- {n}: " + ", ".join(f"`{r}`" for r in refs) for n, refs in more]
     if m["accepted"]:
         L += ["", "## Accepted differences"] + [f"- {d['text']} ({d['why']})" for d in m["accepted"]]
     if m["notes"]:

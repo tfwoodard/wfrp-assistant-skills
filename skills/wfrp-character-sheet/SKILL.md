@@ -138,6 +138,9 @@ For a new character, offer to add it to the campaign's `party` in
 Asked "is this character legal?", rebuild it and report the build's
 differences, each with the rule that decides it. Then check what the build
 can't: read each talent's entry for conditions written in its text (a talent
-that may be taken once whatever its specialisation, a prerequisite), and that
-each has its `effects` in the record. Change nothing until the player or GM
+that may be taken once whatever its specialisation, a prerequisite), together
+with every entry the sheet lists under "Rules that add to these talents" (a
+later book's change to the talent decides, not the talent's own text), and
+that each talent has its `effects` in the record. Do the same before saying a
+purchase is or isn't allowed. Change nothing until the player or GM
 agrees.

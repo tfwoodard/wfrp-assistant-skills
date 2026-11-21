@@ -46,10 +46,20 @@ def search(lib, name, categories):
                    "file": lib.rel(os.path.join(root, cat, rec["slug"] + ".md")),
                    "relations": rec.get("relations", []), "unused": lib.hidden(cat, rec)}
             tiers[tier].append(hit)
+    for t in tiers:
+        for h in t:                                   # the entries that add to it: needed for the answer
+            h["added_by"] = [] if h["unused"] else [
+                {"ref": ref, "name": e.get("name"), "cite": cite(e, titles)}
+                for ref in lib.added_by(h["ref"]) for e in [_record(lib, ref)] if e]
     hits = next((t for t in tiers if t), [])
     order = list(lib.campaign.get("sources", [])) if lib.campaign else []
     hits.sort(key=lambda h: (order.index(h["source"]) if h["source"] in order else len(order), h["ref"]))
     return [h for h in hits if not h["unused"]], [h for h in hits if h["unused"]]
+
+
+def _record(lib, ref):
+    cat, slug = ref.split("/", 1)
+    return next((rec for _, rec in lib.index(cat) if rec["slug"] == slug), None)
 
 
 def show(h, lib, text):
@@ -57,6 +67,8 @@ def show(h, lib, text):
     out = [f'- {h["name"]}{kind}: `{h["ref"]}` {h["cite"]}', f'  file: {h["file"]}']
     for r in h["relations"]:
         out.append(f'  {r["role"]} {r["to"]}: {MEANS.get(r["role"], "")}')
+    for a in h.get("added_by", []):
+        out.append(f'  added to by `{a["ref"]}` {a["name"]} {a["cite"]}: read it as well')
     if text:
         body = lib.text(lib.entry(h["ref"]).get("content", []))
         out += ["", "  " + body.replace("\n", "\n  "), ""]
