@@ -199,6 +199,34 @@ class ConvertRulesTest(unittest.TestCase):
         r, out, layout, report = self.convert()
         self.assertTrue(any("'Smoked' is marked heading_only" in e['error'] for e in report['errors']), report['errors'])
 
+    def formulas(self, f):
+        with open(os.path.join(self.d, 'plan.json'), 'w') as fh:
+            json.dump(dict(PLAN, formulas=f), fh)
+        return self.convert()
+
+    def test_a_plans_formulas_go_on_the_entry_and_stay_out_of_the_index(self):
+        r, out, layout, report = self.formulas({'rules/smoked': {
+            'effects': [{'on': 'I', 'add': -10, 'at': 0}],
+            'checks': [{'id': 'fresh-air', 'read': 'Fresh air ends it.', 'at': 0}]}})
+        self.assertEqual(r.returncode, 0, report['errors'])
+        f = self.load(out, 'smoked.json')['fields']
+        self.assertEqual(f['effects'], [{'on': 'I', 'add': -10, 'at': 0}])
+        self.assertEqual(f['checks'][0]['id'], 'fresh-air')
+        rec = next(x for x in self.load(out, '_records.json') if x['slug'] == 'smoked')
+        self.assertNotIn('effects', rec)
+        self.assertNotIn('checks', rec)
+        self.assertEqual(report['formulas'], [{'entry': 'rules/smoked', 'effects': 1}, {'entry': 'rules/smoked', 'checks': 1}])
+
+    def test_a_malformed_formula_is_an_error(self):
+        for f, why in (({'rules/smoke': {'effects': []}}, 'no entry rules/smoke'),
+                       ({'rules/smoked': {'effects': [{'on': 'I', 'add': 1, 'at': 99}]}}, '"at" must be the number'),
+                       ({'rules/smoked': {'effects': [{'on': 'I', 'at': 0}]}}, 'needs "on" and "add"'),
+                       ({'rules/smoked': {'checks': [{'id': 'x', 'at': 0}]}}, 'a "test" or a "read"'),
+                       ({'rules/smoked': {'limits': []}}, 'takes "effects" and "checks"')):
+            r, out, layout, report = self.formulas(f)
+            self.assertEqual(r.returncode, 1)
+            self.assertTrue(any(why in e['error'] for e in report['errors']), (why, report['errors']))
+
     def test_a_box_sent_to_several_entries_is_copied_into_each(self):
         plan = dict(PLAN, boxes={'1.1': {'to': ['Trimming Wicks', 'Smoked']}})
         with open(os.path.join(self.d, 'plan.json'), 'w') as f:

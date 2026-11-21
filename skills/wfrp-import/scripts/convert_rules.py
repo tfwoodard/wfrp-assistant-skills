@@ -1860,12 +1860,45 @@ def main(argv=None):
     with open(a.plan, encoding='utf-8') as f:
         plan = json.load(f)
     entries, records, report = convert(layout, plan, read_taken(a.taken, plan['source']), a.library_data)
-    return write_outputs(entries, records, report, a.out)
+    return write_outputs(entries, records, report, a.out, plan.get('formulas'))
 
 
-def write_outputs(entries, records, report, out):
+def add_formulas(entries, formulas, report):
+    """The plan's "formulas" ({"<category>/<slug>": {"effects": [...], "checks": [...]}}, ADR 0005):
+    what an entry's rule does to a number, and what it requires or limits, written once on the
+    entry for the character builder to evaluate. They go in the entry's fields and stay out of the
+    index. Only their shape is checked here: an effect has "on" and "add", a check has "id" and a
+    "test" or a "read", and "at" is the number of the block of the entry that says so."""
+    by = {f'{cat}/{e["slug"]}': e for cat, e in entries}
+    for key, f in (formulas or {}).items():
+        e = by.get(key)
+        if e is None:
+            report['errors'].append({'error': f'formulas: this chapter has no entry {key}'})
+            continue
+        for kind, items in f.items():
+            bad = None
+            if kind not in ('effects', 'checks') or not isinstance(items, list):
+                bad = 'takes "effects" and "checks", each a list'
+            for it in ([] if bad else items):
+                if not isinstance(it, dict):
+                    bad = 'each formula is an object'
+                elif kind == 'effects' and not ('on' in it and 'add' in it):
+                    bad = 'an effect needs "on" and "add"'
+                elif kind == 'checks' and not (it.get('id') and ('test' in it or it.get('read'))):
+                    bad = 'a check needs an "id" and a "test" or a "read"'
+                elif not isinstance(it.get('at'), int) or not 0 <= it['at'] < len(e['content']):
+                    bad = f'"at" must be the number of one of the entry\'s {len(e["content"])} blocks (from 0)'
+            if bad:
+                report['errors'].append({'error': f'formulas for {key}: {bad}'})
+            else:
+                e['fields'][kind] = items
+                report.setdefault('formulas', []).append({'entry': key, kind: len(items)})
+
+
+def write_outputs(entries, records, report, out, formulas=None):
     """Write each entry's .json and .md (rules entries by slug, others as <category>--<slug>),
     `_records.json` and `_report.json`; print the counts. Returns the exit status."""
+    add_formulas(entries, formulas, report)
     os.makedirs(out, exist_ok=True)
     for cat, e in entries:
         for ext, text in (('json', json.dumps(e, ensure_ascii=False, indent=1) + '\n'), ('md', render(e))):

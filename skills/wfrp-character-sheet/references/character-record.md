@@ -70,7 +70,7 @@ shows up on the next build, and nothing in the record goes stale.
 | `careers` | Every career the character has been in, oldest first; the last is current. `level` is the level reached in it. `left_incomplete` lists the levels left before completing them (200 XP instead of 100), so the build doesn't report them. |
 | `characteristics.initial` | The starting values as rolled or allocated, before anything a talent adds (those are `effects`). The build reports a value the species' roll can't give. |
 | `extra_points` | How the species' extra points were shared between Fate and Resilience. |
-| `effects` | What a rule does to a number, written when the talent or other rule is taken: `on` is a characteristic code, `wounds`, `movement`, `fate`, `resilience`, `encumbrance` or `corruption`; `add` a number or a sum in the books' shorthand (`SB`, `TB`, `WPB` and the other bonuses, the characteristic codes, and `times` for how often the `from` talent has been taken); `from` the entry that says so. The build can't read a talent's text, so an effect left out is a number left wrong: read each talent taken and write its effect. |
+| `effects` | What a rule does to one of this character's numbers, when the rule's own entry doesn't carry it: `on` is a characteristic code, `wounds`, `movement`, `fate`, `resilience`, `encumbrance` or `corruption`; `add` a number or a sum in the books' shorthand (`SB`, `TB`, `WPB` and the other bonuses, the characteristic codes, and `times` for how often the `from` talent has been taken); `from` the entry that says so. Most effects belong on the entry instead (see "Effects on entries"); the record's are for one-off cases and for a rule whose formula the Librarian hasn't confirmed yet. |
 | `advances` | Everything gained, in the order it was gained: one line per gain, naming a `characteristic` (code), a `skill`, a `talent` or a `career` (a change of level or career). `count` advances for characteristics and skills, `times` for talents (1 when left out); `specialisation` for a grouped skill or talent. `how` says where it came from: `species` or `career` (free, at creation), `xp`, `free` (given in play), or `imported` (from a sheet kept elsewhere, history unknown). |
 | `advances[].xp` | Leave out: the build works out the price from the library's cost tables, the number already taken, and whether the career lists it. Write it only for a career change (which the build can't price) or when something else was actually paid; the build then reports the difference. |
 | `spells` | Spells memorised, by ref. |
@@ -83,6 +83,24 @@ shows up on the next build, and nothing in the record goes stale.
 
 Characteristic codes are always `WS BS S T I Ag Dex Int WP Fel` as the books
 print them. Keep the record's key order as above, so changes diff cleanly.
+
+## Effects on entries
+
+A rule's effect is written once, on the entry that states it (ADR 0005), as
+`fields.effects`: `[{ "on": "WP", "add": 5, "at": 1 }]`, where `at` is the
+number of the entry's block that says so and `applies` (`species`, `career`,
+`class`) narrows it to the characters it is about. The build adds the effects
+of every entry the character uses (species, careers, talents, skills, spells,
+trappings) and of the entries in play that add to those, lists them on the
+sheet under "What rules add", and says when it leaves one out because it
+doesn't know a word in it. A record line repeating an entry's effect is not
+counted twice; the sheet says the line can go.
+
+The build can't read a rule's text. So for each talent or other rule a
+character takes whose entry has no `effects`, read it: if it changes a number,
+propose the formula to the Librarian beside the sentence it encodes, and until
+it is confirmed and imported (the chapter's plan, `formulas`), write the effect
+in the record so the sheet is right meanwhile.
 
 ## What the build gives back
 

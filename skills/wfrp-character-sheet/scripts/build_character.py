@@ -44,6 +44,8 @@ RULE = {"non-career": "rules/advancing-through-your-career#Non-career Advances",
         "encumbrance": "rules/encumbrance", "worn": "rules/encumbrance#Worn Items",
         "corruption": "rules/corrupting", "attributes": "rules/step-3-attributes"}
 HOW = ("species", "career", "xp", "free", "imported")
+# the numbers a rule's effect can add to (ADR 0005)
+TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption"}
 ANY = re.compile(r"^any\b", re.I)
 
 
@@ -99,7 +101,7 @@ def dice_range(formula):
 class Builder:
     def __init__(self, record, lib):
         self.rec, self.lib = record, lib
-        self.diff, self.notes = [], []
+        self.diff, self.notes, self.applied = [], [], []
         self.titles = None
 
     # ------------------------------------------------------------------ reporting
@@ -239,6 +241,7 @@ class Builder:
         m["state"] = {"wounds_taken": st.get("wounds_taken", 0), "fortune_spent": st.get("fortune_spent", 0),
                       "resolve_spent": st.get("resolve_spent", 0), "conditions": st.get("conditions", []),
                       "critical_wounds": st.get("critical_wounds", []), "insanities": st.get("insanities", [])}
+        m["effects"] = self.applied
         m["differences"], m["accepted"] = self.settle()
         m["notes"] = self.notes
         m["incomplete"] = list(rec.get("incomplete", []))
@@ -286,22 +289,95 @@ class Builder:
         self.current_level = (cur["ref"], cur["level"])
         return cur
 
+    def used(self):
+        """{ref: (entry, times)}: the entries this character uses (species, careers, talents, skills,
+        spells, trappings the record names) and every entry in play that adds to one of them. Their
+        formulas are the only ones evaluated (ADR 0005). `times` is how often a talent was taken."""
+        if hasattr(self, "_used"): return self._used
+        rec, refs = self.rec, {}
+        def use(ref, what, times=1):
+            if not ref: return
+            cur, e = self.entry(ref, what)
+            if e: refs[cur] = (e, refs.get(cur, (e, 0))[1] + times)
+        use((rec.get("species") or {}).get("ref"), "Species")
+        for c in rec.get("careers", []): use(c.get("ref"), "Career")
+        for a in self.ledger:
+            if a.get("talent"): use(a["talent"], "Talent", int(a.get("times", 1)))
+            elif a.get("skill") and self.lib.current(a["skill"]) not in refs: use(a["skill"], "Skill")
+        for x in rec.get("spells", []) + [t for t in rec.get("trappings", []) if t.get("ref")]:
+            if self.lib.current(x["ref"]) not in refs: use(x["ref"], "Entry")
+        for ref, (e, times) in list(refs.items()):
+            for more in self.lib.added_by(ref):
+                if more not in refs:
+                    try:
+                        refs[more] = (self.lib.entry(more), times)
+                    except RefError as x:
+                        self.note(f"{more} adds to {ref} but can't be read ({x}), so its formulas aren't used.")
+        self._used = refs
+        return refs
+
+    def applies(self, to, ref):
+        """Is a formula's "applies" about this character? {"species": [refs], "career": [refs],
+        "class": [names]}; all the keys given must hold. A key the build doesn't know is said and
+        the formula is left out, never guessed."""
+        if not to: return True
+        mine = {"species": {self.lib.current((self.rec.get("species") or {}).get("ref") or "")},
+                "career": {self.lib.current(c.get("ref") or "") for c in self.rec.get("careers", [])[-1:]}}
+        for k, want in to.items():
+            want = want if isinstance(want, list) else [want]
+            if k in mine:
+                if not mine[k] & {self.lib.current(w) for w in want}: return False
+            elif k == "class":
+                cur = self.rec.get("careers", [])[-1:]
+                _, ce = self.entry(cur[0].get("ref"), "Career") if cur else (None, None)
+                if norm((ce or {}).get("fields", {}).get("class") or "") not in [norm(w) for w in want]: return False
+            else:
+                self.note(f"{ref}: a formula applies by '{k}', which the build doesn't know, so it isn't used. Read the entry.")
+                return False
+        return True
+
+    def entry_effects(self):
+        """The effects written on the entries the character uses: [{on, add, from, times, at}]."""
+        if hasattr(self, "_effects"): return self._effects
+        out = []
+        for ref, (e, times) in self.used().items():
+            for f in e.get("fields", {}).get("effects", []):
+                if f.get("on") not in TARGETS:
+                    self.note(f"{ref}: an effect on '{f.get('on')}', which isn't a number the sheet has, so it isn't applied. Read the entry.")
+                elif self.applies(f.get("applies"), ref):
+                    out.append({"on": f["on"], "add": f.get("add", 0), "from": ref, "times": times, "at": f.get("at")})
+        self._effects = out
+        return out
+
     def effects(self, on):
-        """Record effects on one number, each {on, add, from}: what a talent or other rule does to it."""
-        return [e for e in self.rec.get("effects", []) if e.get("on") == on]
+        """What rules do to one number: the effects on the entries used, then the record's own
+        ({on, add, from}), for one-off cases. A record line that repeats an entry's effect is
+        left out and said, so nothing is counted twice."""
+        mine = [e for e in self.entry_effects() if e["on"] == on]
+        for e in self.rec.get("effects", []):
+            if e.get("on") != on: continue
+            src = self.lib.current(e["from"]) if "/" in str(e.get("from", "")) else e.get("from")
+            if any(x["from"] == src for x in mine):
+                self.note(f"The record's effect on {on} from {e.get('from')} repeats the one on that entry: "
+                          f"the entry's is used, and the record's line can be removed.")
+                continue
+            mine.append(dict(e, times=self.used().get(src, (None, 1))[1]))
+        return mine
 
     def add_effects(self, on, base):
         total, parts = base, []
         for e in self.effects(on):
             names = dict(getattr(self, "names", {}))
-            names["times"] = self.talent_times.get(e.get("from"), 1) if hasattr(self, "talent_times") else 1
+            names["times"] = e.get("times", 1)
             try:
                 v = Sums(names).value(e.get("add", 0))
             except (ValueError, SyntaxError) as x:
                 self.note(f"Effect on {on} from {e.get('from')}: can't work out '{e.get('add')}' ({x}).")
                 continue
             total += v
-            parts.append({"add": v, "from": e.get("from")})
+            part = {"on": on, "add": v, "from": e.get("from"), **({"at": e["at"]} if e.get("at") is not None else {})}
+            parts.append(part)
+            if part not in self.applied: self.applied.append(part)
         return total, parts
 
     def characteristics(self):
@@ -311,10 +387,6 @@ class Builder:
         bought = {c: 0 for c in CHARS}
         for a in self.ledger:
             if a.get("characteristic") in bought: bought[a["characteristic"]] += int(a.get("count", 0))
-        self.talent_times = {}
-        for a in self.ledger:
-            if a.get("talent"):
-                self.talent_times[a["talent"]] = self.talent_times.get(a["talent"], 0) + int(a.get("times", 1))
         out = {}
         for c in CHARS:
             if c not in init:
@@ -807,6 +879,9 @@ def markdown(m):
         v = m.get(key)
         if v:
             L += ["", f"## {title}"] + ([f"- {k}: {x}" for k, x in v.items() if x] if isinstance(v, dict) else [f"- {x}" for x in v])
+    if m.get("effects"):
+        L += ["", "## What rules add", "Already in the numbers above."]
+        L += [f"- {CHAR_NAME.get(e['on'], e['on'].title())} {'+' if e['add'] >= 0 else ''}{e['add']}: `{e['from']}`" for e in m["effects"]]
     more = [(t["name"], t["added_by"]) for t in m["talents"] if t.get("added_by")]
     if more:
         L += ["", "## Rules that add to these talents", "The build doesn't apply these: read them when checking the character."]

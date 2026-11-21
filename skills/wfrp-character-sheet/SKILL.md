@@ -67,7 +67,8 @@ For every purchase:
 
 1. Add the line to a copy of the record's `advances` (`how: "xp"`, no `xp`:
    the build prices it) and build it. Read the talent's entry first when it is
-   a talent, and write the `effects` it has on numbers.
+   a talent: if it changes a number and the entry carries no `effects`, follow
+   `references/character-record.md`, "Effects on entries".
 2. The build's `xp.purchases` gives the price by the library's cost tables, the
    number already taken and whether the career lists it; its `differences` and
    `notes` say what the rules object to (a talent's maximum, a talent from
@@ -141,6 +142,7 @@ can't: read each talent's entry for conditions written in its text (a talent
 that may be taken once whatever its specialisation, a prerequisite), together
 with every entry the sheet lists under "Rules that add to these talents" (a
 later book's change to the talent decides, not the talent's own text), and
-that each talent has its `effects` in the record. Do the same before saying a
+that each talent that changes a number has its effect, on its entry or in the
+record (the sheet's "What rules add" lists what was applied). Do the same before saying a
 purchase is or isn't allowed. Change nothing until the player or GM
 agrees.

@@ -212,7 +212,7 @@ def main(argv=None):
         with open(path, encoding='utf-8') as f:
             taken.setdefault(cat, set()).update(r['slug'] for r in json.load(f) if r.get('source') != plan['source'])
     entries, records, report = convert_chapter(layout, plan, taken)
-    return write_outputs(entries, records, report, a.out)
+    return write_outputs(entries, records, report, a.out, plan.get('formulas'))
 
 
 if __name__ == '__main__':

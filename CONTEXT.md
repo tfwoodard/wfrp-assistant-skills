@@ -91,8 +91,12 @@ One purchase of experience: a characteristic or skill advance, a talent taken, o
 _Avoid_: Level-up
 
 **Effect**:
-What a rule does to one of a character's numbers (a talent that adds to Wounds or to a starting characteristic), written in the character record with the entry that says so, because the builder can't read a rule's text.
+What a rule does to one of a character's numbers (a talent that adds to Wounds or to a starting characteristic), written as a formula on the entry that says so, or in the character record for a one-off case, because the builder can't read a rule's text.
 _Avoid_: Modifier, bonus (a characteristic's bonus is its tens digit)
+
+**Formula**:
+An effect or a check written on the entry that states the rule, in a small fixed vocabulary, for the builder to evaluate. A reading of the entry's text, confirmed by the Librarian; the text stays the authority.
+_Avoid_: Script, code, automation
 
 **Difference**:
 A place where a character record and the rules disagree, found by the builder and given an id. It is reported, never corrected.

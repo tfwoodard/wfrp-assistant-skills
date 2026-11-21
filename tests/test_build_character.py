@@ -71,11 +71,11 @@ def library(root, house_rules=()):
         {'slug': 'humming', 'name': 'Humming', 'fields': {}}])
     write(root, 'talents', [
         {'slug': 'steady', 'name': 'Steady', 'fields': {'max': 'Toughness Bonus', 'tests': 'Watch at night'}},
-        {'slug': 'quick', 'name': 'Quick', 'fields': {'max': '1'}},
+        {'slug': 'quick', 'name': 'Quick', 'fields': {'max': '1', 'effects': [{'on': 'WP', 'add': 5, 'at': 0}]}},
         {'slug': 'far-sight', 'name': 'Far Sight', 'fields': {'max': '2'}},
         {'slug': 'lamp-magic', 'name': 'Arcane Magic', 'fields': {'max': '1'}},
         {'slug': 'glow-magic', 'name': 'Petty Magic', 'fields': {'max': '1'}},
-        {'slug': 'odd', 'name': 'Odd', 'fields': {'max': 'Number of lamps lit'}}])
+        {'slug': 'odd', 'name': 'Odd', 'fields': {'max': 'Number of lamps lit', 'effects': [{'on': 'luck', 'add': 1, 'at': 0}]}}])
     write(root, 'spells', [
         {'slug': 'glow', 'name': 'Glow', 'fields': {'kind': 'petty', 'lore': None, 'cn': 0, 'range': 'Willpower yards',
                                                      'target': 'AoE (Willpower Bonus yards)', 'duration': 'Initiative Bonus Rounds'}},
@@ -104,7 +104,9 @@ def library(root, house_rules=()):
             head('North Rock'), para('A cold place.'),
             para('**Skills**: Watch, Tide Lore, Signals (Horn) **Talents**: Far Sight, Steady *or* Odd'),
             head('South Rock'), para('A warm place.')]},
-        {'slug': 'steady-at-sea', 'name': 'Steady at Sea', 'relations': [{'role': 'adds-to', 'to': 'talents/steady'}]},
+        {'slug': 'steady-at-sea', 'name': 'Steady at Sea', 'relations': [{'role': 'adds-to', 'to': 'talents/steady'}], 'fields': {'effects': [
+            {'on': 'wounds', 'add': 'TB * times', 'at': 0, 'applies': {'career': ['careers/ferryman']}},
+            {'on': 'fate', 'add': 1, 'at': 0, 'applies': {'class': 'Rivermen', 'guild': ['Polers']}}]}},
         {'slug': 'encumbrance', 'name': 'Carrying'}, {'slug': 'corrupting', 'name': 'Rot'},
         {'slug': 'step-3-attributes', 'name': 'Attributes'}])
     with open(os.path.join(root, 'library.json'), 'w') as f:
@@ -189,6 +191,43 @@ class Numbers(Case):
     def test_extra_points_must_add_up(self):
         m = self.build(record(extra_points={'fate': 3, 'resilience': 0}))
         self.assertIn('extra-points', self.ids(m))
+
+
+class EffectsOnEntries(Case):
+    def quick(self, **over):
+        r = record(**over)
+        r['advances'] += [{'talent': 'talents/quick', 'how': 'free'}]
+        return r
+
+    def test_an_effect_written_on_a_talent_is_applied_without_the_record_saying_so(self):
+        m = self.build(self.quick())
+        self.assertEqual(m['characteristics']['WP'], {'initial': 44, 'advances': 0, 'current': 44, 'bonus': 4, 'rolled': 39,
+                                                     'effects': [{'on': 'WP', 'add': 5, 'from': 'talents/quick', 'at': 0}]})
+        self.assertEqual(m['effects'], [{'on': 'WP', 'add': 5, 'from': 'talents/quick', 'at': 0}])
+        self.assertEqual(m['wounds']['max'], 3 + 8 + 4)                # the bonus it raised counts everywhere
+        self.assertIn('- Willpower +5: `talents/quick`', bc.markdown(m))
+        self.assertEqual(self.build(record())['effects'], [])          # not taken, not applied
+
+    def test_a_record_line_repeating_the_entrys_effect_is_not_counted_twice(self):
+        m = self.build(self.quick(effects=[{'on': 'WP', 'add': 5, 'from': 'talents/quick'}]))
+        self.assertEqual(m['characteristics']['WP']['initial'], 44)
+        self.assertTrue(any('repeats the one on that entry' in n for n in m['notes']))
+
+    def test_an_effect_on_an_entry_that_adds_to_a_talent_applies_to_whom_it_says(self):
+        r = record(careers=[{'ref': 'careers/ferryman', 'level': 1}])
+        r['advances'] += [{'talent': 'talents/steady', 'how': 'free'}]         # Steady twice
+        m = self.build(r)
+        self.assertEqual(m['wounds']['max'], 3 + 8 + 3 + 4 * 2)
+        self.assertIn({'on': 'wounds', 'add': 8, 'from': 'rules/steady-at-sea', 'at': 0}, m['effects'])
+        self.assertEqual(self.build(record())['wounds']['max'], 3 + 8 + 3)     # a Warden: it isn't about them
+
+    def test_what_the_build_does_not_know_is_said_and_left_out(self):
+        r = record(careers=[{'ref': 'careers/ferryman', 'level': 1}])
+        r['advances'] += [{'talent': 'talents/odd', 'how': 'free'}]
+        m = self.build(r)
+        self.assertEqual(m['fate']['fate'], 2)
+        self.assertTrue(any("applies by 'guild'" in n for n in m['notes']))
+        self.assertTrue(any("an effect on 'luck'" in n for n in m['notes']))
 
 
 class SkillsAndTalents(Case):

@@ -191,6 +191,17 @@ part of the section. So is a new specialisation that has rules of its own (a
 new kind of *Trained*, a Channelling skill for one lore): name it as printed,
 with the brackets, and give it `adds-to` the entry for its group.
 
+**Formulas.** What a rule does to a character's number, and later what it
+requires or limits, is written once on its entry for the character builder to
+evaluate (ADR 0005). They go in the plan under `formulas`, by the entry's ref:
+`"formulas": {"talents/<slug>": {"effects": [{"on": "WP", "add": 5, "at": 1}]}}`,
+where `at` is the number (from 0) of the block of the entry that says so. The
+converter checks their shape and that the entry and block exist; they land in
+the entry's `fields` and stay out of the index. Never write one unasked or in
+bulk: propose it beside its sentence when a rule is first applied to a
+character, and add it once the Librarian confirms. The text stays the
+authority; a formula is a reading of it.
+
 **Headings with nothing under them.** A heading whose only contents are other
 entries ("Skills and Talents" over talents that are entries themselves, or a
 list whose every item its `split_headings` made an entry) would
