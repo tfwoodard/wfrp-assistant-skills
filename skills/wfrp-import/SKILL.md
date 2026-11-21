@@ -192,7 +192,8 @@ new kind of *Trained*, a Channelling skill for one lore): name it as printed,
 with the brackets, and give it `adds-to` the entry for its group.
 
 **Headings with nothing under them.** A heading whose only contents are other
-entries ("Skills and Talents" over talents that are entries themselves) would
+entries ("Skills and Talents" over talents that are entries themselves, or a
+list whose every item its `split_headings` made an entry) would
 make an entry with no text: the report lists those under `empty_entries`. Mark
 the plan's entry `"heading_only": true` and no entry is written; the heading's
 words count as left out and the report lists it under `headings_only`. Keep the

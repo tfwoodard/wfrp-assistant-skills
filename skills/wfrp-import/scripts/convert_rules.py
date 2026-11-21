@@ -160,7 +160,7 @@ in `_records.json` (rules or tables), and `_report.json`:
 An entry of the plan with "heading_only": true is a heading with nothing under it but other entries
 (a "Skills and Talents" heading over talents that are entries themselves). Its place in the plan
 still ends the entry before it; no entry is written, the heading's words count as left out, and the
-report lists it. The mark stays in the plan as the record: remove it and the entry comes back. A
+report lists it. The entries its "split_headings" make are written as before. The mark stays in the plan as the record: remove it and the entry comes back. A
 marked entry that has text or boxes of its own is an error.
 """
 import argparse
@@ -1631,16 +1631,6 @@ def convert(layout, plan, taken=(), library=None):
     for e in entries:
         spec = e['spec']
         name = spec['name']
-        if spec.get('heading_only'):
-            # A heading over nothing but other entries (the talents under "New Talents"): no entry is
-            # written for it. The plan keeps the mark, so the decision can be undone by removing it.
-            if [x for x in e['lines'] if plain(x['text']).strip()] or e['boxes']:
-                report['errors'].append({'error': f'{name!r} is marked heading_only in the plan, but it has text '
-                                                  'or boxes of its own: remove the mark'})
-            else:
-                report['left_out'].append(spec.get('heading', name))
-                report.setdefault('headings_only', []).append({'name': name, 'page': spec['page']})
-                continue
         career = read_career(e, entries, lines, layout, plan, report) if spec.get('career') else None
         updates = None
         if spec.get('level_updates'):
@@ -1736,6 +1726,19 @@ def convert(layout, plan, taken=(), library=None):
             fields.update(prof)
         content = read_labelled(content, spec.get('field_labels', ()), fields, report, name,
                                 spec.get('text_labels', ()))
+        if spec.get('heading_only'):
+            # A heading over nothing but other entries (the talents under "New Talents", or a list whose
+            # every item was split into an entry): no entry is written for it. The plan keeps the mark,
+            # so the decision can be undone by removing it.
+            if content or {k for k in fields if k != 'kind'}:
+                report['errors'].append({'error': f'{name!r} is marked heading_only in the plan, but it has text, '
+                                                  'boxes or fields of its own: remove the mark'})
+            else:
+                report['left_out'].append(spec.get('heading', name))
+                report.setdefault('headings_only', []).append({'name': name, 'page': spec['page']})
+                for sub in split:
+                    add_entry(dict(sub, _report=report, _library=library), out, records, plan, taken, used_slugs)
+                continue
         slug = free_slug(spec.get('slug') or slugify(name), cat, name, plan, taken, used_slugs, report)
         entry = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
                  'section': spec.get('heading', name), 'page': spec['page'], 'level': e['level'] or 1,
