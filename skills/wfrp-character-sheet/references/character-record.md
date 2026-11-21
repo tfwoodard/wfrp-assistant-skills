@@ -124,6 +124,10 @@ location, XP, and three lists:
 - **`notes`**: what the build could not work out, and why. Nothing is left out
   without a note.
 
+A level is complete when its characteristics and eight of its available skills
+have the level's advances and the character has one of its talents; a level's
+characteristics and available skills include those of the levels below it in
+the career, and each skill the character has counts once.
 `career.to_complete` lists the career levels left behind unfinished and what
 each still lacks, whether or not a house rule accepts that; the sheet shows it
 under the career so it can be filled in over time. `house_rules` names the

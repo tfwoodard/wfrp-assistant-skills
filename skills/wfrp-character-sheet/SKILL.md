@@ -63,18 +63,41 @@ which table and show each roll. Record bonus XP for kept rolls only when
 
 ## Advancing
 
+Asked what a character can buy, or what a level still needs:
+
+```
+python3 scripts/options.py <record>.json --library <root> --campaign <slug>
+```
+
+It lists the career's characteristics, skills and talents with the price of
+the next advance in each, what completing the current level still needs and
+the least XP that takes, and earlier levels left unfinished. Prices follow the
+campaign's house rules where the builder has a setting for them. Anything
+outside the career costs double and isn't listed: price it with a dry run.
+
 For every purchase:
 
-1. Add the line to a copy of the record's `advances` (`how: "xp"`, no `xp`:
-   the build prices it) and build it. Read the talent's entry first when it is
-   a talent: if it changes a number and the entry carries no `effects`, follow
+```
+python3 scripts/apply.py <record>.json --library <root> --campaign <slug> --dry-run buy --skill "Lore (Reikland)" --count 2
+python3 scripts/apply.py <record>.json ... buy --talent "Hardy" --session 7
+python3 scripts/apply.py <record>.json ... buy --characteristic WP --count 5
+```
+
+1. Run it with `--dry-run` first and show the player what it prints: the
+   price, XP to spend before and after, the numbers that move, and anything
+   the purchase brings with it (a talent past its Max, XP the character
+   doesn't have, double price outside the career, a difference it clears).
+2. For a talent, read its entry, and the entries the sheet says add to it,
+   before saying it can be bought: the build knows prices and maximums, not
+   the conditions written in a talent's text. If the talent changes a number
+   and its entry carries no formula (the tool says so), follow
    `references/character-record.md`, "Effects on entries".
-2. The build's `xp.purchases` gives the price by the library's cost tables, the
-   number already taken and whether the career lists it; its `differences` and
-   `notes` say what the rules object to (a talent's maximum, a talent from
-   another level, a level left incomplete, XP the character doesn't have).
-3. Show the cost, the new total and anything the build reported, then save the
-   record with the session it was bought in and a `changelog` line.
+3. When the player agrees, run it again without `--dry-run`, with the
+   `--session` it was bought in. It writes the line into `advances` and the
+   `changelog`; never write a price by hand. Then rebuild the sheet.
+
+Something given in play rather than bought is `--how free`, with `--notes`
+saying why. `apply.py ... log "<text>"` adds a changelog line for anything else.
 
 Explain any rule that blocks a purchase and offer legal alternatives. If the GM
 allows it anyway, write it in the record's `exceptions` with the difference's
