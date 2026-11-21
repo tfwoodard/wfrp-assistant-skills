@@ -234,7 +234,12 @@ Every pair of entries that share a name (allowing for plurals, "The", and
 parenthetical words) has a decision on the later entry. The import refuses an
 entry that shares a name and has none. Grouped skills and talents with a
 specialisation (`Lore (Reikland)`, `Melee (Basic)`) are one entry for the group
-(`lore`, `melee`); the specialisations are listed in its `fields`.
+(`lore`, `melee`); the specialisations are listed in its `fields`. A
+specialisation a book gives rules of its own (a new kind of *Trained*, a
+Channelling skill for one lore) is an entry under its full name that `adds-to`
+the group's entry. `adds-to` also ties a rule to the entry it changes when
+they share no name (a sidebar on taking a talent twice adds to the talent):
+whoever reads an entry reads what adds to it.
 
 `audience` is `"gm"` for an entry only the GM should see (an adventure's
 secrets, a bestiary's GM advice). Without it, the entry is for everyone. Only

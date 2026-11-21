@@ -23,8 +23,9 @@ Read `references/library-layout.md` for where data lives and how to cite it.
    `scripts/find_entry.py <name> [<name> …] --library <root> --campaign <slug>
    [--category rules,spells] [--gm]` does this search: for each name it gives
    the matching entries with their citation, their `.md` file, what their
-   relations mean for the answer, and, apart, the entries the campaign doesn't
-   use with the rule that removes each. `--gm` only when the user is the
+   relations mean for the answer, the entries in play that add to it ("added
+   to by": read those too, they change or extend it), and, apart, the entries
+   the campaign doesn't use with the rule that removes each. `--gm` only when the user is the
    campaign's GM. Without a folder, read the indexes through the connector and
    apply the same rules.
 3. If nothing matches, check the chapter lists (layout §3). If the relevant

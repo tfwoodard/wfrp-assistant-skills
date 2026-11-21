@@ -104,6 +104,7 @@ def library(root, house_rules=()):
             head('North Rock'), para('A cold place.'),
             para('**Skills**: Watch, Tide Lore, Signals (Horn) **Talents**: Far Sight, Steady *or* Odd'),
             head('South Rock'), para('A warm place.')]},
+        {'slug': 'steady-at-sea', 'name': 'Steady at Sea', 'relations': [{'role': 'adds-to', 'to': 'talents/steady'}]},
         {'slug': 'encumbrance', 'name': 'Carrying'}, {'slug': 'corrupting', 'name': 'Rot'},
         {'slug': 'step-3-attributes', 'name': 'Attributes'}])
     with open(os.path.join(root, 'library.json'), 'w') as f:
@@ -228,6 +229,13 @@ class SkillsAndTalents(Case):
         self.assertEqual((t['Steady']['max'], t['Steady']['tests']), (4, 'Watch at night'))
         self.assertEqual((t['Far Sight']['times'], t['Far Sight']['max']), (3, 2))
         self.assertIn('talent-max:far-sight', self.ids(m))
+
+    def test_rules_that_add_to_a_talent_are_pointed_at_not_applied(self):
+        m = self.build(record())
+        t = {x['name']: x for x in m['talents']}
+        self.assertEqual(t['Steady']['added_by'], ['rules/steady-at-sea'])
+        self.assertNotIn('added_by', t['Far Sight'])
+        self.assertIn('- Steady: `rules/steady-at-sea`', bc.markdown(m))
 
     def test_a_maximum_that_is_not_a_sum_is_said(self):
         r = record()

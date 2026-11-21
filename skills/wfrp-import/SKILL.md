@@ -177,6 +177,20 @@ items, the entry's `name` otherwise) so people can tell them apart; the slug
 follows. The converter refuses `distinct-from` between two entries of one name
 in one category.
 
+**Rules that change another entry.** A relation isn't only for shared names.
+When a section changes how something elsewhere in the library works, give it
+`adds-to` that entry, whatever either is called: a sidebar that lets Elves
+take a talent more than once adds to the talent; a supplement's rewrite of
+that sidebar replaces it and adds to the talent too. A lookup of the talent
+then brings them up, and the character builder points at them. Without the
+relation they are only found by someone who already knows to look.
+
+A talent, skill, trait or spell printed inside a rules section ("New Talent:",
+"Skill:", "New Trait:" headings) is an entry of its own in its category, not
+part of the section. So is a new specialisation that has rules of its own (a
+new kind of *Trained*, a Channelling skill for one lore): name it as printed,
+with the brackets, and give it `adds-to` the entry for its group.
+
 **GM-only material.** Mark it `audience: "gm"` in the plan: adventures and
 adventure hooks (boxed or printed in the text), and the NPCs a book offers as
 patrons or adversaries, with their profiles, ambitions and "as Patron" text.

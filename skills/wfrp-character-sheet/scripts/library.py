@@ -118,6 +118,7 @@ class Library:
         self.edition = (self.campaign or {}).get("edition") or lib_edition or "4e"
         self._updated = None
         self._replaced = None
+        self._added = None
 
     def rel(self, path):
         return os.path.relpath(path, self.root).replace(os.sep, "/")
@@ -183,6 +184,19 @@ class Library:
                                 out[rel["to"]] = f'{cat}/{rec["slug"]}'
             self._replaced = out
         return self._replaced
+
+    def added_by(self, ref):
+        """The refs of the entries used here that *add to* this one (layout §4): a supplement's extra
+        rules for a talent, a new specialisation of a skill. An answer about the entry needs them too."""
+        if self._added is None:
+            out = {}
+            for cat in CATEGORIES:
+                for _, rec in self.index(cat):
+                    for rel in rec.get("relations", []):
+                        if rel.get("role") == "adds-to":
+                            out.setdefault(rel["to"], []).append(f'{cat}/{rec["slug"]}')
+            self._added = out
+        return self._added.get(ref, [])
 
     def current(self, ref):
         """The ref to use for `ref`: itself, or the entry that replaces it here (followed to the end)."""

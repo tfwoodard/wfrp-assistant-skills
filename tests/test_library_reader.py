@@ -45,7 +45,10 @@ def write(root, cat, entries, base='library-data', md=True):
 def library(root):
     write(root, 'skills', [
         {'slug': 'tending', 'name': 'Tending', 'fields': {'characteristic': 'Dex', 'grouped': True}},
-        {'slug': 'watch', 'name': 'Watch'}])
+        {'slug': 'watch', 'name': 'Watch'},
+        {'slug': 'tending-beacons', 'name': 'Tending (Beacons)', 'source': 'PIER', 'relations': [{'role': 'adds-to', 'to': 'skills/tending'}]},
+        {'slug': 'tending-wrecks', 'name': 'Tending (Wrecks)', 'source': 'OUT', 'relations': [{'role': 'adds-to', 'to': 'skills/tending'}]},
+        {'slug': 'tending-secret', 'name': 'Tending (Secret Fires)', 'audience': 'gm', 'relations': [{'role': 'adds-to', 'to': 'skills/tending'}]}])
     write(root, 'talents', [
         {'slug': 'steady', 'name': 'Steady', 'fields': {'max': 'Toughness Bonus'}},
         {'slug': 'steady-pier', 'name': 'Steady', 'source': 'PIER', 'relations': [{'role': 'replaces', 'to': 'talents/steady'}]},
@@ -166,6 +169,19 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(used[0]['cite'], '(LAMP, Appendix I › Watching the Coast, p. 12)')
         self.assertIn('replaces talents/steady: use this one instead of that entry',
                       find_entry.show(find_entry.search(self.lib(), 'steady', ['talents'])[0][0], self.lib(), False))
+
+    def test_an_entry_is_shown_with_the_entries_in_play_that_add_to_it(self):
+        lib = self.lib()
+        self.assertEqual(lib.added_by('skills/tending'), ['skills/tending-beacons'])     # not the one out of play, nor the GM's
+        self.assertEqual(Library(self.tmp.name, 'rock', gm=True).added_by('skills/tending'),
+                         ['skills/tending-beacons', 'skills/tending-secret'])
+        self.assertEqual(lib.added_by('skills/watch'), [])
+        used, _ = find_entry.search(lib, 'tending', ['skills'])
+        self.assertEqual([h['ref'] for h in used], ['skills/tending'])
+        self.assertEqual(used[0]['added_by'], [{'ref': 'skills/tending-beacons', 'name': 'Tending (Beacons)',
+                                                'cite': '(PIER, ch. 2 › Tending (Beacons), p. 12)'}])
+        self.assertIn('added to by `skills/tending-beacons` Tending (Beacons) (PIER, ch. 2 › Tending (Beacons), p. 12): read it as well',
+                      find_entry.show(used[0], lib, False))
 
     def test_find_entry_as_a_command(self):
         cmd = [sys.executable, os.path.join(SCRIPTS, 'find_entry.py'), '--library', self.tmp.name, '--campaign', 'rock']
