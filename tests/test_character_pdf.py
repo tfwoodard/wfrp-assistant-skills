@@ -39,7 +39,7 @@ class Sheet(unittest.TestCase):
         for s in ('Mara', 'Keepers', 'Warden 2', 'Initiative', 'Wounds', 'Walk', 'Basic skills', 'Talents', 'Far Sight',
                   'To do', 'Still to complete', 'Differs from the rules', 'xp-cost:',
                   'To settle', 'Her oath to the harbour', 'Satchel', '└ Boat Hook', 'Weapons', 'Damage', '1 gc', 'Mend the lamp',
-                  'Age <b>31</b>', 'Eyes <b>Grey</b>', 'Not worked out', 'Fortune, Resolve and Corruption'):
+                  'Age <b>31</b>', 'Eyes <b>Grey</b>', 'Not worked out', 'Fortune and Resolve', '<h2>Corruption</h2>'):
             self.assertIn(s, html, s)
         todo = html[html.index('class="todo"'):html.index('Basic skills')]
         for s in ('Still to complete', 'Differs from the rules', 'To settle', 'Not worked out'):

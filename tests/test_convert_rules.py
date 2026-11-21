@@ -207,6 +207,21 @@ class ConvertRulesTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertTrue(any('they live on the library' in e['error'] for e in report['errors']), report['errors'])
 
+    def test_a_talent_in_prose_with_no_maximum_is_taken_once(self):
+        import convert_rules
+        entries = [('talents', {'slug': 'salt-blood', 'name': 'Salt Blood', 'fields': {}}),
+                   ('talents', {'slug': 'keen', 'name': 'Keen', 'fields': {'max': 'Initiative Bonus'}}),
+                   ('rules', {'slug': 'tides', 'name': 'Tides', 'fields': {}})]
+        records = [{'slug': 'salt-blood', '_category': 'talents'}, {'slug': 'keen', '_category': 'talents', 'max': 'Initiative Bonus'},
+                   {'slug': 'tides', '_category': 'rules'}]
+        report = {}
+        convert_rules.assume_max_one(entries, records, report)
+        self.assertEqual(entries[0][1]['fields'], {'max': '1', 'max_assumed': True})
+        self.assertEqual(entries[1][1]['fields'], {'max': 'Initiative Bonus'})
+        self.assertEqual(entries[2][1]['fields'], {})
+        self.assertEqual([r.get('max') for r in records], ['1', 'Initiative Bonus', None])
+        self.assertEqual(report['max_assumed'], ['talents/salt-blood'])
+
     def test_set_formulas_writes_them_on_the_entry_and_a_reimport_carries_them_over(self):
         r, out, layout, report = self.convert()
         lib = os.path.join(self.d, 'library-data')

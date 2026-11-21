@@ -217,9 +217,11 @@ def page_play(m, conditions=()):
         return f'<div class="trk"><span class="lab">{e(label)} <span class="cite">{e(note)}</span></span>{boxes(n, filled)}</div>'
     out.append("<h2>Wounds</h2>" + row(f"Wounds ({w['max']})", w["max"], w["taken"]))
     co = m["corruption"]
-    out.append("<h2>Fortune, Resolve and Corruption</h2>" + row(f"Fortune ({f['fortune']})", f["fortune"], st.get("fortune_spent", 0)) +
+    out.append('<div class="cols"><div><h2>Fortune and Resolve</h2>' +
+               row(f"Fortune ({f['fortune']})", f["fortune"], st.get("fortune_spent", 0)) +
                row(f"Resolve ({r['resolve']})", r["resolve"], st.get("resolve_spent", 0)) +
-               row(f"Corruption ({co['threshold']})", max(co["threshold"], co["points"]), co["points"]))
+               '</div><div><h2>Corruption</h2>' +
+               row(f"Corruption ({co['threshold']})", max(co["threshold"], co["points"]), co["points"]) + '</div></div>')
     adv = m.get("advantage") or {"style": "count"}
     if adv["style"] == "on-off":
         out.append("<h2>Advantage</h2>" + f'<div class="trk"><span class="lab">Advantage</span>{boxes(1)}'

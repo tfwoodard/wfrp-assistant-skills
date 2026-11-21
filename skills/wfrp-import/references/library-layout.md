@@ -186,7 +186,7 @@ Each category folder in a `library-data/` holds:
   | species    | `aliases` (e.g. "Halfling" for "Halflings") |
   | careers    | `class` (Academics, Burghers, Courtiers, Peasants, Rangers, Riverfolk, Rogues, Warriors), `species` (who may roll it), `levels` (the level titles: four, or five where a book adds a level; a career entered part-way has `first_level`, say 3, and only the levels from there, its `advances` keyed by the real level numbers), `status` (the four statuses, e.g. "Brass 3"), `earning_skill` (the level 1 skill printed in italics, tested when Earning money) |
   | skills     | `characteristic`, `advanced` (true/false), `grouped` (true/false) |
-  | talents    | `max` (as printed, e.g. "Initiative Bonus"), `tests` |
+  | talents    | `max` (as printed, e.g. "Initiative Bonus"; "1" with `max_assumed: true` for a talent printed in prose that names no maximum), `tests` |
   | spells     | `kind` (petty, arcane, lore, blessing, miracle, ritual), `lore` (lore or god), `cn`, `range`, `target`, `duration`; a ritual has `cn` (a number, or as printed: "The Daemon’s Willpower"), `type` (as printed: "Lore of Beasts", "Any Lore"; `lore` is the lore it names, or null), `learning_xp`, and in its entry `ingredients`, `conditions`, `sacrifices`, `consequences`, with no range, target or duration |
   | trappings  | `kind` (melee, ranged, ammunition, armour, item, …), `group` (weapon or armour group), `price`, `enc`, `availability` |
   | qualities  | `kind` (weapon-quality, weapon-flaw, armour-quality, armour-flaw, item-quality, item-flaw) |

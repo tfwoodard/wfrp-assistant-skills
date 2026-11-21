@@ -1947,6 +1947,22 @@ def carry_formulas(entries, library_data, report):
             report.setdefault('formulas_carried', []).append({'entry': f'{cat}/{e["slug"]}', 'kind': 'summary'})
 
 
+def assume_max_one(entries, records, report):
+    """A talent printed in prose rather than in the talent format ("Max:" and "Tests:" lines) and
+    naming no maximum can be taken once: its Max is "1", marked `max_assumed`, put in the index, and
+    listed in the report. A talent in the talent format without a Max line is an error instead
+    (convert_skills_talents.py)."""
+    for cat, e in entries:
+        f = e.setdefault('fields', {})
+        if cat != 'talents' or f.get('max'):
+            continue
+        f['max'], f['max_assumed'] = '1', True
+        for r in records:
+            if r.get('_category') == 'talents' and r.get('slug') == e['slug']:
+                r['max'] = '1'
+        report.setdefault('max_assumed', []).append(f'talents/{e["slug"]}')
+
+
 def write_outputs(entries, records, report, out, formulas_from=None, plan=None):
     """Write each entry's .json and .md (rules entries by slug, others as <category>--<slug>),
     `_records.json` and `_report.json`; print the counts. Returns the exit status."""
@@ -1958,6 +1974,7 @@ def write_outputs(entries, records, report, out, formulas_from=None, plan=None):
                                           '"version-of" (layout §4). Change it in the plan'})
     if formulas_from:
         carry_formulas(entries, formulas_from, report)
+    assume_max_one(entries, records, report)
     os.makedirs(out, exist_ok=True)
     for cat, e in entries:
         for ext, text in (('json', json.dumps(e, ensure_ascii=False, indent=1) + '\n'), ('md', render(e))):
