@@ -222,7 +222,8 @@ entry does, printed under a spell on the character sheet. The same rules
 apply: on the entry only, carried over on re-import, written when a character
 first takes the spell and shown to the Librarian, never the book's sentences.
 Name a bonus in full ("Willpower Bonus yards") so the sheet prints the
-character's number.
+character's number, and say who makes every Test it names ("if you pass…",
+"if the target passes…").
 
 **Headings with nothing under them.** A heading whose only contents are other
 entries ("Skills and Talents" over talents that are entries themselves, or a

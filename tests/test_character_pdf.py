@@ -39,7 +39,7 @@ class Sheet(unittest.TestCase):
         for s in ('Mara', 'Keepers', 'Warden 2', 'Initiative', 'Wounds', 'Walk', 'Basic skills', 'Talents', 'Far Sight',
                   'To do', 'Still to complete', 'Differs from the rules', 'xp-cost:',
                   'To settle', 'Her oath to the harbour', 'Satchel', '└ Boat Hook', 'Weapons', 'Damage', '1 gc', 'Mend the lamp',
-                  'Age <b>31</b>', 'Eyes <b>Grey</b>', 'Not worked out', 'Fortune and Resolve'):
+                  'Age <b>31</b>', 'Eyes <b>Grey</b>', 'Not worked out', 'Fortune, Resolve and Corruption'):
             self.assertIn(s, html, s)
         todo = html[html.index('class="todo"'):html.index('Basic skills')]
         for s in ('Still to complete', 'Differs from the rules', 'To settle', 'Not worked out'):
@@ -47,6 +47,7 @@ class Sheet(unittest.TestCase):
         for s in ('Accepted differences', 'the GM moved her on', 'House rules used', 'What rules add'):
             self.assertNotIn(s, html, s)
         self.assertEqual(html.count('class="page'), 3)
+        self.assertEqual(html.count('class="page new'), 1)                 # only the play page forces a new page
 
     def test_spells_print_with_their_summary_and_bonuses_in_the_characters_numbers(self):
         p = os.path.join(self.root, 'library-data', 'spells', 'glow.json')
@@ -63,11 +64,27 @@ class Sheet(unittest.TestCase):
         self.assertIn('No summary yet', html)
 
     def test_the_play_page_marks_what_is_taken_and_lists_the_conditions(self):
-        m = self.model(state={'wounds_taken': 2, 'fortune_spent': 1, 'conditions': [{'name': 'Soaked', 'count': 2}]})
+        m = self.model(state={'wounds_taken': 2, 'fortune_spent': 1, 'corruption': 1, 'conditions': [{'name': 'Soaked', 'count': 2}]})
         html = character_pdf.document(m, [{'name': 'Soaked', 'cite': '(LAMP, p. 1)'}, {'name': 'Dazzled'}])
         play = html[html.index('class="page new play"'):]
-        self.assertEqual(play.count('track on'), 2 + 1 + 2)
+        self.assertEqual(play.count('track on'), 2 + 1 + 1 + 2)            # wounds, fortune, corruption, Soaked
         self.assertIn('Dazzled', play)
+        self.assertIn('Corruption', play)
+        self.assertIn('+10 each', play)
+        self.assertEqual(play[play.index('Advantage'):].count('class="track'), 10 + 12)   # a tally, then two conditions
+
+    def test_a_house_rule_makes_advantage_one_box(self):
+        import json
+        p = os.path.join(self.root, 'campaigns', 'rock', 'campaign.json')
+        with open(p) as f: c = json.load(f)
+        c['house_rules'] = [{'id': 'edge', 'text': 'You have the edge (+10) or you do not', 'set': {'advantage': 'on-off'}}]
+        with open(p, 'w') as f: json.dump(c, f)
+        m = self.model()
+        self.assertEqual(m['advantage'], {'style': 'on-off', 'cite': None, 'house_rule': 'You have the edge (+10) or you do not'})
+        play = character_pdf.document(m)
+        play = play[play.index('Advantage'):]
+        self.assertIn('You have the edge (+10) or you do not', play)
+        self.assertEqual(play.count('class="track'), 1)
 
     def test_text_from_the_record_is_escaped(self):
         html = character_pdf.document(self.model(name='<Mara & Co>'))
@@ -75,7 +92,7 @@ class Sheet(unittest.TestCase):
         self.assertNotIn('<Mara', html)
 
     @unittest.skipUnless(character_pdf.find_browser(), 'no browser to print with')
-    def test_the_pdf_prints_on_three_pages(self):
+    def test_the_pdf_flows_the_sheet_and_gives_the_play_page_its_own(self):
         import json
         p = os.path.join(self.root, 'mara.json')
         with open(p, 'w') as f: json.dump(record(), f)
@@ -84,7 +101,7 @@ class Sheet(unittest.TestCase):
                             '--out', out, '--pdf'], capture_output=True, text=True, timeout=180)
         self.assertEqual(r.returncode, 0, r.stderr)
         with open(os.path.join(out, 'mara.pdf'), 'rb') as f:
-            self.assertEqual(len(re.findall(rb'/Type\s*/Page(?!s)', f.read())), 3)
+            self.assertEqual(len(re.findall(rb'/Type\s*/Page(?!s)', f.read())), 2)     # a short sheet, then the play page
 
 
 if __name__ == '__main__':

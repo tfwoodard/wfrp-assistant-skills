@@ -201,7 +201,8 @@ Each spell prints with a one-line summary of what it does, from its entry's
 `summary`, with any bonus it names in the character's own numbers ("heals 12
 Wounds"). A spell without one is in the To do box: read the entry and write
 one line in your own words, never the book's sentences, show it to the
-Librarian, and set it with `set_formulas.py <spell>.json --summary "..."`
+Librarian, and set it with `set_formulas.py <spell>.json --summary "..."`. Say who
+makes every Test it names ("if you pass…", "if the target passes…").
 (wfrp-import), naming bonuses in full ("Willpower Bonus yards") so they print
 as numbers. Upload the entry's `.json` and `.md` as after any library change. Without a browser that prints (Playwright, Chrome, Edge or Chromium),
 it says so: send the HTML and the player prints it from a browser.
