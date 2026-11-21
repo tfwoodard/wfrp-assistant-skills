@@ -224,7 +224,7 @@ class Creating(Case):
         self.assertEqual(c[('species', 'talent')]['to_take'], ['Far Sight'])
         self.assertEqual((c[('career', 'skill')]['left'], c[('career', 'talent')]['left'], c[('career', 'characteristic')]['left']), (10, 1, 3))
         self.assertEqual(c[('career', 'characteristic')]['from'], ['Initiative', 'Toughness'])
-        self.assertNotIn(('species', 'skill'), c)                       # 5 and 3 given, though one is from the wrong list
+        self.assertEqual(c[('species', 'skill')]['left'], {3: 1})      # Tide Lore is from the wrong list: not counted
         text = options.text(o)
         self.assertIn('Talents from the species', text)
         self.assertIn('to take: Far Sight', text)

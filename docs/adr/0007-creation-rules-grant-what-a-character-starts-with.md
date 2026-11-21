@@ -29,10 +29,18 @@ like any other:
 
 - `how` is the record's word for where the lines came from; `kind` is skill,
   talent or characteristic; `from` is the list they must be on: the species'
-  (its origin's, when one is chosen) or the first career level's.
+  (its origin's, when one is chosen), the first career level's, or a roll
+  `table` (with `"table": "<ref>"`: what any of its rows names).
 - What is given: `picks` (exactly so many at so many advances, each skill's
   lines of that `how` added up), `total` with `most`, or `count`. With none of
-  them, only where the lines come from is checked.
+  them, only where the lines come from is checked. `"count": "species-random"`
+  is the number of random talents the species' list gives (`{"random": 3}`).
+- Where several grants give the same `how` and `kind` (a species' listed
+  talents and its random ones), each line goes to the first grant that offers
+  it and has room; a species' talent takes one item of its list (one of an
+  "or"), so a rolled talent that is also on the list counts as rolled once the
+  list's item is taken. A line no grant offers is a difference and is not
+  counted towards any grant.
 
 ## Which rules are read
 
@@ -63,7 +71,8 @@ the builder does not change.
 
 ## Consequences
 
-- Random species talents ("3 Random Talents") are not yet a grant: such a
-  talent fails the species list and is a difference to read and accept.
+- Where the creation rules carry grants, they decide where a creation talent
+  comes from; the build's older check that a talent is on the species' or a
+  career's list no longer looks at `species` and `career` lines.
 - `from` and the three ways of giving are a closed vocabulary; a new one is a
   decision of its own.

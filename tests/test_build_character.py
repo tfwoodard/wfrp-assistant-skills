@@ -72,6 +72,7 @@ def library(root, house_rules=()):
     write(root, 'talents', [
         {'slug': 'steady', 'name': 'Steady', 'fields': {'max': 'Toughness Bonus', 'tests': 'Watch at night'}},
         {'slug': 'quick', 'name': 'Quick', 'fields': {'max': '1', 'effects': [{'on': 'WP', 'add': 5, 'at': 0}]}},
+        {'slug': 'hum', 'name': 'Hum', 'fields': {'max': '1'}},
         {'slug': 'far-sight', 'name': 'Far Sight', 'fields': {'max': '2'}},
         {'slug': 'lamp-magic', 'name': 'Arcane Magic', 'fields': {'max': '1'}, 'content': [
             table('Arcane Magic Spell Costs', ['Spells known', 'A new spell'], [['Up to Intelligence Bonus × 1', '80 XP'], ['Up to Intelligence Bonus × 2', '160 XP']])]},
@@ -102,7 +103,9 @@ def library(root, house_rules=()):
     write(root, 'tables', [{'slug': 'sea-madness', 'name': 'Sea Madness', 'content': [
         table('Sea Madness', ['d10', 'Madness', 'What it does'],
               [['1–5', 'Salt Dreams', 'Stubborn and cold'], ['6–9', 'Gull Fear', 'Afraid of gulls'], ['10', 'Gull Fear', 'Twice over']])],
-        'fields': {'rows': {'Salt Dreams': {'effects': [{'on': 'WP', 'add': 10}, {'on': 'Fel', 'add': -10}]}}}}])
+        'fields': {'rows': {'Salt Dreams': {'effects': [{'on': 'WP', 'add': 10}, {'on': 'Fel', 'add': -10}]}}}},
+        {'slug': 'lucky-gifts', 'name': 'Lucky Gifts', 'content': [
+            table('Lucky Gifts', ['d10', 'Gift'], [['1–5', 'Quick'], ['6–10', 'Steady']])]}])
     write(root, 'rules', [
         {'slug': 'step-1-species', 'name': 'Choose a Folk', 'content': [para('Roll for a folk and keep it for a bonus.')],
          'fields': {'effects': [{'on': 'xp', 'add': 15, 'at': 0, 'applies': {'how': ['rolled']}}]}},
@@ -488,7 +491,8 @@ class CreationGrants(Case):
     GRANTS = {
         'species-skills-and-talents': [
             {'id': 'skills', 'how': 'species', 'kind': 'skill', 'from': 'species', 'picks': [{'count': 1, 'advances': 5}, {'count': 1, 'advances': 3}], 'at': 0},
-            {'id': 'talents', 'how': 'species', 'kind': 'talent', 'from': 'species', 'at': 0}],
+            {'id': 'talents', 'how': 'species', 'kind': 'talent', 'from': 'species', 'at': 0},
+            {'id': 'lucky', 'how': 'species', 'kind': 'talent', 'from': 'table', 'table': 'tables/lucky-gifts', 'count': 'species-random', 'at': 0}],
         'career-skills-and-talents': [
             {'id': 'skills', 'how': 'career', 'kind': 'skill', 'from': 'first-career-level', 'total': 10, 'most': 6, 'at': 0},
             {'id': 'talent', 'how': 'career', 'kind': 'talent', 'from': 'first-career-level', 'count': 1, 'at': 0}],
@@ -519,19 +523,39 @@ class CreationGrants(Case):
         m = self.build(self.made())
         self.assertEqual(self.ids(m), [])
         self.assertEqual([(c['id'], c['given'], c['left']) for c in m['creation']],
-                         [('skills', {5: 1, 3: 1}, {}), ('talents', 2, None), ('skills', 10, 0), ('talent', 0, 1), ('numbers', 3, 0)])
+                         [('skills', {5: 1, 3: 1}, {}), ('talents', 2, None), ('lucky', 0, 0), ('skills', 10, 0), ('talent', 0, 1), ('numbers', 3, 0)])
 
     def test_too_much_or_from_the_wrong_list_is_a_difference(self):
         self.grant()
         m = self.build(self.made({'skill': 'skills/signals', 'specialisation': 'Flag', 'count': 1, 'how': 'species'},
                                  {'characteristic': 'WP', 'count': 1, 'how': 'career'},
                                  {'talent': 'talents/steady', 'how': 'career'}, {'talent': 'talents/far-sight', 'how': 'career'}))
-        self.assertEqual(self.ids(m), ['creation:species-skills-and-talents/skills:signals-flag', 'creation:species-skills-and-talents/skills',
-                                       'creation:career-skills-and-talents/talent', 'creation:advance-characteristics/numbers:wp',
-                                       'creation:advance-characteristics/numbers'])
+        self.assertEqual(self.ids(m), ['creation:species-skills-and-talents/skills:signals-flag',      # not counted in what is given
+                                       'creation:career-skills-and-talents/talent', 'creation:advance-characteristics/numbers:wp'])
         r = self.made()
         r['advances'][-4]['count'] = 7                       # more than 6 in one skill, 11 in all
         self.assertIn('at most 6 in one', ' '.join(d['text'] for d in self.build(r)['differences']))
+
+    def test_random_talents_come_from_their_table_as_many_as_the_species_lists(self):
+        self.grant()
+        sp = os.path.join(self.root, 'library-data', 'species', 'keepers.json')
+        with open(sp) as f: e = json.load(f)
+        e['fields']['talents'] = ['Far Sight', {'choose_one': ['Steady', 'Quick']}, {'random': 1}]
+        with open(sp, 'w') as f: json.dump(e, f)
+        r = self.made({'talent': 'talents/quick', 'how': 'species'}, {'talent': 'talents/hum', 'how': 'species'})
+        self.assertEqual(self.ids(self.build(r)), ['creation:species-skills-and-talents/talents:hum'])     # not on the list or the table
+        r = self.made({'talent': 'talents/quick', 'how': 'species'})            # Steady from the list, Quick rolled
+        m = self.build(r)
+        self.assertEqual(self.ids(m), [])
+        c = {g['id']: g for g in m['creation'] if g['how'] == 'species' and g['kind'] == 'talent'}
+        self.assertEqual((c['talents']['taken'], c['talents']['to_take'], c['lucky']['taken'], c['lucky']['left']),
+                         (['Far Sight', 'Steady'], [], ['Quick'], 0))
+        r['advances'].append({'talent': 'talents/steady', 'how': 'species', 'times': 1})
+        self.assertIn('creation:species-skills-and-talents/lucky', self.ids(self.build(r)))   # two rolled, one given
+        r = self.made()
+        r['advances'] = [a for a in r['advances'] if a.get('talent') != 'talents/steady']
+        c = {g['id']: g for g in self.build(r)['creation'] if g['kind'] == 'talent' and g['how'] == 'species'}
+        self.assertEqual((c['talents']['to_take'], c['lucky']['left']), (['Steady or Quick'], 1))
 
     def test_a_line_no_grant_covers_is_a_difference(self):
         self.grant(**{'species-skills-and-talents': 1})

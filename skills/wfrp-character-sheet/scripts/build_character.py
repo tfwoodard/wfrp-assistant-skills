@@ -57,7 +57,7 @@ SPELL_HOW = ("talent", "xp", "free", "imported")
 # the rules that say what creation gives (their "grants", ADR 0007): what a record's `species` and
 # `career` advance lines are checked against, with any entry in play that adds to them
 CREATION_RULES = ("rules/species-skills-and-talents", "rules/career-skills-and-talents", "rules/advance-characteristics")
-GRANT_FROM = ("species", "first-career-level")
+GRANT_FROM = ("species", "first-career-level", "table")
 # the creation steps that can earn XP, the rule that says how much (its "xp" effects, ADR 0005), and
 # the ways the record can say the step was settled
 CREATION = (("species", "rules/step-1-species", ("rolled", "chosen")),
@@ -622,7 +622,9 @@ class Builder:
                             f"{name} taken {g['times']} times; its Max is {f['max']} ({mx}).", ref)
             cat = ref.split("/")[0]
             listed = self.from_species(cat, ref, spec) or bool(self.in_career(cat, ref, spec))
-            if e and not listed and set(g["how"]) - {"free"}:
+            # what creation gave is checked against the creation rules' grants, where they have any
+            settled = {"free"} | ({"species", "career"} if self.grants() else set())
+            if e and not listed and set(g["how"]) - settled:
                 self.differ(f"talent-source:{ref.split('/')[-1]}" + (f"/{slug(spec)}" if spec else ""),
                             f"{name} isn't among the species' talents or those of a career level reached.",
                             RULE["non-career"])
@@ -937,8 +939,17 @@ class Builder:
                 out += [(ref, e, g) for g in e.get("fields", {}).get("grants", [])]
         return out
 
-    def granted_from(self, src, kind, line):
+    def table_names(self, ref):
+        """The names a roll table can give: every cell but the roll's, of every table in the entry."""
+        try: e = self.lib.entry(self.lib.current(ref))
+        except RefError: return None
+        return [str(c) for b in e.get("content", []) if b.get("type") == "table" for r in b.get("rows", []) for c in r[1:]]
+
+    def granted_from(self, src, kind, line, g=None):
         """Is this advance line's skill, talent or characteristic one the grant's list offers?"""
+        if src == "table":
+            names = self.table_names((g or {}).get("table") or "") or []
+            return kind != "characteristic" and any(self.offered(kind + "s", n, self.lib.current(line[kind]), line.get("specialisation")) for n in names)
         if src == "species":
             return kind != "characteristic" and self.from_species(kind + "s", self.lib.current(line[kind]), line.get("specialisation"))
         first = next(((cref, f) for cref, n, f in self.lists()["levels"] if n == 1), None)
@@ -950,65 +961,113 @@ class Builder:
                        self.slot_covers(sl, self.lib.current(line["skill"]), line.get("specialisation")) for sl in self.skill_slots())
         return any(self.offered("talents", x, self.lib.current(line["talent"]), line.get("specialisation")) for x in f.get("talents", []))
 
+    def species_items(self):
+        """The species' (or origin's) talents as items to take once each: a name, or one of an "or"."""
+        return [x.get("choose_one") if isinstance(x, dict) else [x]
+                for x in self.lists()["species"].get("talents", []) if not (isinstance(x, dict) and "random" in x)]
+
+    def capacity(self, g):
+        """How many lines a grant can take, when it says: its count, or the species' random talents."""
+        c = g.get("count")
+        if c == "species-random":
+            return sum(int(x["random"]) for x in self.lists()["species"].get("talents", []) if isinstance(x, dict) and "random" in x)
+        return int(c) if c is not None else None
+
     def creation(self):
         """Check the advances gained at creation (`how`: species or career) against what the creation
         rules grant. A grant: {id, how, kind (skill|talent|characteristic), from (species |
-        first-career-level), and what it gives: "picks" [{count, advances}] (so many at so many),
-        "total" with "most" (advances to share out, at most so many in one), or "count" (so many
-        taken), "at"}. Returns [{rule, id, cite, kind, how, given, left}] for the options report."""
+        first-career-level | table, with "table": the roll table's ref), and what it gives: "picks"
+        [{count, advances}] (so many at so many), "total" with "most" (advances to share out, at most
+        so many in one), or "count" (so many taken; "species-random" for the number of random talents
+        the species lists), "at"}. Where several grants give the same kind, each line goes to the
+        first that offers it and has room (a species' talent takes one item of its list). Returns
+        [{rule, id, cite, kind, how, from, given, left, taken, to_take}] for the options report: "to_take"
+        is the species' listed talents not yet taken."""
         lines = [a for a in self.ledger if a.get("how") in ("species", "career")]
         grants = self.grants()
         out = []
         if lines and not grants:
             self.note("The creation rules carry no grants yet, so what the species and career gave at creation isn't checked. Read them.")
             return out
-        covered = set()
+        groups = {}
         for ref, e, g in grants:
-            how, kind, src, gid = g.get("how"), g.get("kind"), g.get("from"), f"creation:{ref.split('/')[-1]}/{g.get('id')}"
-            if kind not in ("skill", "talent", "characteristic") or src not in GRANT_FROM or how not in ("species", "career"):
-                self.note(f"{e['name']}: grant {g.get('id')} has a word the build doesn't know ({how}, {kind}, {src}); not checked.")
+            how, kind, src = g.get("how"), g.get("kind"), g.get("from")
+            if kind not in ("skill", "talent", "characteristic") or src not in GRANT_FROM or how not in ("species", "career") or \
+                    (src == "table" and self.table_names(g.get("table") or "") is None):
+                self.note(f"{e['name']}: grant {g.get('id')} has a word the build doesn't know or a table that isn't here "
+                          f"({how}, {kind}, {src}{', ' + str(g.get('table')) if src == 'table' else ''}); not checked.")
                 continue
-            covered.add((how, kind))
-            mine = [a for a in lines if a["how"] == how and a.get(kind)]
-            per = {}
-            for a in mine:
-                if not self.granted_from(src, kind, a):
+            groups.setdefault((how, kind), []).append([ref, e, g, f"creation:{ref.split('/')[-1]}/{g.get('id')}", []])
+        for (how, kind), gs in groups.items():
+            items = {i: self.species_items() for i, x in enumerate(gs) if x[2]["from"] == "species" and kind == "talent"}
+            for a in (a for a in lines if a["how"] == how and a.get(kind)):
+                offer = [i for i, x in enumerate(gs) if self.granted_from(x[2]["from"], kind, a, x[2])]
+                home = None
+                for i in offer:
+                    cap = self.capacity(gs[i][2])
+                    if cap is not None and len(gs[i][4]) >= cap: continue
+                    if i in items:
+                        it = next((t for t in items[i] if any(self.offered("talents", o, self.lib.current(a["talent"]), a.get("specialisation")) for o in t)), None)
+                        if it is None: continue
+                        items[i].remove(it)
+                    home = i
+                    break
+                if home is None and offer:                              # more than they give: counted where that is said
+                    home = next((i for i in offer if self.capacity(gs[i][2]) is not None or "picks" in gs[i][2] or "total" in gs[i][2]), None)
+                    if home is None:
+                        home = offer[0]
+                        self.differ(f"{gs[home][3]}:{slug(a[kind])}-again", f"{a[kind].split('/')[-1]} is taken from the {how} "
+                                    f"more times than {gs[home][1]['name']} gives it.", gs[home][0])
+                if home is None:
                     try: base = a[kind] if kind == "characteristic" else self.lib.entry(self.lib.current(a[kind]))["name"]
                     except RefError: base = a[kind]
                     name = base + (f" ({a['specialisation']})" if a.get("specialisation") else "")
-                    self.differ(f"{gid}:{slug(name)}", f"{name} is recorded as gained from the {how} at creation; "
-                                f"{'the species' if src == 'species' else 'the first career level'} doesn't offer it.", ref)
-                k = (self.lib.current(a[kind]) if kind != "characteristic" else a[kind], norm(a.get("specialisation") or ""))
-                per[k] = per.get(k, 0) + int(a.get("count", a.get("times", 1)))
-            row = {"rule": ref, "id": g.get("id"), "cite": self.cite(ref), "kind": kind, "how": how, "from": src}
-            if "picks" in g:
-                want = {int(p["advances"]): int(p["count"]) for p in g["picks"]}
-                have = {}
-                for v in per.values(): have[v] = have.get(v, 0) + 1
-                bad = {v: n for v, n in have.items() if n > want.get(v, 0)}
-                if bad:
-                    self.differ(gid, f"{e['name']} gives " + ", ".join(f"{n} at {v}" for v, n in want.items()) +
-                                f"; the record has " + ", ".join(f"{n} at {v}" for v, n in sorted(have.items(), reverse=True)) + ".", ref)
-                row["given"], row["left"] = have, {v: n - have.get(v, 0) for v, n in want.items() if n > have.get(v, 0)}
-            elif "total" in g:
-                total, most = int(g["total"]), int(g.get("most", g["total"]))
-                spent = sum(per.values())
-                over = [k for k, v in per.items() if v > most]
-                if spent > total or over:
-                    self.differ(gid, f"{e['name']} gives {total} advances" + (f", at most {most} in one" if most < total else "") +
-                                f"; the record has {spent}" +
-                                (f", with more than {most} in {len(over)}" if over else "") + ".", ref)
-                row["given"], row["left"] = spent, max(0, total - spent)
-            elif "count" in g:
-                n = sum(per.values())
-                if n > int(g["count"]):
-                    self.differ(gid, f"{e['name']} gives {g['count']} {kind}(s); the record has {n}.", ref)
-                row["given"], row["left"] = n, max(0, int(g["count"]) - n)
-            else:
-                row["given"], row["left"] = sum(per.values()), None        # only where they come from is checked
-            out.append(row)
-        for how, kind in sorted({(a["how"], next(k for k in ("skill", "talent", "characteristic") if a.get(k)))
-                                 for a in lines if any(a.get(k) for k in ("skill", "talent", "characteristic"))} - covered):
+                    ref, e, g, gid, _ = gs[0]
+                    lists = " or ".join("the species" if x[2]["from"] == "species" else "the first career level" if x[2]["from"] != "table"
+                                        else f"the {x[2]['table'].split('/')[-1]} table" for x in gs)
+                    self.differ(f"{gid}:{slug(name)}", f"{name} is recorded as gained from the {how} at creation; {lists} doesn't offer it.", ref)
+                    continue
+                gs[home][4].append(a)
+            for i, (ref, e, g, gid, mine) in enumerate(gs):
+                per, taken = {}, []
+                for a in mine:
+                    k = (self.lib.current(a[kind]) if kind != "characteristic" else a[kind], norm(a.get("specialisation") or ""))
+                    per[k] = per.get(k, 0) + int(a.get("count", a.get("times", 1)))
+                    try: base = a[kind] if kind == "characteristic" else self.lib.entry(self.lib.current(a[kind]))["name"]
+                    except RefError: base = a[kind]
+                    taken.append(base + (f" ({a['specialisation']})" if a.get("specialisation") else "") + (f" {a['count']}" if "count" in a else ""))
+                row = {"rule": ref, "id": g.get("id"), "cite": self.cite(ref), "kind": kind, "how": how, "from": g["from"],
+                       **({"table": g["table"]} if g["from"] == "table" else {}), "taken": taken,
+                       "to_take": [" or ".join(t) for t in items[i]] if i in items else []}
+                cap = self.capacity(g)
+                if "picks" in g:
+                    want = {int(p["advances"]): int(p["count"]) for p in g["picks"]}
+                    have = {}
+                    for v in per.values(): have[v] = have.get(v, 0) + 1
+                    if any(n > want.get(v, 0) for v, n in have.items()):
+                        self.differ(gid, f"{e['name']} gives " + ", ".join(f"{n} at {v}" for v, n in want.items()) +
+                                    f"; the record has " + ", ".join(f"{n} at {v}" for v, n in sorted(have.items(), reverse=True)) + ".", ref)
+                    row["given"], row["left"] = have, {v: n - have.get(v, 0) for v, n in want.items() if n > have.get(v, 0)}
+                elif "total" in g:
+                    total, most = int(g["total"]), int(g.get("most", g["total"]))
+                    spent = sum(per.values())
+                    over = [k for k, v in per.items() if v > most]
+                    if spent > total or over:
+                        self.differ(gid, f"{e['name']} gives {total} advances" + (f", at most {most} in one" if most < total else "") +
+                                    f"; the record has {spent}" + (f", with more than {most} in {len(over)}" if over else "") + ".", ref)
+                    row["given"], row["left"] = spent, max(0, total - spent)
+                elif cap is not None:
+                    n = sum(per.values())
+                    if n > cap:
+                        self.differ(gid, f"{e['name']} gives {cap} {kind}(s)" + (" (the species' random talents)" if g["count"] == "species-random" else "") +
+                                    f"; the record has {n}.", ref)
+                    row["given"], row["left"] = n, max(0, cap - n)
+                else:
+                    row["given"], row["left"] = sum(per.values()), None        # only where they come from is checked
+                out.append(row)
+        kinds = {(a["how"], next(k for k in ("skill", "talent", "characteristic") if a.get(k)))
+                 for a in lines if any(a.get(k) for k in ("skill", "talent", "characteristic"))}
+        for how, kind in sorted(kinds - set(groups)):
             self.differ(f"creation:{how}-{kind}", f"The record has {kind}s gained from the {how} at creation, and no creation rule grants any.")
         return out
 

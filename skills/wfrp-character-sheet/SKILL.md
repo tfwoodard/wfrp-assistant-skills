@@ -57,8 +57,8 @@ creation rules' formulas; nothing when `starting_xp_bonus` is false). Each
 `--how species` or `--how career` line is checked against the creation rules'
 grants (ADR 0007): options.py's "Creation" lists, per grant, what is left, what
 has been taken and the list it comes from, and the species' talents not yet
-taken. A random talent ("3 Random Talents") isn't a grant yet: roll it on the
-table and say so when the sheet reports it.
+taken, and how many random talents are left to roll on their table (roll d100
+on it, show the roll, and `buy --talent ... --how species` the result).
 
 1. **Species**: roll on the library's species table or choose, as `creation`
    allows, and record which, since keeping a roll earns bonus XP.
