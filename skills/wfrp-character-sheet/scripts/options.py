@@ -15,7 +15,8 @@ Reads the record as it is and reports, for the current career and the levels rea
     times taken, the Max as a number, the price, and "at its Max" when it can't be taken again;
   - creation, while there is something left to give: each grant of the creation rules (ADR 0007)
     with what it still gives, what has been taken from it, and the list it gives from; the
-    species' talents not yet taken (an "or" is one choice; a random talent is rolled);
+    species' talents not yet taken (an "or" is one choice), and random talents left to roll on
+    their table;
   - what completing the current level still needs, and the least XP that takes;
   - earlier levels left unfinished.
 
@@ -44,28 +45,13 @@ def creation(b, m):
              ("first-career-level", "characteristic"): [bc.CHAR_NAME.get(c, c) for c in first.get("characteristics", [])]}
     out = []
     for g in m.get("creation", []):
-        mine = [a for a in b.ledger if a.get("how") == g["how"] and a.get(g["kind"])]
-        taken = []
-        for a in mine:
-            n = a[g["kind"]]
-            if g["kind"] != "characteristic":
-                try: n = b.lib.entry(b.lib.current(n))["name"]
-                except Exception: pass
-            taken.append(n + (f" ({a['specialisation']})" if a.get("specialisation") else "") +
-                         (f" {a['count']}" if "count" in a else ""))
-        offer = lists.get((g["from"], g["kind"]), [])
-        open_ = []
-        if g["kind"] == "talent" and g["from"] == "species":          # each listed talent, or one of an "or"
-            for x in offer:
-                opts = x.get("choose_one", []) if isinstance(x, dict) else [x]
-                if not any(b.granted_from("species", "talent", a) and any(
-                        b.offered("talents", o, b.lib.current(a["talent"]), a.get("specialisation")) for o in opts) for a in mine):
-                    open_.append(" or ".join(opts))
-        left = g["left"]
-        if not (left or open_): continue
-        out.append({"rule": g["rule"], "id": g["id"], "cite": g["cite"], "how": g["how"], "kind": g["kind"],
-                    "left": left, "to_take": open_, "taken": taken,
-                    "from": [x if isinstance(x, str) else " or ".join(x.get("choose_one", [])) for x in offer]})
+        if g["from"] == "table":
+            offer = [f"the {b.lib.entry(b.lib.current(g['table']))['name']} table (roll on it)"]
+        else:
+            offer = [x if isinstance(x, str) else " or ".join(x.get("choose_one", [])) for x in lists.get((g["from"], g["kind"]), [])
+                     if not (isinstance(x, dict) and "random" in x)]
+        if not (g["left"] or g["to_take"]): continue
+        out.append({k: g[k] for k in ("rule", "id", "cite", "how", "kind", "left", "to_take", "taken")} | {"from": offer})
     return out
 
 
