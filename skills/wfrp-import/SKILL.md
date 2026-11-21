@@ -191,6 +191,15 @@ part of the section. So is a new specialisation that has rules of its own (a
 new kind of *Trained*, a Channelling skill for one lore): name it as printed,
 with the brackets, and give it `adds-to` the entry for its group.
 
+**Headings with nothing under them.** A heading whose only contents are other
+entries ("Skills and Talents" over talents that are entries themselves) would
+make an entry with no text: the report lists those under `empty_entries`. Mark
+the plan's entry `"heading_only": true` and no entry is written; the heading's
+words count as left out and the report lists it under `headings_only`. Keep the
+marked entry in the plan: it still ends the section before it, and it is the
+record of what was left out, so removing the mark brings the entry back. Say
+in the chapter's notes which headings were left out this way.
+
 **GM-only material.** Mark it `audience: "gm"` in the plan: adventures and
 adventure hooks (boxed or printed in the text), and the NPCs a book offers as
 patrons or adversaries, with their profiles, ambitions and "as Patron" text.
