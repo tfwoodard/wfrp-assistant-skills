@@ -478,7 +478,7 @@ Each folder in `campaigns/` is one campaign, configured by its `campaign.json`:
 | `edition` | The WFRP edition the campaign plays by. Left out means the library's `edition`. |
 | `sources` | The **sources in play**, in order of precedence: library source codes and this campaign's source codes. Only entries from these sources may be used. |
 | `campaign_sources` | This campaign's own sources (§3). |
-| `house_rules` | Added to the library's `house_rules`. Where they conflict, the campaign's win. |
+| `house_rules` | Added to the library's `house_rules`. Where they conflict, the campaign's win. Each is a short string, or `{ "id": "hardy-twice", "text": "Hardy may be taken one more time than its Max", "from": "<where the group took it from, if anywhere>", "accepts": ["talent-max:hardy"] }` when it settles something the character builder reports: `accepts` lists the ids (with `*` wildcards) of the differences it allows, on every character in the campaign. |
 | `creation` | How new characters are made: for species, career and characteristics, `random` (roll and keep), `random-or-choose` (roll, and choosing costs the Rulebook's XP bonus), or `choose`. `starting_xp_bonus` false turns the bonus XP for keeping rolls off. Left out means the Rulebook's rules. |
 | `allowed.<category>` | `"all"`, or `{ "include": [slugs] }` (only these), or `{ "exclude": [slugs] }` (all but these). Applied after the `sources` filter. Categories left out mean `"all"`. |
 | `party` | The current party. `character` is a path to the character's record, relative to the campaign folder. |
@@ -530,9 +530,10 @@ A character lives in the campaign's `characters/` folder:
 
 - `<slug>.json`: the **character record**, the source of truth. It holds only
   the character's choices and facts (species, careers taken and their level,
-  advances bought, talents taken, XP, trappings carried, wounds, corruption,
+  everything gained and how, XP, trappings carried, wounds, corruption,
   mutations, psychology, ambitions), each pointing at the library entry it
-  comes from as `<category>/<slug>`. The character-sheet skill's
+  comes from as `<category>/<slug>`, and the differences from the rules the
+  group has accepted for this character. The character-sheet skill's
   `references/character-record.md` gives the format.
 - `<slug>.md` (and `<slug>.pdf` when printed): the readable sheet, built from
   the record and the library. Rebuild it whenever the record or the library

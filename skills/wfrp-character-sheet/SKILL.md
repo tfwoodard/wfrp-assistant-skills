@@ -19,9 +19,9 @@ Each character lives in the campaign's `characters/` folder:
 - `<slug>.json`: the **character record**, the source of truth. It holds only
   the character's choices and facts, each pointing at the library entry it
   comes from.
-- `<slug>.md`: the readable sheet, built from the record and the library.
-  Rebuild it whenever the record or the library changes. Never edit it by
-  hand.
+- `<slug>.md`: the readable sheet, built from the record and the library by
+  `scripts/build_character.py`. Rebuild it whenever the record or the library
+  changes. Never edit it by hand.
 
 Never copy into the record what a rule decides: a talent's text, a weapon's
 damage, a characteristic bonus, a career level's skills. Those are read from
@@ -65,18 +65,20 @@ which table and show each roll. Record bonus XP for kept rolls only when
 
 For every purchase:
 
-1. Check it's allowed now: a characteristic, skill or talent of the
-   character's current career level (or an earlier level of the same career),
-   or something the rules allow outside the career at the higher cost; a
-   talent's maximum; a career change's cost and whether the current level is
-   complete.
-2. Work out the XP cost from the library's advance cost table (an import must
-   have confirmed it), given the number of advances already bought.
-3. Show the cost and the new total, then write the advance into the record's
-   `advances` with the session it was bought in, and update `xp.spent`.
+1. Add the line to a copy of the record's `advances` (`how: "xp"`, no `xp`:
+   the build prices it) and build it. Read the talent's entry first when it is
+   a talent, and write the `effects` it has on numbers.
+2. The build's `xp.purchases` gives the price by the library's cost tables, the
+   number already taken and whether the career lists it; its `differences` and
+   `notes` say what the rules object to (a talent's maximum, a talent from
+   another level, a level left incomplete, XP the character doesn't have).
+3. Show the cost, the new total and anything the build reported, then save the
+   record with the session it was bought in and a `changelog` line.
 
 Explain any rule that blocks a purchase and offer legal alternatives. If the GM
-allows an exception, record it in `notes` and in `changelog`.
+allows it anyway, write it in the record's `exceptions` with the difference's
+`id` and why, or, when the group plays it that way for everyone, as a house
+rule in `campaign.json` (layout §8). The build then lists it as accepted.
 
 ## Play-time changes
 
@@ -92,23 +94,50 @@ call for one, but let the GM decide.
 
 ## Building the sheet
 
-Read the record and every entry it points at, then write `<slug>.md`:
-characteristics (initial, advances, current, bonus), career and level with
-status, skills with their characteristic and advances, talents with their
-taken count and a one-line summary in your words with a citation, spells,
-trappings with encumbrance against the limit, Fate/Fortune/Resilience/Resolve,
-wounds (worked out from the rules, with Hardy and other talents that change
-them), movement, corruption and mutations, psychology, ambitions, XP current /
-spent / total. Show anything still to settle from the record's `incomplete`
-at the top. Show the numbers that changed since the last build, with the math
-the first time.
+```
+python3 scripts/build_character.py <record>.json --library <root> --campaign <slug> --md --out <slug>.md
+```
+
+The script works out every number from the library (never do the sums by
+hand, and never edit its output): characteristics and bonuses, career, level
+and status, movement, Wounds, Fate and Resilience, the Corruption threshold,
+Encumbrance, every basic skill and the advanced ones taken, talents with their
+maximum, spells in the character's own numbers, trappings with weapon damage
+and armour by location, and XP. Without `--md` it prints the same as JSON.
+When the library is reached through the Drive connector, run
+`scripts/needs.py` first: it lists the library files to fetch, all at once.
+
+The sheet has three lists to go through with the player, and to mention every
+time they aren't empty:
+
+- **Differs from the rules**: each with its `id` and the rule. The build never
+  alters the record to fit; the sheet shows what the record says.
+- **To settle**: the record's `incomplete`.
+- **Not worked out**: what the build couldn't do and why (an entry without a
+  field it needs, a table that stops short, a price it can't read). Work those
+  out from the library yourself, with citations, and say that you did.
+
+After the sheet, add a one-line summary of each talent in your own words with
+its citation, when the player asks for one.
+
+## A character kept on a sheet
+
+For a character someone has kept by hand in the group's spreadsheet, read it
+with `scripts/read_sheet_export.py`, write the record from what it says
+(`references/character-record.md`, "A character kept on a sheet"), and build
+with `--shown` to list where the sheet's numbers and the rules' differ. Expect
+differences: the table may play house rules nobody has written down. Report
+them all, change nothing, and let the player and GM say which are mistakes,
+which are exceptions and which are house rules.
 
 For a new character, offer to add it to the campaign's `party` in
 `campaign.json`.
 
 ## Checking a character
 
-Asked "is this character legal?", rebuild it and check every choice and every
-advance against the library, and the XP spent against the advance costs.
-Report each problem with the rule that decides it, and change nothing until
-the player or GM agrees.
+Asked "is this character legal?", rebuild it and report the build's
+differences, each with the rule that decides it. Then check what the build
+can't: read each talent's entry for conditions written in its text (a talent
+that may be taken once whatever its specialisation, a prerequisite), and that
+each has its `effects` in the record. Change nothing until the player or GM
+agrees.
