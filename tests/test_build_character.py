@@ -450,6 +450,53 @@ class Settling(Case):
         self.assertEqual(m['accepted'][-1]['house_rule'], 'sharp-eyes')
 
 
+class HouseRules(Case):
+    def rules(self, *house_rules):
+        path = os.path.join(self.root, 'campaigns', 'rock', 'campaign.json')
+        with open(path) as f:
+            c = json.load(f)
+        c['house_rules'] = list(house_rules)
+        with open(path, 'w') as f:
+            json.dump(c, f)
+
+    def bought(self):
+        r = record(careers=[{'ref': 'careers/warden', 'level': 2}], xp={'total': 1000})
+        r['advances'] += [{'talent': 'talents/steady', 'how': 'xp'},          # the 2nd time; a level 1 talent
+                          {'talent': 'talents/steady', 'how': 'xp'}]          # the 3rd
+        return r
+
+    def test_by_the_books_talents_cost_more_each_time_and_come_from_the_current_level(self):
+        m = self.build(self.bought())
+        self.assertEqual([p['xp'] for p in m['xp']['purchases']], [200, 300])
+        self.assertTrue(any("isn't a talent of the current career level" in n for n in m['notes']))
+        self.assertEqual(m['house_rules'], {})
+
+    def test_a_house_rule_sets_flat_talent_costs_and_opens_earlier_levels(self):
+        self.rules({'id': 'flat-talents', 'text': 'A talent costs the same every time', 'set': {'talent_cost': 'flat'}},
+                   {'id': 'old-lessons', 'text': 'Earlier levels still teach', 'set': {'talents_from': 'levels-reached'}})
+        m = self.build(self.bought())
+        self.assertEqual([p['xp'] for p in m['xp']['purchases']], [100, 100])
+        self.assertFalse(any("isn't a talent of" in n for n in m['notes']))
+        self.assertEqual(m['house_rules']['talent_cost'], {'value': 'flat', 'house_rule': 'flat-talents', 'text': 'A talent costs the same every time'})
+        self.assertIn('House rule: Earlier levels still teach (talents from: levels-reached)', bc.markdown(m))
+
+    def test_a_setting_the_build_does_not_know_is_said_and_not_applied(self):
+        self.rules({'id': 'cheap', 'text': 'Half price', 'set': {'talent_cost': 'half', 'skill_cost': 'flat'}})
+        m = self.build(self.bought())
+        self.assertEqual([p['xp'] for p in m['xp']['purchases']], [200, 300])
+        self.assertEqual(sum("which the build doesn't know" in n for n in m['notes']), 2)
+
+    def test_an_unfinished_level_stays_on_the_sheet_when_a_house_rule_accepts_it(self):
+        self.rules({'id': 'by-plot', 'text': 'The GM moves careers on by the story', 'accepts': ['level-complete:*']})
+        m = self.build(record(careers=[{'ref': 'careers/warden', 'level': 2}]))
+        self.assertEqual(m['differences'], [])
+        self.assertEqual(m['accepted'][0]['house_rule'], 'by-plot')
+        self.assertEqual(m['career']['to_complete'], [{'career': 'Warden', 'level': 1, 'level_name': 'Lamp Boy',
+                                                       'missing': ['I, T below 3 advances', '2 of its skills at 3 advances (8 needed)']}])
+        self.assertIn('Still to complete in Warden 1 (Lamp Boy): I, T below 3 advances; 2 of its skills at 3 advances (8 needed)', bc.markdown(m))
+        self.assertEqual(self.build(record())['career']['to_complete'], [])
+
+
 class Sheet(Case):
     def test_the_readable_sheet_has_every_part(self):
         r = record(trappings=[{'ref': 'trappings/boat-hook'}], spells=[{'ref': 'spells/glow'}], incomplete=['Pick a name for the boat'],
