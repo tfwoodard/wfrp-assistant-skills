@@ -15,7 +15,7 @@ SCRIPTS = os.path.join(ROOT, 'skills', 'wfrp-rules-lookup', 'scripts')
 sys.path.insert(0, SCRIPTS)
 import excerpt  # noqa: E402
 import find_entry  # noqa: E402
-from library import Library, MissingFiles, RefError, cite  # noqa: E402
+from library import Library, MissingFiles, RefError, cite, norm  # noqa: E402
 
 
 def para(text):
@@ -237,6 +237,12 @@ class ReaderTest(unittest.TestCase):
         self.assertIn('talents/steady: not used in this campaign', r.stderr)
         with open(out) as f:
             self.assertIn('The text of Watch, as held.', f.read())
+
+
+class Names(unittest.TestCase):
+    def test_accents_quotes_and_spaces_do_not_make_names_differ(self):
+        self.assertEqual(norm('Language  (Qu\u00e9lar\u00edn)'), norm('language (Quelarin)'))
+        self.assertEqual(norm('Ring\u2019s Edge'), "ring's edge")
 
 
 if __name__ == '__main__':

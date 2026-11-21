@@ -1875,17 +1875,19 @@ def old_role(x):
     return isinstance(x, list) and any(old_role(v) for v in x)
 
 
-FORMULA_KINDS = ('effects', 'checks', 'rows')
+FORMULA_KINDS = ('effects', 'checks', 'grants', 'rows')
 
 
 def formula_problem(entry, kind, items):
     """Why these formulas can't sit on this entry, or None (ADR 0005). `kind` is "effects" or
-    "checks" (a list; each names with "at" the block of the entry that says so) or "rows"
+    "checks" or "grants" (a list; each names with "at" the block of the entry that says so) or "rows"
     ({"<a cell of the row>": {"effects": [...], "checks": [...]}}, for single rows of a table entry:
     the name must be the whole text of a cell of exactly one row). Only the shape is checked: what
     an effect may be "on" and the words of a "test" are the character builder's to know."""
     def shape(k, its, row=None):
-        if k not in ('effects', 'checks') or not isinstance(its, list):
+        if k == 'grants' and row:
+            return 'a table row takes "effects" and "checks"'
+        if k not in ('effects', 'checks', 'grants') or not isinstance(its, list):
             return 'takes "effects" and "checks", each a list' + ('' if row else ', and "rows" for a table\'s rows')
         for it in its:
             if not isinstance(it, dict):
@@ -1894,6 +1896,8 @@ def formula_problem(entry, kind, items):
                 return 'an effect needs "on" and "add" (or "multiply", for a price)'
             if k == 'checks' and not (it.get('id') and ('test' in it or it.get('read'))):
                 return 'a check needs an "id" and a "test" or a "read"'
+            if k == 'grants' and not all(it.get(w) for w in ('id', 'how', 'kind', 'from')):
+                return 'a grant needs "id", "how", "kind" and "from" (ADR 0007)'
             if row is None and (not isinstance(it.get('at'), int) or not 0 <= it['at'] < len(entry['content'])):
                 return f'"at" must be the number of one of the entry\'s {len(entry["content"])} blocks (from 0)'
         return None

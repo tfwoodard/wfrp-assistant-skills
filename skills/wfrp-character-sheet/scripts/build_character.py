@@ -54,6 +54,10 @@ SCALED = {"spell_cost"}            # targets an effect multiplies ("multiply": 0
 SPELL_COSTS = {"petty": ("Petty Magic", "Petty Magic Spell Costs"), "lore": ("Arcane Magic", "Arcane Magic Spell Costs"),
                "arcane": ("Arcane Magic", "Arcane Magic Spell Costs")}
 SPELL_HOW = ("talent", "xp", "free", "imported")
+# the rules that say what creation gives (their "grants", ADR 0007): what a record's `species` and
+# `career` advance lines are checked against, with any entry in play that adds to them
+CREATION_RULES = ("rules/species-skills-and-talents", "rules/career-skills-and-talents", "rules/advance-characteristics")
+GRANT_FROM = ("species", "first-career-level")
 # the creation steps that can earn XP, the rule that says how much (its "xp" effects, ADR 0005), and
 # the ways the record can say the step was settled
 CREATION = (("species", "rules/step-1-species", ("rolled", "chosen")),
@@ -306,6 +310,7 @@ class Builder:
         m["spells"] = self.spells(m["talents"])
         m["trappings"], m["armour"], m["encumbrance"] = self.trappings()
         m["xp"] = self.xp()
+        m["creation"] = self.creation()
         self.levels_complete(m)
         for k in ("money", "ambitions", "details"):
             if rec.get(k) not in (None, "", [], {}): m[k] = rec[k]
@@ -918,6 +923,93 @@ class Builder:
             out["current"] = total - out["spent"]
             if out["current"] < 0:
                 self.differ("xp-overspent", f"{out['spent']} XP spent of {total} earned: {-out['current']} more than the character has.")
+        return out
+
+    def grants(self):
+        """[(rule ref, entry, grant)] from the creation rules in play and what adds to them."""
+        out = []
+        for rule in CREATION_RULES:
+            refs = [self.lib.current(rule)]
+            refs += [r for r in self.lib.added_by(refs[0]) if r not in refs]
+            for ref in refs:
+                try: e = self.lib.entry(ref)
+                except RefError: continue
+                out += [(ref, e, g) for g in e.get("fields", {}).get("grants", [])]
+        return out
+
+    def granted_from(self, src, kind, line):
+        """Is this advance line's skill, talent or characteristic one the grant's list offers?"""
+        if src == "species":
+            return kind != "characteristic" and self.from_species(kind + "s", self.lib.current(line[kind]), line.get("specialisation"))
+        first = next(((cref, f) for cref, n, f in self.lists()["levels"] if n == 1), None)
+        if not first: return False
+        f = first[1]
+        if kind == "characteristic": return line["characteristic"] in f.get("characteristics", [])
+        if kind == "skill":
+            return any(sl["career"] == first[0] and sl["level"] == 1 and
+                       self.slot_covers(sl, self.lib.current(line["skill"]), line.get("specialisation")) for sl in self.skill_slots())
+        return any(self.offered("talents", x, self.lib.current(line["talent"]), line.get("specialisation")) for x in f.get("talents", []))
+
+    def creation(self):
+        """Check the advances gained at creation (`how`: species or career) against what the creation
+        rules grant. A grant: {id, how, kind (skill|talent|characteristic), from (species |
+        first-career-level), and what it gives: "picks" [{count, advances}] (so many at so many),
+        "total" with "most" (advances to share out, at most so many in one), or "count" (so many
+        taken), "at"}. Returns [{rule, id, cite, kind, how, given, left}] for the options report."""
+        lines = [a for a in self.ledger if a.get("how") in ("species", "career")]
+        grants = self.grants()
+        out = []
+        if lines and not grants:
+            self.note("The creation rules carry no grants yet, so what the species and career gave at creation isn't checked. Read them.")
+            return out
+        covered = set()
+        for ref, e, g in grants:
+            how, kind, src, gid = g.get("how"), g.get("kind"), g.get("from"), f"creation:{ref.split('/')[-1]}/{g.get('id')}"
+            if kind not in ("skill", "talent", "characteristic") or src not in GRANT_FROM or how not in ("species", "career"):
+                self.note(f"{e['name']}: grant {g.get('id')} has a word the build doesn't know ({how}, {kind}, {src}); not checked.")
+                continue
+            covered.add((how, kind))
+            mine = [a for a in lines if a["how"] == how and a.get(kind)]
+            per = {}
+            for a in mine:
+                if not self.granted_from(src, kind, a):
+                    try: base = a[kind] if kind == "characteristic" else self.lib.entry(self.lib.current(a[kind]))["name"]
+                    except RefError: base = a[kind]
+                    name = base + (f" ({a['specialisation']})" if a.get("specialisation") else "")
+                    self.differ(f"{gid}:{slug(name)}", f"{name} is recorded as gained from the {how} at creation; "
+                                f"{'the species' if src == 'species' else 'the first career level'} doesn't offer it.", ref)
+                k = (self.lib.current(a[kind]) if kind != "characteristic" else a[kind], norm(a.get("specialisation") or ""))
+                per[k] = per.get(k, 0) + int(a.get("count", a.get("times", 1)))
+            row = {"rule": ref, "id": g.get("id"), "cite": self.cite(ref), "kind": kind, "how": how, "from": src}
+            if "picks" in g:
+                want = {int(p["advances"]): int(p["count"]) for p in g["picks"]}
+                have = {}
+                for v in per.values(): have[v] = have.get(v, 0) + 1
+                bad = {v: n for v, n in have.items() if n > want.get(v, 0)}
+                if bad:
+                    self.differ(gid, f"{e['name']} gives " + ", ".join(f"{n} at {v}" for v, n in want.items()) +
+                                f"; the record has " + ", ".join(f"{n} at {v}" for v, n in sorted(have.items(), reverse=True)) + ".", ref)
+                row["given"], row["left"] = have, {v: n - have.get(v, 0) for v, n in want.items() if n > have.get(v, 0)}
+            elif "total" in g:
+                total, most = int(g["total"]), int(g.get("most", g["total"]))
+                spent = sum(per.values())
+                over = [k for k, v in per.items() if v > most]
+                if spent > total or over:
+                    self.differ(gid, f"{e['name']} gives {total} advances" + (f", at most {most} in one" if most < total else "") +
+                                f"; the record has {spent}" +
+                                (f", with more than {most} in {len(over)}" if over else "") + ".", ref)
+                row["given"], row["left"] = spent, max(0, total - spent)
+            elif "count" in g:
+                n = sum(per.values())
+                if n > int(g["count"]):
+                    self.differ(gid, f"{e['name']} gives {g['count']} {kind}(s); the record has {n}.", ref)
+                row["given"], row["left"] = n, max(0, int(g["count"]) - n)
+            else:
+                row["given"], row["left"] = sum(per.values()), None        # only where they come from is checked
+            out.append(row)
+        for how, kind in sorted({(a["how"], next(k for k in ("skill", "talent", "characteristic") if a.get(k)))
+                                 for a in lines if any(a.get(k) for k in ("skill", "talent", "characteristic"))} - covered):
+            self.differ(f"creation:{how}-{kind}", f"The record has {kind}s gained from the {how} at creation, and no creation rule grants any.")
         return out
 
     def creation_xp(self):

@@ -99,8 +99,12 @@ What a rule does to one of a character's numbers (a talent that adds to Wounds o
 _Avoid_: Modifier, bonus (a characteristic's bonus is its tens digit)
 
 **Formula**:
-An effect or a check written on the entry that states the rule, in a small fixed vocabulary, for the builder to evaluate. A reading of the entry's text, confirmed by the Librarian; the text stays the authority.
+An effect, a check or a grant written on the entry that states the rule, in a small fixed vocabulary, for the builder to evaluate. A reading of the entry's text, confirmed by the Librarian; the text stays the authority.
 _Avoid_: Script, code, automation
+
+**Grant**:
+What a creation rule gives a new character to share out (so many skills at so many advances, so many advances in all, one talent), and from which list: the species' or the first career level's. Advances recorded as gained from the species or the career at creation are checked against the grants (ADR 0007).
+_Avoid_: Allowance, budget
 
 **Difference**:
 A place where a character record and the rules disagree, found by the builder and given an id. It is reported, never corrected.
