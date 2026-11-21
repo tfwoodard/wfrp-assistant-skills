@@ -333,7 +333,7 @@ class CareerInChapterTest(unittest.TestCase):
             self.assertEqual(sorted(r['slug'] for r in records), ['beacon-law', 'lamp-warden', 'tower-trades'])
             self.assertNotIn('same_name', report)
         with tempfile.TemporaryDirectory() as d:
-            plan = dict(PLAN, relations={'careers/lamp-warden-test': [{'role': 'replaces', 'to': 'careers/lamp-warden'}],
+            plan = dict(PLAN, relations={'careers/lamp-warden-test': [{'role': 'version-of', 'to': 'careers/lamp-warden'}],
                                          'rules/beacon-law-test': [{'role': 'adds-to', 'to': 'rules/beacon-law'}]})
             _, _, report, records = self.convert(d, taken=[('careers', ['lamp-warden']), ('rules', ['beacon-law'])],
                                                  plan=plan)

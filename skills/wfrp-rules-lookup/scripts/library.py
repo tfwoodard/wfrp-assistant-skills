@@ -14,7 +14,7 @@ last part isn't a heading, it names a paragraph that starts with it in bold ("**
 
 Entries come from the campaign's own library-data first (its homebrew), then the library's, and
 only from the campaign's sources in play (library-layout.md §8). An entry that another entry in
-play *replaces* isn't used: the replacement is. Players never see `gm/` data or entries marked
+play is another *version-of* is chosen between by the campaign's source order. Players never see `gm/` data or entries marked
 `audience: gm`; pass gm=True for the GM.
 """
 import html as _html
@@ -41,6 +41,8 @@ SPECIALISED = re.compile(r"^(.*?)\s*\(([^()]*)\)$")
 class RefError(LookupError):
     pass
 
+
+VERSION = ("version-of", "replaces")       # the mark joining versions of one thing; "replaces" was its old name
 
 class MissingFiles(Exception):
     """Library files a read needed that aren't in this copy of the library (paths from its root).
@@ -168,10 +170,11 @@ class Library:
         return self._updated
 
     def replaced(self):
-        """{ref: the ref used instead of it}. Entries joined by *replaces* (layout §4) are versions of
+        """{ref: the ref used instead of it}. Entries joined by *version-of* (layout §4; *replaces* in
+        libraries written before the mark was renamed) are versions of
         one thing, and a campaign uses one of them: the version from the source that comes first in
         its `sources` (layout §8), whichever way the relation points. Between versions the campaign
-        ranks the same (one source, or no campaign), the one that replaces the other is used.
+        ranks the same (one source, or no campaign), the one carrying the mark (the later import) is used.
         Only versions that can be used here count (source in play, not the GM's unless gm)."""
         if self._replaced is None:
             src, edges = {}, []
@@ -186,7 +189,7 @@ class Library:
                             continue
                         ref = f'{cat}/{rec["slug"]}'
                         src[ref] = rec.get("source")
-                        edges += [(ref, rel["to"]) for rel in rec.get("relations", []) if rel.get("role") == "replaces"]
+                        edges += [(ref, rel["to"]) for rel in rec.get("relations", []) if rel.get("role") in VERSION]
             group = {}                                   # ref -> the set of versions it belongs to
             for a, b in edges:
                 g = group.get(a, {a}) | group.get(b, {b})
@@ -249,7 +252,7 @@ class Library:
 
     def hidden(self, category, rec):
         """Why a record isn't used here (layout §8), or None when it is: its source isn't in play, it's
-        for the GM, another entry in play replaces it, or the campaign's edition updated it."""
+        for the GM, another version of it is used instead, or the campaign's edition updated it."""
         if self.sources and rec.get("source") not in self.sources:
             return f'{rec.get("source")} isn\'t one of the sources in play'
         if rec.get("audience") == "gm" and not self.gm:
@@ -258,7 +261,7 @@ class Library:
         if by:
             first = self._by_order.get(f'{category}/{rec["slug"]}')
             return f"{by} is used instead: {first} comes before {rec.get('source')} in the campaign's sources" if first \
-                else f"{by} replaces it"
+                else f"{by} is the version used"
         if f'{category}/{rec["slug"]}' in self.updated():
             by = [x["to"] for x in rec.get("relations", []) if x.get("role") == "updated-by"]
             return f"the {self.edition} rules updated it" + (f' ({", ".join(by)})' if by else "")

@@ -84,7 +84,7 @@ def library(root, house_rules=()):
     write(root, 'trappings', [
         {'slug': 'boat-hook', 'name': 'Boat Hook', 'fields': {'kind': 'melee', 'group': 'Basic', 'enc': '1',
                                                              'reach': 'Long', 'damage': '+SB+1', 'qualities': ['Hooked']}},
-        {'slug': 'boat-hook-pier', 'name': 'Boat Hook', 'source': 'PIER', 'relations': [{'role': 'replaces', 'to': 'trappings/boat-hook'}],
+        {'slug': 'boat-hook-pier', 'name': 'Boat Hook', 'source': 'PIER', 'relations': [{'role': 'version-of', 'to': 'trappings/boat-hook'}],
          'fields': {'kind': 'melee', 'group': 'Basic', 'enc': '2', 'reach': 'Long', 'damage': '+SB+3', 'qualities': []}},
         {'slug': 'oilskin', 'name': 'Oilskin', 'fields': {'kind': 'armour', 'enc': '1', 'locations': 'Arms, Body', 'armour_points': '1'}},
         {'slug': 'cap', 'name': 'Cap', 'fields': {'kind': 'armour', 'enc': '1', 'locations': 'Head', 'armour_points': '1'}},

@@ -51,7 +51,7 @@ def library(root):
         {'slug': 'tending-secret', 'name': 'Tending (Secret Fires)', 'audience': 'gm', 'relations': [{'role': 'adds-to', 'to': 'skills/tending'}]}])
     write(root, 'talents', [
         {'slug': 'steady', 'name': 'Steady', 'fields': {'max': 'Toughness Bonus'}},
-        {'slug': 'steady-pier', 'name': 'Steady', 'source': 'PIER', 'relations': [{'role': 'replaces', 'to': 'talents/steady'}]},
+        {'slug': 'steady-pier', 'name': 'Steady', 'source': 'PIER', 'relations': [{'role': 'version-of', 'to': 'talents/steady'}]},
         {'slug': 'far-sight', 'name': 'Far Sight', 'source': 'OUT'}])
     write(root, 'trappings', [
         {'slug': 'lamp', 'name': 'Lamp'},
@@ -167,7 +167,7 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(used[0]['cite'], '(LAMP, ch. 2 › Watch, p. 12)')
         used, _ = find_entry.search(self.lib(), 'watching', ['rules'])
         self.assertEqual(used[0]['cite'], '(LAMP, Appendix I › Watching the Coast, p. 12)')
-        self.assertIn('replaces talents/steady: use this one instead of that entry',
+        self.assertIn("version-of talents/steady: the same thing as that entry, as this source prints it: the campaign's source order says which is used",
                       find_entry.show(find_entry.search(self.lib(), 'steady', ['talents'])[0][0], self.lib(), False))
 
     def test_the_campaigns_source_order_decides_between_versions(self):
@@ -189,7 +189,7 @@ class ReaderTest(unittest.TestCase):
         none = Library(self.tmp.name)                            # no campaign: the one that replaces the other
         self.assertEqual(none.current('talents/steady'), 'talents/steady-pier')
         rec = next(r for _, r in none.records('talents') if r['slug'] == 'steady')
-        self.assertEqual(none.hidden('talents', rec), 'talents/steady-pier replaces it')
+        self.assertEqual(none.hidden('talents', rec), 'talents/steady-pier is the version used')
 
     def test_an_entry_is_shown_with_the_entries_in_play_that_add_to_it(self):
         lib = self.lib()

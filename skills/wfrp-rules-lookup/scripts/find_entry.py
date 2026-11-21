@@ -11,7 +11,7 @@ entry's `.md` path from the library's root, and its relations with what each mea
 for the answer (use both, use instead, cite either, say which you mean).
 
 Entries the campaign doesn't use are listed apart, each with the rule that removes
-it (its source isn't in play, it's for the GM, another entry in play replaces it),
+it (its source isn't in play, it's for the GM, another version of it is used instead),
 so the answer can say so instead of "not found" (layout §8). --gm includes GM-only
 entries and the campaign's `gm/` library data: only when the user is that GM.
 
@@ -25,7 +25,8 @@ import library  # noqa: E402
 from library import CATEGORIES, Library, chapter_titles, cite, norm  # noqa: E402
 
 MEANS = {"adds-to": "use both: that entry first, then this one",
-         "replaces": "use this one instead of that entry",
+         "version-of": "the same thing as that entry, as this source prints it: the campaign's source order says which is used",
+         "replaces": "the same thing as that entry, as this source prints it: the campaign's source order says which is used",
          "reprint-of": "the same text: cite the one whose source comes first in play",
          "distinct-from": "a different thing of the same name: say which you mean",
          "updated-by": "an older edition's entry, updated by that one"}

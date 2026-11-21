@@ -78,11 +78,12 @@ the description. A line of the scheme's box that isn't read is an error.
 Slugs. --taken CATEGORY=_index.json (repeatable) gives the slugs other sources' entries hold,
 category by category: an entry whose slug is taken in its own category gets the source's code
 after it, and is listed under `same_name`. Each needs a relation to the entry whose name it
-took: the plan's "relations" (replaces, reprint-of, adds-to, distinct-from), or, with
---library-data (the library's local library-data folder), the one comparing them gives: the
-same name, fields and words are a reprint-of, any difference (a price, a quality) a replaces
-(`same_name` says which, for checking). With
-neither it is an error. A table whose planned slug is taken is an error.
+took. By default it is a version of that entry (version-of, layout §4): the same thing as
+another source prints it, and a campaign's source order chooses between them. With
+--library-data (the library's local library-data folder) the two are compared, and the same
+name, fields and words make it a reprint-of instead. The plan's "relations" say otherwise only
+for the exceptions (adds-to, distinct-from). `same_name` lists each and how it was decided, for
+checking. A table whose planned slug is taken is an error.
 
 Boxes (pdf_layout.py --boxes). A box becomes a sidebar, under its own title
 (its heading lines), in the entry whose text runs just above it on its page in
@@ -419,7 +420,7 @@ def free_slug(slug, cat, name, plan, taken, used_slugs, report):
     """The entry's slug, with the source's code after it when another source's entry in its
     category has it already (`taken`: {category: slugs}; a bare set is checked for every
     category) or an entry of this chapter does. A slug taken by another source is listed under
-    `same_name`, for the plan to say how the two relate (replaces, reprint-of, distinct-from).
+    `same_name`, with how the two relate (a version by default; the plan says when it isn't).
     A slug another chapter of this source holds is an error: the plan must give a different one."""
     theirs = slug in (taken.get(cat, ()) if isinstance(taken, dict) else taken)
     own = taken.get(OWN, {}).get(cat, {}) if isinstance(taken, dict) else {}
@@ -463,7 +464,9 @@ def relate_same_name(cat, entry, rec, plan, library, report):
     relation to it. The plan's stands (but not distinct-from: two different things in one
     category need two names, since a slug's suffix is seen by no one); without one, the two texts are compared, when the
     library's entries are at hand (--library-data): the same name, fields and words make it a
-    reprint-of, any difference a replaces. With neither it is an error: nobody decided."""
+    reprint-of, any difference a version-of. Without them it is taken to be a version (ADR 0006):
+    the same thing as another source prints it, which a campaign's source order chooses between.
+    `same_name` says it was assumed, not compared."""
     item = report['same_name'][-1]
     theirs = item['taken']
     if entry.get('relations'):
@@ -476,12 +479,12 @@ def relate_same_name(cat, entry, rec, plan, library, report):
         return
     path = os.path.join(library, cat, theirs + '.json') if library else None
     if not path or not os.path.exists(path):
-        report['errors'].append({'error': f'{cat}/{entry["slug"]}: another source has {cat}/{theirs}. Give the two '
-                                          'a relation in the plan, or pass --library-data to compare their text'})
+        entry['relations'] = rec['relations'] = [{'role': 'version-of', 'to': f'{cat}/{theirs}'}]
+        item['relation'] = 'version-of (assumed: the other entry was not at hand to compare)'
         return
     with open(path, encoding='utf-8') as f:
         other = json.load(f)
-    role = 'reprint-of' if same_entry(entry, other) else 'replaces'
+    role = 'reprint-of' if same_entry(entry, other) else 'version-of'
     entry['relations'] = rec['relations'] = [{'role': role, 'to': f'{cat}/{theirs}'}]
     item['relation'] = role
 
@@ -491,12 +494,12 @@ def relate_again(cat, entry, rec, library, report):
     casting number and range): the comparison once more, with the fields in. A relation the
     plan gave stands."""
     item = next((x for x in report.get('same_name', []) if x['category'] == cat and x['name'] == entry['name'] and
-                 x.get('relation') in ('reprint-of', 'replaces')), None)
+                 str(x.get('relation', '')).split(' ')[0] in ('reprint-of', 'version-of')), None)
     path = os.path.join(library, cat, item['taken'] + '.json') if item and library else None
     if not path or not os.path.exists(path):
         return
     with open(path, encoding='utf-8') as f:
-        role = 'reprint-of' if same_entry(entry, json.load(f)) else 'replaces'
+        role = 'reprint-of' if same_entry(entry, json.load(f)) else 'version-of'
     entry['relations'] = rec['relations'] = [{'role': role, 'to': f'{cat}/{item["taken"]}'}]
     item['relation'] = role
 
@@ -1865,6 +1868,13 @@ def main(argv=None):
     return write_outputs(entries, records, report, a.out, a.formulas_from, plan)
 
 
+def old_role(x):
+    """Does a plan still use the old name of the version mark anywhere in its relations?"""
+    if isinstance(x, dict):
+        return x.get('role') == 'replaces' or any(old_role(v) for v in x.values())
+    return isinstance(x, list) and any(old_role(v) for v in x)
+
+
 FORMULA_KINDS = ('effects', 'checks', 'rows')
 
 
@@ -1936,6 +1946,9 @@ def write_outputs(entries, records, report, out, formulas_from=None, plan=None):
     if (plan or {}).get('formulas'):
         report['errors'].append({'error': 'the plan has "formulas": they live on the library\'s entries, not in a plan. '
                                           'Take them out, and set them on the entry with set_formulas.py'})
+    if old_role(plan):
+        report['errors'].append({'error': 'the plan relates entries with "replaces": the mark is now written '
+                                          '"version-of" (layout §4). Change it in the plan'})
     if formulas_from:
         carry_formulas(entries, formulas_from, report)
     os.makedirs(out, exist_ok=True)

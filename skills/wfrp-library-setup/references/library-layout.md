@@ -224,15 +224,18 @@ Each category folder in a `library-data/` holds:
 | Role | Meaning | Using it |
 |---|---|---|
 | `adds-to` | adds to that entry (more lore, optional rules, a variant) | use both: that entry first, then this one |
-| `replaces` | a version of the same thing as that entry (a revised career in a supplement, errata) | of the versions whose sources are in play, a campaign uses the one whose source comes first in its `sources` (§8), whichever way the mark points, and says the others exist. Between versions it ranks the same, and with no campaign, the one that replaces the other |
+| `version-of` | the same thing as that entry, as this source prints it (a revised career in a supplement, a weapon's new profile, errata) | of the versions whose sources are in play, a campaign uses the one whose source comes first in its `sources` (§8), whichever way the mark points, and says the others exist. Between versions it ranks the same, and with no campaign, the one carrying the mark (the later import). Written `replaces` in libraries from before the mark was renamed; readers take both |
 | `reprint-of` | the same text printed again (a Starter Set copy of a Rulebook talent) | use either; cite the one whose source comes first in play |
 | `distinct-from` | a different thing that could be taken for that entry: the same name in another category (the *Dodge* skill, the *Dodge* talent if any), or a near name in the same one (*Dagger (Elven)*, *Dagger*) | never combine them |
 | `updated-by` | an older edition's rules for this were updated by that entry | in a campaign of the newer edition this entry doesn't exist (§8) |
 | `counts-as` | for rules, also counts as that entry (a homebrew weapon that counts as a Hand Weapon) | use this entry's own stats; any rule naming that entry applies to this one too |
 
 Every pair of entries that share a name (allowing for plurals, "The", and
-parenthetical words) has a decision on the later entry. The import refuses an
-entry that shares a name and has none. Grouped skills and talents with a
+parenthetical words) has a relation on the later entry. One that takes the
+other's exact name in its category is a `version-of` it unless the plan says
+otherwise, and the import writes that itself; for a near name, or a name shared
+across categories, the import refuses the entry until the plan says how the
+two relate. Grouped skills and talents with a
 specialisation (`Lore (Reikland)`, `Melee (Basic)`) are one entry for the group
 (`lore`, `melee`); the specialisations are listed in its `fields`. A
 specialisation a book gives rules of its own (a new kind of *Trained*, a
@@ -481,7 +484,7 @@ Each folder in `campaigns/` is one campaign, configured by its `campaign.json`:
 | `slug` | Must match the folder name. |
 | `gm` | Name or email of the campaign's GM. |
 | `edition` | The WFRP edition the campaign plays by. Left out means the library's `edition`. |
-| `sources` | The **sources in play**, highest precedence first: library source codes and this campaign's source codes. Only entries from these sources may be used, and where two of them have versions of one thing (§4, `replaces`) the campaign uses the version from the source listed first. So a group that wants a supplement's revised weapons lists it before the Rulebook, and one that wants the Rulebook's lists the Rulebook first. |
+| `sources` | The **sources in play**, highest precedence first: library source codes and this campaign's source codes. Only entries from these sources may be used, and where two of them have versions of one thing (§4, `version-of`) the campaign uses the version from the source listed first. So a group that wants a supplement's revised weapons lists it before the Rulebook, and one that wants the Rulebook's lists the Rulebook first. |
 | `campaign_sources` | This campaign's own sources (§3). |
 | `house_rules` | Added to the library's `house_rules`. Where they conflict, the campaign's win. Each is a short string, or `{ "id": "hardy-twice", "text": "Hardy may be taken one more time than its Max", "from": "<where the group took it from, if anywhere>", "accepts": ["talent-max:hardy"] }` when it settles something the character builder reports: `accepts` lists the ids (with `*` wildcards) of the differences it allows, on every character in the campaign. `"set": { ... }` changes how the builder works something out, for the few things it has a setting for: `"talent_cost": "flat"` (a talent costs 100 XP every time, not 100 more each time) and `"talents_from": "levels-reached"` (talents can be bought from every career level reached, not only the current one). A house rule the builder has no setting for is still written here, in words, and applied by reading. |
 | `creation` | How new characters are made: for species, career and characteristics, `random` (roll and keep), `random-or-choose` (roll, and choosing costs the Rulebook's XP bonus), or `choose`. `starting_xp_bonus` false turns the bonus XP for keeping rolls off. Left out means the Rulebook's rules. |
@@ -515,7 +518,7 @@ order they play by.
    entries of another edition that are `updated-by` an entry.
 3. Entries that share a name follow their `relations` (§4): an entry that
    adds to another is used with it, after it; of versions of one thing
-   (`replaces`), the one whose source comes first in `sources` is used and the
+   (`version-of`), the one whose source comes first in `sources` is used and the
    others aren't offered; of a reprint and its original, cite the one whose
    source comes first in `sources`; distinct entries are kept apart (say which
    one you mean when the question could be either).

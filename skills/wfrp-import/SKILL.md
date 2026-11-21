@@ -162,15 +162,19 @@ added or changed:
 
 **Entries that share a name.** When an entry shares its name with one already
 in the library or in the same chapter (pass every category's `_index.json`
-with `--taken`), the plan must say how they relate, under `relations` (layout
-§4): `adds-to`, `replaces`, `reprint-of`, `updated-by`, or `distinct-from`.
-Read both entries before deciding, never decide from source precedence, and
-ask the Librarian whenever it isn't certain. The decisions live in the plan,
-so a re-import keeps them.
+with `--taken`), the two are related (layout §4). An entry that takes another
+source's entry's name in the same category is by default a **version** of it
+(`version-of`): the same thing as this source prints it, which each campaign's
+source order chooses between. The converter writes that itself, or `reprint-of`
+when `--library-data` shows the two are word for word the same, and lists each
+under `same_name` for you to check. The plan's `relations` state only the
+exceptions: `adds-to`, `distinct-from`, `updated-by`, and a `version-of` between
+entries whose names or categories differ. Read both entries before writing one,
+and ask the Librarian whenever it isn't certain.
 
 A slug's suffix (`dagger-hepg`) keeps files apart and nothing more: nobody
 using the library sees it. That is enough when the two entries are read
-together (`adds-to`, `replaces`, `reprint-of`). When they are different things
+together (`adds-to`, `version-of`, `reprint-of`). When they are different things
 in one category (`distinct-from`: an elf-made dagger with its own price beside
 the Rulebook's), change the **name** in the plan (`rename` for a price table's
 items, the entry's `name` otherwise) so people can tell them apart; the slug
@@ -181,7 +185,7 @@ in one category.
 When a section changes how something elsewhere in the library works, give it
 `adds-to` that entry, whatever either is called: a sidebar that lets Elves
 take a talent more than once adds to the talent; a supplement's rewrite of
-that sidebar replaces it and adds to the talent too. A lookup of the talent
+that sidebar is a version of it and adds to the talent too. A lookup of the talent
 then brings them up, and the character builder points at them. Without the
 relation they are only found by someone who already knows to look.
 

@@ -260,8 +260,8 @@ class PriceTablePageTest(unittest.TestCase):
         other['fields'] = dict(other['fields'], price='9/–')         # the words about it are the same
         out, report = self.again('dearer', other=other)
         with open(os.path.join(out, 'trappings--snuffer-test.json')) as f:
-            self.assertEqual(json.load(f)['relations'], [{'role': 'replaces', 'to': 'trappings/snuffer'}])
-        self.assertEqual([s['relation'] for s in report['same_name']], ['replaces'])
+            self.assertEqual(json.load(f)['relations'], [{'role': 'version-of', 'to': 'trappings/snuffer'}])
+        self.assertEqual([s['relation'] for s in report['same_name']], ['version-of'])
 
     def test_the_plan_can_give_an_item_its_slug(self):
         out, report = self.again('slug', plan=dict(PLAN, item_slugs={'1.1/Snuffer': 'snuffer-keepers'}))
