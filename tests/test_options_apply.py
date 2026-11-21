@@ -11,7 +11,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from test_build_character import SCRIPTS, library, record  # noqa: E402
+from test_build_character import SCRIPTS, CreationGrants, library, record  # noqa: E402
 
 sys.path.insert(0, SCRIPTS)
 import build_character as bc  # noqa: E402
@@ -180,6 +180,60 @@ class Apply(Case):
         self.assertIn("isn't in the career, so it costs double", r.stdout)
         r = self.apply('log', 'Lost the lamp overboard', '--date', '2026-01-03')
         self.assertEqual(self.saved()['changelog'][-1], {'date': '2026-01-03', 'text': 'Lost the lamp overboard'})
+
+
+class Creating(Case):
+    def setUp(self):
+        super().setUp()
+        for slug, gs in CreationGrants.GRANTS.items():
+            p = os.path.join(self.root, 'library-data', 'rules', slug + '.json')
+            with open(p) as f: e = json.load(f)
+            e['fields'] = {'grants': gs}
+            with open(p, 'w') as f: json.dump(e, f)
+        p = os.path.join(self.root, 'library-data', 'rules', 'characteristics.json')
+        with open(p) as f: e = json.load(f)
+        e['fields'] = {'effects': [{'on': 'xp', 'add': 30, 'at': 0, 'applies': {'how': ['rearranged']}}]}
+        with open(p, 'w') as f: json.dump(e, f)
+
+    def test_a_character_is_made_step_by_step_and_options_says_what_is_left(self):
+        r = self.apply('start', '--name', 'Ida Ness', '--species', 'Keepers', '--origin', 'North Isle',
+                       '--species-how', 'rolled', '--career', 'Warden', '--career-how', 'chosen')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('Started Ida Ness: Keepers (North Isle), Warden 1', r.stdout)
+        self.assertIn('Next: initial', r.stdout)
+        rec = self.saved()
+        self.assertEqual((rec['slug'], rec['species'], rec['careers']),
+                         ('ida-ness', {'ref': 'species/keepers', 'origin': 'rules/keepers-of-the-isles#North Isle', 'how': 'rolled'},
+                          [{'ref': 'careers/warden', 'level': 1, 'how': 'chosen'}]))
+        self.assertEqual(self.apply('start', '--name', 'Ida', '--species', 'Keepers', '--species-how', 'rolled',
+                                    '--career', 'Warden', '--career-how', 'chosen').returncode, 1)          # the file exists
+        r = self.apply('initial', 'WS=30', 'BS=30', 'S=31', 'T=42', 'I=35', 'Ag=30', 'Dex=28', 'Int=33', 'WP=39', 'Fel=25', '--how', 'rearranged')
+        self.assertIn('XP from creation: 45', r.stdout)                  # a folk rolled 15, numbers rearranged 30
+        self.assertEqual(self.saved()['xp'], {'total': 45})
+        self.assertEqual(self.apply('initial', 'WS=30', '--how', 'rolled').returncode, 1)
+        self.assertIn('Extra points: Fate 1, Resilience 1', self.apply('points', '--fate', '1', '--resilience', '1').stdout)
+        r = self.apply('buy', '--skill', 'Rowing', '--count', '5', '--how', 'species')
+        self.assertIn('Rowing x5: from the species at creation', r.stdout)
+        self.assertIn('Still to give from species-skills-and-talents (skills): 1 at 3', r.stdout)
+        r = self.apply('buy', '--skill', 'Tide Lore', '--count', '3', '--how', 'species')
+        self.assertIn('creation:species-skills-and-talents/skills:tide-lore', r.stdout)
+        self.assertEqual(self.apply('buy', '--spell', 'Glow', '--how', 'career').returncode, 1)
+        self.apply('buy', '--talent', 'Quick', '--how', 'species')
+        o = options.report(self.saved(), Library(self.root, 'rock'))
+        c = {(g['how'], g['kind']): g for g in o['creation']}
+        self.assertEqual(c[('species', 'talent')]['to_take'], ['Far Sight'])
+        self.assertEqual((c[('career', 'skill')]['left'], c[('career', 'talent')]['left'], c[('career', 'characteristic')]['left']), (10, 1, 3))
+        self.assertEqual(c[('career', 'characteristic')]['from'], ['Initiative', 'Toughness'])
+        self.assertNotIn(('species', 'skill'), c)                       # 5 and 3 given, though one is from the wrong list
+        text = options.text(o)
+        self.assertIn('Talents from the species', text)
+        self.assertIn('to take: Far Sight', text)
+
+    def test_an_origin_is_found_by_its_heading_or_given_in_full(self):
+        r = self.apply('start', '--name', 'Ida', '--species', 'Keepers', '--origin', 'South Isle', '--species-how', 'rolled',
+                       '--career', 'Warden', '--career-how', 'chosen')
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("'South Isle' is the heading of 0 origins", r.stderr)
 
 
 if __name__ == '__main__':

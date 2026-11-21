@@ -13,6 +13,9 @@ Reads the record as it is and reports, for the current career and the levels rea
     next;
   - talents on sale (the current level's, or every level reached where a house rule opens them):
     times taken, the Max as a number, the price, and "at its Max" when it can't be taken again;
+  - creation, while there is something left to give: each grant of the creation rules (ADR 0007)
+    with what it still gives, what has been taken from it, and the list it gives from; the
+    species' talents not yet taken (an "or" is one choice; a random talent is rolled);
   - what completing the current level still needs, and the least XP that takes;
   - earlier levels left unfinished.
 
@@ -30,6 +33,40 @@ from library import Library, cli  # noqa: E402
 def spec_of(name):
     m = re.search(r"\((.+)\)$", name)
     return m.group(1) if m else None
+
+
+def creation(b, m):
+    """What the creation grants still give, and where from."""
+    sp = b.lists()["species"]
+    first = next((f for _, n, f in b.lists()["levels"] if n == 1), {})
+    lists = {("species", "skill"): sp.get("skills", []), ("species", "talent"): sp.get("talents", []),
+             ("first-career-level", "skill"): first.get("skills", []), ("first-career-level", "talent"): first.get("talents", []),
+             ("first-career-level", "characteristic"): [bc.CHAR_NAME.get(c, c) for c in first.get("characteristics", [])]}
+    out = []
+    for g in m.get("creation", []):
+        mine = [a for a in b.ledger if a.get("how") == g["how"] and a.get(g["kind"])]
+        taken = []
+        for a in mine:
+            n = a[g["kind"]]
+            if g["kind"] != "characteristic":
+                try: n = b.lib.entry(b.lib.current(n))["name"]
+                except Exception: pass
+            taken.append(n + (f" ({a['specialisation']})" if a.get("specialisation") else "") +
+                         (f" {a['count']}" if "count" in a else ""))
+        offer = lists.get((g["from"], g["kind"]), [])
+        open_ = []
+        if g["kind"] == "talent" and g["from"] == "species":          # each listed talent, or one of an "or"
+            for x in offer:
+                opts = x.get("choose_one", []) if isinstance(x, dict) else [x]
+                if not any(b.granted_from("species", "talent", a) and any(
+                        b.offered("talents", o, b.lib.current(a["talent"]), a.get("specialisation")) for o in opts) for a in mine):
+                    open_.append(" or ".join(opts))
+        left = g["left"]
+        if not (left or open_): continue
+        out.append({"rule": g["rule"], "id": g["id"], "cite": g["cite"], "how": g["how"], "kind": g["kind"],
+                    "left": left, "to_take": open_, "taken": taken,
+                    "from": [x if isinstance(x, str) else " or ".join(x.get("choose_one", [])) for x in offer]})
+    return out
 
 
 def report(record, lib):
@@ -112,6 +149,7 @@ def report(record, lib):
             lore = bc.WINDS.get(bc.norm(spec_of(n)), bc.norm(spec_of(n)))
             k = b.spells_known.get(lore, 0) + (b.spells_known.get(bc.norm(spec_of(n)), 0) if lore != bc.norm(spec_of(n)) else 0)
             out["spells"].append({"what": f"a spell of {spec_of(n)}", "known": k, "next": b.spell_price("lore", k)})
+    out["creation"] = creation(b, m)
     out["complete_level"] = completing(b, m, lib, levels, now, price)
     out["unfinished"] = [g for g in m["career"].get("to_complete", [])]
     out["notes"] += [n for n in m["notes"] if "cost table" in n or "Level Advances" in n]
@@ -171,6 +209,14 @@ def text(o):
     L += ["", "Talents (times taken of Max; price)"]
     L += [f"  {t['name']}: {t['times']} of {t['max'] if t['max'] is not None else '?'}; " +
           ("at its Max" if t.get("at_max") else cost(t["next"])) + (" (choose which)" if t.get("choose") else "") for t in o["talents"]]
+    if o.get("creation"):
+        L += ["", "Creation (still to give)"]
+        for g in o["creation"]:
+            left = g["left"] if not isinstance(g["left"], dict) else ", ".join(f"{n} at {v}" for v, n in g["left"].items())
+            L.append(f"  {g['kind'].capitalize()}s from the {g['how']} {g['cite']}: " +
+                     "; ".join(([f"{left} left"] if left else []) + (["to take: " + ", ".join(g["to_take"])] if g["to_take"] else [])))
+            if g["taken"]: L.append("    taken: " + ", ".join(g["taken"]))
+            if not g["to_take"]: L.append("    from: " + ", ".join(g["from"]))
     if o.get("spells"):
         L += ["", "Spells (known; price of the next)"]
         L += [f"  {x['what']}: {x['known']}; {cost(x['next'])}" for x in o["spells"]]

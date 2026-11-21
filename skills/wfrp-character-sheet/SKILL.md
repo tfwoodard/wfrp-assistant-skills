@@ -40,7 +40,25 @@ tables), say which source and chapter the Librarian should import, with
 ## Creating a character
 
 Follow the Rulebook's character creation, step by step, as imported in the
-library, and the campaign's `creation` options (layout §8):
+library, and the campaign's `creation` options (layout §8). The record is made
+and filled in with `apply.py`, and `options.py` shows what is left to give:
+
+```
+python3 scripts/apply.py <slug>.json ... start --name "Ilsa" --species "High Elves" --origin Saphery --species-how chosen --career Mage --career-how rolled
+python3 scripts/apply.py <slug>.json ... initial WS=40 BS=33 S=28 T=30 I=55 Ag=44 Dex=33 Int=50 WP=50 Fel=37 --how rearranged
+python3 scripts/apply.py <slug>.json ... points --fate 1 --resilience 1
+python3 scripts/apply.py <slug>.json ... buy --skill Cool --count 5 --how species
+python3 scripts/apply.py <slug>.json ... buy --talent "Petty Magic" --how career
+python3 scripts/options.py <slug>.json --library <root> --campaign <slug>
+```
+
+`start` and `initial` set the XP total to what the creation steps gave (the
+creation rules' formulas; nothing when `starting_xp_bonus` is false). Each
+`--how species` or `--how career` line is checked against the creation rules'
+grants (ADR 0007): options.py's "Creation" lists, per grant, what is left, what
+has been taken and the list it comes from, and the species' talents not yet
+taken. A random talent ("3 Random Talents") isn't a grant yet: roll it on the
+table and say so when the sheet reports it.
 
 1. **Species**: roll on the library's species table or choose, as `creation`
    allows, and record which, since keeping a roll earns bonus XP.
@@ -58,8 +76,10 @@ library, and the campaign's `creation` options (layout §8):
    ambitions (to `campaign.json`).
 
 Use real dice for rolls the player makes; when asked to roll for them, say
-which table and show each roll. Record bonus XP for kept rolls only when
-`starting_xp_bonus` isn't false.
+which table and show each roll. The bonus XP isn't written by hand: `--species-how`,
+`--career-how` and `initial --how` say how each step was settled, and the build
+works it out. Creation XP is spent with `buy` (`--how xp`) on the first career
+level's characteristics, skills and talents.
 
 ## Advancing
 

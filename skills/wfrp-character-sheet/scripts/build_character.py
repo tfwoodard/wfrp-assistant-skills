@@ -1017,6 +1017,9 @@ class Builder:
         carries the amounts as "xp" effects, narrowed with "applies": {"how": [...]}. {"xp": total or
         None when a step's share can't be worked out, "steps": [{step, how, xp, cite}]}."""
         rec, steps, known = self.rec, [], True
+        off = ((self.lib.campaign or {}).get("creation") or {}).get("starting_xp_bonus") is False
+        if off:
+            self.note("The campaign gives no XP for keeping creation rolls (creation.starting_xp_bonus is false).")
         for step, rule, ways in CREATION:
             how = (rec.get("careers") or [{}])[0].get("how") if step == "career" else (rec.get(step) or {}).get("how")
             try:
@@ -1028,6 +1031,8 @@ class Builder:
                 self.note(f"The record doesn't say how the {step} was settled at creation ({', '.join(ways)}), so the XP it gave isn't worked out.")
             elif how not in ways:
                 self.differ(f"creation-how:{step}", f"The {step} was settled '{how}' at creation; the record must say one of: {', '.join(ways)}.")
+            elif off:
+                xp = 0
             elif not e:
                 self.note(f"{rule} isn't in the library, so the XP the {step} gave at creation isn't worked out.")
             else:
