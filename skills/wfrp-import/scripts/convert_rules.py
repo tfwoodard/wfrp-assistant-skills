@@ -1868,26 +1868,46 @@ def add_formulas(entries, formulas, report):
     what an entry's rule does to a number, and what it requires or limits, written once on the
     entry for the character builder to evaluate. They go in the entry's fields and stay out of the
     index. Only their shape is checked here: an effect has "on" and "add", a check has "id" and a
-    "test" or a "read", and "at" is the number of the block of the entry that says so."""
+    "test" or a "read", and "at" is the number of the block of the entry that says so. A table's
+    "rows" ({"<a cell of the row>": {"effects": [...]}}) put formulas on single rows."""
     by = {f'{cat}/{e["slug"]}': e for cat, e in entries}
     for key, f in (formulas or {}).items():
         e = by.get(key)
         if e is None:
             report['errors'].append({'error': f'formulas: this chapter has no entry {key}'})
             continue
-        for kind, items in f.items():
-            bad = None
+        def shape(kind, items, row=None):
             if kind not in ('effects', 'checks') or not isinstance(items, list):
-                bad = 'takes "effects" and "checks", each a list'
-            for it in ([] if bad else items):
+                return 'takes "effects" and "checks", each a list' + ('' if row else ', and "rows" for a table\'s rows')
+            for it in items:
                 if not isinstance(it, dict):
-                    bad = 'each formula is an object'
-                elif kind == 'effects' and not ('on' in it and 'add' in it):
-                    bad = 'an effect needs "on" and "add"'
-                elif kind == 'checks' and not (it.get('id') and ('test' in it or it.get('read'))):
-                    bad = 'a check needs an "id" and a "test" or a "read"'
-                elif not isinstance(it.get('at'), int) or not 0 <= it['at'] < len(e['content']):
-                    bad = f'"at" must be the number of one of the entry\'s {len(e["content"])} blocks (from 0)'
+                    return 'each formula is an object'
+                if kind == 'effects' and not ('on' in it and 'add' in it):
+                    return 'an effect needs "on" and "add"'
+                if kind == 'checks' and not (it.get('id') and ('test' in it or it.get('read'))):
+                    return 'a check needs an "id" and a "test" or a "read"'
+                if row is None and (not isinstance(it.get('at'), int) or not 0 <= it['at'] < len(e['content'])):
+                    return f'"at" must be the number of one of the entry\'s {len(e["content"])} blocks (from 0)'
+            return None
+
+        for kind, items in f.items():
+            if kind == 'rows':
+                # A table's row can carry formulas too (a mutation's row, a result of a roll): by the
+                # text of one of its cells, which must name exactly one row. The row is the place, so
+                # no "at".
+                rows = [r for b in e['content'] if b.get('type') == 'table' for r in b.get('rows', [])]
+                bad = None if isinstance(items, dict) else '"rows" is an object of row name to its formulas'
+                for name, rf in ({} if bad else items).items():
+                    hits = sum(1 for r in rows if norm(name) in [norm(str(c)) for c in r])
+                    if hits != 1:
+                        bad = f'"{name}" names {hits} rows of its table: it must name one, by a cell\'s whole text'
+                    elif not isinstance(rf, dict) or not rf:
+                        bad = f'row "{name}" needs "effects" or "checks"'
+                    else:
+                        bad = next((f'row "{name}": {w}' for w in (shape(k, v, name) for k, v in rf.items()) if w), None)
+                    if bad: break
+            else:
+                bad = shape(kind, items)
             if bad:
                 report['errors'].append({'error': f'formulas for {key}: {bad}'})
             else:

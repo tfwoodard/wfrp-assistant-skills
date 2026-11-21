@@ -91,6 +91,10 @@ def library(root, house_rules=()):
         {'slug': 'satchel', 'name': 'Satchel', 'fields': {'kind': 'container', 'enc': '1', 'carries': '2'}},
         {'slug': 'lamp', 'name': 'Lamp', 'fields': {'kind': 'tool', 'enc': '1'}},
         {'slug': 'anchor', 'name': 'Anchor', 'fields': {'kind': 'item', 'enc': '6'}}])
+    write(root, 'tables', [{'slug': 'sea-madness', 'name': 'Sea Madness', 'content': [
+        table('Sea Madness', ['d10', 'Madness', 'What it does'],
+              [['1–5', 'Salt Dreams', 'Stubborn and cold'], ['6–9', 'Gull Fear', 'Afraid of gulls'], ['10', 'Gull Fear', 'Twice over']])],
+        'fields': {'rows': {'Salt Dreams': {'effects': [{'on': 'WP', 'add': 10}, {'on': 'Fel', 'add': -10}]}}}}])
     write(root, 'rules', [
         {'slug': 'advancing-through-your-career', 'name': 'Advancing', 'content': [
             table('Characteristic and Skill Improvement XP Costs', ['Advances', 'Characteristics', 'Skills'],
@@ -228,6 +232,30 @@ class EffectsOnEntries(Case):
         self.assertEqual(m['fate']['fate'], 2)
         self.assertTrue(any("applies by 'guild'" in n for n in m['notes']))
         self.assertTrue(any("an effect on 'luck'" in n for n in m['notes']))
+
+
+class TableRows(Case):
+    def test_a_row_the_record_names_brings_its_effects_and_is_shown_with_what_it_says(self):
+        m = self.build(record(psychology=['Duty', {'table': 'tables/sea-madness', 'row': 'salt dreams', 'from': 'talents/steady'}]))
+        self.assertEqual((m['characteristics']['WP']['initial'], m['characteristics']['Fel']['initial']), (49, 15))
+        self.assertEqual(m['effects'], [{'on': 'WP', 'add': 10, 'from': 'tables/sea-madness#Salt Dreams'},
+                                        {'on': 'Fel', 'add': -10, 'from': 'tables/sea-madness#Salt Dreams'}])
+        self.assertEqual(m['psychology'], ['Duty', {'name': 'Salt Dreams', 'table': 'tables/sea-madness', 'cells': ['Stubborn and cold'],
+                                                    'why': 'talents/steady', 'cite': '(LAMP, ch. 2 › Sea Madness, p. 12)'}])
+        md = bc.markdown(m)
+        self.assertIn('- Duty', md)
+        self.assertIn('- Salt Dreams (Stubborn and cold), from `talents/steady` (LAMP, ch. 2 › Sea Madness, p. 12)', md)
+        self.assertIn('- Fellowship -10: `tables/sea-madness#Salt Dreams`', md)
+
+    def test_a_row_without_a_formula_says_so_and_a_row_that_is_not_one_row_is_reported(self):
+        m = self.build(record(mutations=[{'table': 'tables/sea-madness', 'row': 'Twice over'}]))
+        self.assertEqual(m['mutations'][0]['name'], 'Twice over')
+        self.assertTrue(any('Twice over (Sea Madness): the row carries no formula' in n for n in m['notes']))
+        for row, n in (('Gull Fear', 2), ('Mermaid Sight', 0)):
+            m = self.build(record(mutations=[{'table': 'tables/sea-madness', 'row': row}]))
+            d = next(x for x in m['differences'] if x['id'].startswith('row:sea-madness/'))
+            self.assertIn(f'names {n} rows', d['text'])
+            self.assertNotIn('mutations', m)
 
 
 class SkillsAndTalents(Case):

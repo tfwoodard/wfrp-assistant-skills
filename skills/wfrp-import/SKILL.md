@@ -195,7 +195,9 @@ with the brackets, and give it `adds-to` the entry for its group.
 requires or limits, is written once on its entry for the character builder to
 evaluate (ADR 0005). They go in the plan under `formulas`, by the entry's ref:
 `"formulas": {"talents/<slug>": {"effects": [{"on": "WP", "add": 5, "at": 1}]}}`,
-where `at` is the number (from 0) of the block of the entry that says so. The
+where `at` is the number (from 0) of the block of the entry that says so. A
+table's row takes them by the text of one of its cells, which must name one
+row: `"tables/<slug>": {"rows": {"<name>": {"effects": [...]}}}`. The
 converter checks their shape and that the entry and block exist; they land in
 the entry's `fields` and stay out of the index. Never write one unasked or in
 bulk: propose it beside its sentence when a rule is first applied to a

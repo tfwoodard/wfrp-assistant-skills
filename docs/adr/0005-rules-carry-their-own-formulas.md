@@ -53,6 +53,13 @@ They are written in the chapter's plan, under `formulas` by the entry's ref
 (`"talents/coolheaded": {"effects": [...]}`), so a re-import keeps them. They
 go into the entry's `fields` and are not copied into the index.
 
+A **table's row** can carry formulas too, because some rules are rows: a
+mutation, a result of a roll a talent sends you to. The plan names the row by
+the text of one of its cells (`"tables/<slug>": {"rows": {"<name>": {"effects":
+[...]}}}`), which must name exactly one row; the row is the place, so there is
+no `at`. A character record names the row it has (`{"table": ..., "row": ...}`
+under `psychology` or `mutations`), and that row's formulas are used.
+
 ## Which formulas are used
 
 Only those on entries the character uses: the species and origin, careers,
