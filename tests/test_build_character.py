@@ -104,6 +104,12 @@ def library(root, house_rules=()):
               [['1–5', 'Salt Dreams', 'Stubborn and cold'], ['6–9', 'Gull Fear', 'Afraid of gulls'], ['10', 'Gull Fear', 'Twice over']])],
         'fields': {'rows': {'Salt Dreams': {'effects': [{'on': 'WP', 'add': 10}, {'on': 'Fel', 'add': -10}]}}}}])
     write(root, 'rules', [
+        {'slug': 'step-1-species', 'name': 'Choose a Folk', 'content': [para('Roll for a folk and keep it for a bonus.')],
+         'fields': {'effects': [{'on': 'xp', 'add': 15, 'at': 0, 'applies': {'how': ['rolled']}}]}},
+        {'slug': 'step-2-class-and-career', 'name': 'Choose a Calling', 'content': [para('Keep the first roll, or one of three.')],
+         'fields': {'effects': [{'on': 'xp', 'add': 40, 'at': 0, 'applies': {'how': ['rolled']}},
+                                {'on': 'xp', 'add': 20, 'at': 0, 'applies': {'how': ['one-of-three']}}]}},
+        {'slug': 'characteristics', 'name': 'Numbers', 'content': [para('Keep the dice, or move them about.')]},
         {'slug': 'advancing-through-your-career', 'name': 'Advancing', 'content': [
             table('Characteristic and Skill Improvement XP Costs', ['Advances', 'Characteristics', 'Skills'],
                   [['0 to 5', '20', '8'], ['6 to 10', '35', '12']]),
@@ -432,6 +438,36 @@ class Experience(Case):
         m = self.build(r)
         self.assertNotIn('level-complete:warden/1', self.ids(m))
         self.assertIn('level-complete:warden/2', self.ids(m))
+
+
+class CreationXP(Case):
+    def test_each_step_gives_what_its_rule_says_for_how_it_was_settled(self):
+        r = record(species={'ref': 'species/keepers', 'how': 'rolled'},
+                   careers=[{'ref': 'careers/warden', 'level': 1, 'how': 'one-of-three'}],
+                   characteristics=dict(record()['characteristics'], how='rearranged'))
+        c = self.build(r)['xp']['at_creation']
+        self.assertEqual([(x['step'], x['how'], x['xp']) for x in c['steps']],
+                         [('species', 'rolled', 15), ('career', 'one-of-three', 20), ('characteristics', 'rearranged', None)])
+        self.assertIsNone(c['xp'])                                      # Numbers has no formula yet
+        m = self.build(r)
+        self.assertTrue(any('Numbers has no formula for the XP it gives' in n for n in m['notes']))
+        rules = os.path.join(self.root, 'library-data', 'rules', 'characteristics.json')
+        with open(rules) as f: e = json.load(f)
+        e['fields'] = {'effects': [{'on': 'xp', 'add': 30, 'at': 0, 'applies': {'how': ['rearranged']}}]}
+        with open(rules, 'w') as f: json.dump(e, f)
+        m = self.build(r)
+        self.assertEqual(m['xp']['at_creation']['xp'], 65)
+        self.assertIn('Of the total, from creation: 65 (species rolled: 15 XP', bc.markdown(m))
+        r['xp'] = {'total': 100, 'bonus_at_creation': 60}
+        self.assertEqual(self.ids(self.build(r)), ['xp-creation'])
+        r['species']['how'] = 'guessed'
+        self.assertIn('creation-how:species', self.ids(self.build(r)))
+
+    def test_a_step_not_said_is_not_worked_out_and_says_so(self):
+        m = self.build(record(species={'ref': 'species/keepers', 'how': 'imported'}))
+        self.assertIsNone(m['xp']['at_creation']['xp'])
+        self.assertEqual(m['xp']['at_creation']['steps'][1]['xp'], 0)  # a chosen calling gives nothing
+        self.assertTrue(any("doesn't say how the species was settled" in n for n in m['notes']))
 
 
 class SpellsAndTrappings(Case):

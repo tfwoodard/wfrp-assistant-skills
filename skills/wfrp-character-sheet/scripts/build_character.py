@@ -48,12 +48,17 @@ HOW = ("species", "career", "xp", "free", "imported")
 SETTINGS = {"talent_cost": ("rising", "flat"),                       # 100, 200, 300 ... or 100 each time
             "talents_from": ("current-level", "levels-reached")}     # which career levels sell their talents
 # the numbers a rule's effect can add to (ADR 0005)
-TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption", "spell_cost"}
+TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption", "spell_cost", "xp"}
 SCALED = {"spell_cost"}            # targets an effect multiplies ("multiply": 0.5) rather than adds to
 # where the price of a new spell is printed: (talent, table title), by the spell's kind
 SPELL_COSTS = {"petty": ("Petty Magic", "Petty Magic Spell Costs"), "lore": ("Arcane Magic", "Arcane Magic Spell Costs"),
                "arcane": ("Arcane Magic", "Arcane Magic Spell Costs")}
 SPELL_HOW = ("talent", "xp", "free", "imported")
+# the creation steps that can earn XP, the rule that says how much (its "xp" effects, ADR 0005), and
+# the ways the record can say the step was settled
+CREATION = (("species", "rules/step-1-species", ("rolled", "chosen")),
+            ("career", "rules/step-2-class-and-career", ("rolled", "one-of-three", "chosen")),
+            ("characteristics", "rules/characteristics", ("rolled", "rearranged", "rerolled", "allocated")))
 ANY = re.compile(r"^any\b", re.I)
 ONE = re.compile(r"^any one\b|\s+or\s+|\s*/\s*", re.I)     # a listed name that is one choice: "Lore (Any One)", "Art (A or B)"
 ROLL = re.compile(r"^\d+(\s*[–-]\s*\d+)?$")          # a table's dice column: "36–40"
@@ -904,8 +909,9 @@ class Builder:
         if getattr(self, "spells_unpriced", False): unknown = True
         total = x.get("total")
         said = x.get("spent")
+        at_creation = self.creation_xp()
         out = {"total": total, "spent": said if said is not None else spent,
-               "current": None, "worked_out": None if unknown else spent, "purchases": lines}
+               "current": None, "worked_out": None if unknown else spent, "purchases": lines, "at_creation": at_creation}
         if said is not None and not unknown and said != spent:
             self.differ("xp-spent", f"The record says {said} XP spent; its purchases add up to {spent}.")
         if total is not None and out["spent"] is not None:
@@ -913,6 +919,38 @@ class Builder:
             if out["current"] < 0:
                 self.differ("xp-overspent", f"{out['spent']} XP spent of {total} earned: {-out['current']} more than the character has.")
         return out
+
+    def creation_xp(self):
+        """The XP the creation steps gave, by how the record says each was settled: each step's rule
+        carries the amounts as "xp" effects, narrowed with "applies": {"how": [...]}. {"xp": total or
+        None when a step's share can't be worked out, "steps": [{step, how, xp, cite}]}."""
+        rec, steps, known = self.rec, [], True
+        for step, rule, ways in CREATION:
+            how = (rec.get("careers") or [{}])[0].get("how") if step == "career" else (rec.get(step) or {}).get("how")
+            try:
+                ref = self.lib.current(rule); e = self.lib.entry(ref)
+            except RefError:
+                ref, e = rule, None
+            xp = None
+            if how in (None, "imported"):
+                self.note(f"The record doesn't say how the {step} was settled at creation ({', '.join(ways)}), so the XP it gave isn't worked out.")
+            elif how not in ways:
+                self.differ(f"creation-how:{step}", f"The {step} was settled '{how}' at creation; the record must say one of: {', '.join(ways)}.")
+            elif not e:
+                self.note(f"{rule} isn't in the library, so the XP the {step} gave at creation isn't worked out.")
+            else:
+                fx = [f for f in e.get("fields", {}).get("effects", []) if f.get("on") == "xp"]
+                if not fx:
+                    self.note(f"{e['name']} has no formula for the XP it gives, so the {step}'s share isn't worked out. Read the rule.")
+                else:
+                    xp = sum(f.get("add", 0) for f in fx if how in (f.get("applies") or {}).get("how", []))
+            if xp is None: known = False
+            steps.append({"step": step, "how": how, "xp": xp, "cite": self.cite(ref) if e else None})
+        total = sum(s["xp"] for s in steps) if known else None
+        said = (rec.get("xp") or {}).get("bonus_at_creation")
+        if said is not None and total is not None and said != total:
+            self.differ("xp-creation", f"The record says creation gave {said} XP; the rules for how it was settled give {total}.")
+        return {"xp": total, "steps": steps}
 
     def levels_complete(self, m):
         """Each level left behind should have been completed (or 200 XP paid to leave it early). A
@@ -1087,6 +1125,11 @@ def markdown(m):
               f"Encumbrance {m['encumbrance']['carried']} of {m['encumbrance']['max']}"]
     x = m["xp"]
     L.append(f"XP: {x['current']} current, {x['spent']} spent, {x['total']} total")
+    c = x.get("at_creation") or {}
+    if c.get("steps"):
+        L.append(f"Of the total, from creation: {c['xp'] if c['xp'] is not None else 'not worked out'}" +
+                 (" (" + "; ".join(f"{s['step']} {s['how'] or 'not said'}: " + (f"{s['xp']} XP" if s["xp"] is not None else "?") +
+                                   (f" {s['cite']}" if s["cite"] else "") for s in c["steps"]) + ")"))
     for k, h in (m.get("house_rules") or {}).items():
         L.append(f"House rule: {h.get('text') or h.get('house_rule')} ({k.replace('_', ' ')}: {h['value']})")
     if any(m["armour"].values()):
