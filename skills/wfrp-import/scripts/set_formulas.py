@@ -15,8 +15,9 @@ it replaces (the converters' --formulas-from); if one is ever lost it is simply 
     set_formulas.py ENTRY.json --effects '[]'           # an empty list takes that kind off
 
 A summary is one line in Claude's own words of what the entry does, for the printed sheet (a spell's
-effect under its name, so the book is rarely needed). Never the book's sentences. A bonus named in
-full ("Willpower Bonus") is printed as the character's own number. --summary "" takes it off.
+effect under its name, so the book is rarely needed). Never the book's sentences. Say who makes
+every Test it names ("if you pass", "if the target passes"). A bonus named in full ("Willpower
+Bonus") is printed as the character's own number. --summary "" takes it off.
     set_formulas.py ENTRY.json --show
 
 ENTRY.json is the entry's file in a local copy of the library (library-data/<category>/<slug>.json);
