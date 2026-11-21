@@ -723,7 +723,7 @@ class Builder:
                     cost = sum(steps) * (1 if home else 2)
                     if not home:
                         self.note(f"Advance {i + 1} ({a[kind]}{' (' + a['specialisation'] + ')' if a.get('specialisation') else ''}) "
-                                  f"isn't in the career, so it costs double ({self.cite(RULE['non-career'])}).")
+                                  f"isn't in the career, so it costs double {self.cite(RULE['non-career'])}.")
             elif kind == "talent":
                 rising = self.setting("talent_cost") == "rising"
                 cost = sum(100 + (100 * (before + j) if rising else 0) for j in range(n))      # Talent Advances
@@ -754,7 +754,9 @@ class Builder:
         return out
 
     def levels_complete(self, m):
-        """Each level left behind should have been completed (or 200 XP paid to leave it early)."""
+        """Each level left behind should have been completed (or 200 XP paid to leave it early). A
+        level's characteristics and available skills are its own and those of the levels below it in
+        the career; its talent must be one of its own."""
         t = self.table(LEVEL_ADVANCES)
         need = {str(r[0]).strip(): int(r[1]) for r in t["rows"]} if t else {}
         skills = {(r["ref"], r["name"]): r["advances"] for r in m["skills"]["basic"] + m["skills"]["advanced"]}
@@ -768,17 +770,19 @@ class Builder:
                 if want is None:
                     if t: self.note(f"The Level Advances table has no row for level {n}, so whether {ce['name']} level {n} was completed isn't checked.")
                     continue
-                short = [x for x in f.get("characteristics", []) if m["characteristics"].get(x, {}).get("advances", 0) < want]
-                done = 0
-                for listed in f.get("skills", []):
-                    best = max([v for (ref, name), v in skills.items()
-                                if self.offered("skills", listed, ref, (re.search(r"\((.+)\)$", name) or [None, None])[1])] or [0])
-                    if best >= want: done += 1
+                upto = [adv.get(str(k), {}) for k in range(1, n + 1)]
+                chars = [x for lv in upto for x in lv.get("characteristics", [])]
+                listed_skills = [x for lv in upto for x in lv.get("skills", [])]
+                short = [x for x in dict.fromkeys(chars) if m["characteristics"].get(x, {}).get("advances", 0) < want]
+                # each skill the character has counts once, under whichever listed name covers it
+                done = sum(1 for (ref, name), v in skills.items() if v >= want and any(
+                    self.offered("skills", listed, ref, (re.search(r"\((.+)\)$", name) or [None, None])[1])
+                    for listed in dict.fromkeys(listed_skills)))
                 tal = any(self.in_career("talents", tl["ref"], (re.search(r"\((.+)\)$", tl["name"]) or [None, None])[1], (cref, n))
                           for tl in m["talents"])
                 why = []
                 if short: why.append(f"{', '.join(short)} below {want} advances")
-                if done < min(8, len(f.get("skills", []))): why.append(f"{done} of its skills at {want} advances (8 needed)")
+                if done < min(8, len(set(listed_skills))): why.append(f"{done} of its skills at {want} advances (8 needed)")
                 if not tal: why.append("no talent from that level")
                 if why:
                     self.gaps.append({"career": ce["name"], "level": n, "level_name": ce["fields"]["levels"][n - 1], "missing": why})
