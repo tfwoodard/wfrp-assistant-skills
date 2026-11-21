@@ -4,13 +4,15 @@
     character_pdf.py RECORD --library ROOT --campaign SLUG [--out DIR] [--pdf]
         -> DIR/<slug>.html (and DIR/<slug>.pdf with --pdf)
 
-The sheet is the build (build_character.py) of the record, never the record's own numbers:
-characteristics with their bonuses, the attributes (Wounds, Movement, Fate and Fortune, Resilience
-and Resolve, Corruption, Encumbrance, XP), the career and what its earlier levels still need, the
-skills and talents, then weapons, armour by location, trappings (in their containers), money,
-spells, ambitions, psychology and mutations, and the notes: differences from the rules, accepted
-ones and why, what the build couldn't work out, and the house rules it used. Nothing the build
-reports is left off the printed sheet.
+The sheet is the build (build_character.py) of the record, never the record's own numbers, on three
+pages: (1) characteristics with their bonuses, the attributes (Wounds, Movement, Fate and Fortune,
+Resilience and Resolve, Corruption, Encumbrance, XP), the career, a "To do" box (earlier levels
+still to complete, differences from the rules, what the record says is to settle, what the build
+couldn't work out), skills and talents; (2) weapons, armour by location, trappings in their
+containers, money, spells each with a one-line summary of what it does (the entry's `summary`),
+ambitions, psychology and mutations; (3) a page to mark in play: Wounds, Fortune and Resolve as
+boxes, and every condition in play with boxes to count it. Accepted differences, house rules and
+what rules add are on the markdown sheet (build_character.py --md), not the printed one.
 
 The PDF is printed with Playwright when it is installed, otherwise with a local Chrome, Edge or
 Chromium in headless mode. Without one, open the HTML in a browser and print it (Letter,
@@ -66,6 +68,20 @@ ul{margin:2px 0 2px 16px;padding:0} li{margin:1px 0}
 .armour span{font-size:8.5px;color:var(--muted);text-transform:uppercase}
 .track{display:inline-block;width:11px;height:11px;border:1px solid var(--fg);border-radius:2px;margin-right:2px;vertical-align:middle}
 .track.on{background:var(--fg)}
+.todo{border:1.5px solid var(--accent);background:#fbf3f1;padding:4px 8px;margin:6px 0;break-inside:avoid;font-size:9.5px}
+.todo b.t{display:block;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:2px}
+.todo ul{margin:1px 0 3px 16px}
+.spell{border-bottom:1px solid #ece6da;padding:3px 0;break-inside:avoid}
+.spell .nm{font-size:11px;font-weight:bold}
+.spell .st{color:var(--muted);font-size:9px;margin-left:6px}
+.spell .sum{margin:1px 0 0 10px}
+.play h2{margin-top:12px}
+.trk{display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin:3px 0}
+.trk .track{width:16px;height:16px;margin:0}
+.trk .lab{width:120px;font-size:11px}
+.conds{display:grid;grid-template-columns:1fr 1fr;gap:2px 18px}
+.cond{display:flex;align-items:center;gap:4px;border-bottom:1px solid #ece6da;padding:2px 0}
+.cond .cn{width:110px} .cond .track{width:13px;height:13px}
 """
 
 
@@ -81,6 +97,25 @@ def table(cols, rows, num=()):
 
 def boxes(n, filled=0):
     return "".join(f'<span class="track{" on" if i < filled else ""}"></span>' for i in range(max(0, int(n or 0))))
+
+
+def todo(m):
+    """Everything still to do on the character, in one box: earlier career levels to complete,
+    differences from the rules, what the record says is still to settle, and what the build couldn't
+    work out. Empty when there is nothing."""
+    parts = []
+    gaps = (m.get("career") or {}).get("to_complete") or []
+    if gaps:
+        parts.append("<b>Still to complete</b><ul>" + "".join(
+            f"<li>{e(g['career'])} {e(g['level'])} ({e(g['level_name'])}): {e('; '.join(g['missing']))}</li>" for g in gaps) + "</ul>")
+    if m["differences"]:
+        parts.append("<b>Differs from the rules</b><ul>" + "".join(
+            f"<li>{e(d['text'])} <span class='cite'>{e(d['id'])}</span></li>" for d in m["differences"]) + "</ul>")
+    if m.get("incomplete"):
+        parts.append("<b>To settle</b><ul>" + "".join(f"<li>{e(x if isinstance(x, str) else x.get('what'))}</li>" for x in m["incomplete"]) + "</ul>")
+    if m["notes"]:
+        parts.append("<b>Not worked out</b><ul>" + "".join(f"<li>{e(n)}</li>" for n in m["notes"]) + "</ul>")
+    return f'<div class="todo"><b class="t">To do</b>{"".join(parts)}</div>' if parts else ""
 
 
 def page_one(m):
@@ -106,15 +141,10 @@ def page_one(m):
              ("Encumbrance", f'{en["carried"]} / {en["max"]}', ""),
              ("XP", x["current"], f'{x["spent"]} spent of {x["total"]}')]
     out.append('<div class="attrs">' + "".join(f'<div class="at"><span>{e(a)}</span><b>{e(b)}</b><i>{e(i)}</i></div>' for a, b, i in attrs) + "</div>")
-    gaps = c.get("to_complete") or []
     path = c.get("path") or []
-    if path or gaps:
-        lines = [f"{e(p['class'])}: {e(p['name'])} ({e(', '.join(p['levels']))})" for p in path]
-        lines += [f"<b>Still to complete</b> in {e(g['career'])} {e(g['level'])} ({e(g['level_name'])}): {e('; '.join(g['missing']))}" for g in gaps]
-        out.append(f'<div class="box{" warn" if gaps else ""} small">' + "<br>".join(lines) + "</div>")
-    if m["differences"]:
-        out.append('<div class="box warn small"><b>Differs from the rules</b><ul>' +
-                   "".join(f"<li>{e(d['text'])} <span class='cite'>{e(d['id'])}</span></li>" for d in m["differences"]) + "</ul></div>")
+    if path:
+        out.append('<div class="box small">' + "<br>".join(f"{e(p['class'])}: {e(p['name'])} ({e(', '.join(p['levels']))})" for p in path) + "</div>")
+    out.append(todo(m))
     def skills(rows):
         return table(["Skill", "", "Char", "Adv", "Total"],
                      [[e(s["name"]), '<span class="car">career</span>' if s["career"] else "", e(s["characteristic"]),
@@ -150,9 +180,11 @@ def page_two(m):
     out.append(f'<div class="box small"><b>Money</b>: {e(money.get("gc", 0))} gc · {e(money.get("ss", 0))} ss · {e(money.get("d", 0))} d'
                f' &nbsp; <b>Encumbrance</b>: {e(m["encumbrance"]["carried"])} of {e(m["encumbrance"]["max"])}</div>')
     if m["spells"]:
-        out.append("<h2>Spells</h2>" + table(["Spell", "Lore", "CN", "Range", "Target", "Duration"], [
-            [e(s["name"]) + f' <span class="cite">{e(s["cite"])}</span>', e(s["lore"] or s["kind"]), e(s["cn"]), e(s["range"]),
-             e(s["target"]), e(s["duration"])] for s in m["spells"]], num=(2,)))
+        out.append("<h2>Spells</h2>" + "".join(
+            f'<div class="spell"><span class="nm">{e(s["name"])}</span><span class="st">{e(s["lore"] or s["kind"])} · CN {e(s["cn"])} · '
+            f'Range {e(s["range"])} · Target {e(s["target"])} · Duration {e(s["duration"])} · {e(s["cite"])}</span>'
+            f'<div class="sum">{e(s["summary"]) if s.get("summary") else "<i>No summary yet: read the entry.</i>"}</div></div>'
+            for s in m["spells"]))
     side = []
     if m.get("ambitions"):
         side.append("<h2>Ambitions</h2><ul>" + "".join(f"<li>{e(k.title())}: {e(v)}</li>" for k, v in m["ambitions"].items() if v) + "</ul>")
@@ -167,28 +199,50 @@ def page_two(m):
         if st.get(key):
             side.append(f"<h2>{title}</h2><ul>" + "".join(f"<li>{e(x if isinstance(x, str) else x.get('name') or json.dumps(x))}</li>"
                                                        for x in st[key]) + "</ul>")
-    notes = []
-    if m.get("incomplete"):
-        notes.append("<b>To settle</b><ul>" + "".join(f"<li>{e(x if isinstance(x, str) else x.get('what'))}</li>" for x in m["incomplete"]) + "</ul>")
-    if m["accepted"]:
-        notes.append("<b>Accepted differences</b><ul>" + "".join(f"<li>{e(d['text'])} <i>({e(d['why'])})</i></li>" for d in m["accepted"]) + "</ul>")
-    if m.get("house_rules"):
-        notes.append("<b>House rules used</b><ul>" + "".join(f"<li>{e(h.get('text') or h.get('house_rule'))}</li>"
-                                                         for h in m["house_rules"].values()) + "</ul>")
-    if m.get("effects"):
-        notes.append("<b>What rules add</b> (in the numbers above)<ul>" + "".join(
-            f"<li>{e(bc.CHAR_NAME.get(x['on'], x['on'].replace('_', ' ').capitalize()))} " +
-            (f"× {e(x['multiply'])}" if "multiply" in x else f"{'+' if x['add'] >= 0 else ''}{e(x['add'])}") +
-            f" <span class='cite'>{e(x['from'])}</span></li>" for x in m["effects"]) + "</ul>")
-    if m["notes"]:
-        notes.append("<b>Not worked out</b><ul>" + "".join(f"<li>{e(n)}</li>" for n in m["notes"]) + "</ul>")
-    out.append(f'<div class="cols"><div>{"".join(side)}</div><div><h2>Notes</h2><div class="small">{"".join(notes) or "None."}</div></div></div>')
+    if side:
+        out.append(f'<div class="cols"><div>{"".join(side[:len(side) // 2 + len(side) % 2])}</div><div>{"".join(side[len(side) // 2 + len(side) % 2:])}</div></div>')
     return '<div class="page new">' + "".join(out) + "</div>"
 
 
-def document(m):
+def page_play(m, conditions=()):
+    """A page to mark during a session: Wounds, Fortune and Resolve as boxes (those already taken or
+    spent filled in), and each condition in play with boxes to count it."""
+    w, f, r, st = m["wounds"], m["fate"], m["resilience"], m.get("state") or {}
+    out = [f'<div class="head"><div><h1>{e(m.get("name") or m.get("slug"))}</h1><div class="what">In play</div></div>'
+           f'<div class="who">Toughness Bonus {e(m["characteristics"]["T"]["bonus"])} · Movement {e(m["movement"]["base"])} '
+           f'(Walk {e(m["movement"]["walk"])}, Run {e(m["movement"]["run"])})</div></div>']
+    def row(label, n, filled, note=""):
+        return f'<div class="trk"><span class="lab">{e(label)} <span class="cite">{e(note)}</span></span>{boxes(n, filled)}</div>'
+    out.append("<h2>Wounds</h2>" + row(f"Wounds ({w['max']})", w["max"], w["taken"]))
+    out.append("<h2>Fortune and Resolve</h2>" + row(f"Fortune ({f['fortune']})", f["fortune"], st.get("fortune_spent", 0)) +
+               row(f"Resolve ({r['resolve']})", r["resolve"], st.get("resolve_spent", 0)))
+    have = {}
+    for x in st.get("conditions") or []:
+        n = x if isinstance(x, str) else x.get("name")
+        have[bc.norm(n)] = 1 if isinstance(x, str) else int(x.get("count", 1))
+    if conditions:
+        out.append("<h2>Conditions</h2><div class='conds'>" + "".join(
+            f'<div class="cond"><span class="cn">{e(c["name"])}</span>{boxes(6, have.get(bc.norm(c["name"]), 0))}'
+            f'<span class="cite">{e(c.get("cite", ""))}</span></div>' for c in conditions) + "</div>")
+    elif st.get("conditions"):
+        out.append("<h2>Conditions</h2><ul>" + "".join(f"<li>{e(k)}: {v}</li>" for k, v in have.items()) + "</ul>")
+    return '<div class="page new play">' + "".join(out) + "</div>"
+
+
+def conditions_in_play(lib):
+    """The conditions in play, from the library's rules: [{name, ref, cite}]."""
+    out = []
+    for _, r in lib.index("rules"):
+        if r.get("kind") == "condition":
+            ref = f"rules/{r['slug']}"
+            try: out.append({"name": r["name"], "ref": ref, "cite": bc.cite(lib.entry(ref), bc.chapter_titles(lib))})
+            except Exception: out.append({"name": r["name"], "ref": ref})
+    return sorted(out, key=lambda c: c["name"])
+
+
+def document(m, conditions=()):
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{e(m.get("name"))}</title>'
-            f"<style>{CSS}</style></head><body>{page_one(m)}{page_two(m)}</body></html>")
+            f"<style>{CSS}</style></head><body>{page_one(m)}{page_two(m)}{page_play(m, conditions)}</body></html>")
 
 
 def find_browser():
@@ -238,11 +292,12 @@ def main():
     a = ap.parse_args()
     with open(a.record, encoding="utf-8") as f:
         record = json.load(f)
-    m = bc.build(record, Library(a.library, a.campaign))
+    lib = Library(a.library, a.campaign)
+    m = bc.build(record, lib)
     os.makedirs(a.out, exist_ok=True)
     base = os.path.join(a.out, m.get("slug") or bc.slug(m.get("name") or "character"))
     with open(base + ".html", "w", encoding="utf-8") as f:
-        f.write(document(m))
+        f.write(document(m, conditions_in_play(lib)))
     print("wrote", base + ".html")
     if a.pdf:
         to_pdf(base + ".html", base + ".pdf")

@@ -217,6 +217,13 @@ beside its sentence when a rule is first applied to a character, and set it
 once the Librarian confirms. The text stays the authority; a formula is a
 reading of it, and one that is lost is simply written again.
 
+A **summary** (`--summary "..."`) is one line in your own words of what an
+entry does, printed under a spell on the character sheet. The same rules
+apply: on the entry only, carried over on re-import, written when a character
+first takes the spell and shown to the Librarian, never the book's sentences.
+Name a bonus in full ("Willpower Bonus yards") so the sheet prints the
+character's number.
+
 **Headings with nothing under them.** A heading whose only contents are other
 entries ("Skills and Talents" over talents that are entries themselves, or a
 list whose every item its `split_headings` made an entry) would

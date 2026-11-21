@@ -1942,6 +1942,9 @@ def carry_formulas(entries, library_data, report):
             else:
                 e['fields'][kind] = old[kind]
                 report.setdefault('formulas_carried', []).append({'entry': f'{cat}/{e["slug"]}', 'kind': kind})
+        if isinstance(old.get('summary'), str) and old['summary'].strip():          # written on the entry, like formulas
+            e['fields']['summary'] = old['summary']
+            report.setdefault('formulas_carried', []).append({'entry': f'{cat}/{e["slug"]}', 'kind': 'summary'})
 
 
 def write_outputs(entries, records, report, out, formulas_from=None, plan=None):

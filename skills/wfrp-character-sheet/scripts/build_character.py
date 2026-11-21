@@ -699,13 +699,21 @@ class Builder:
             (basic if f.get("advanced") is False else advanced).append(row)
         return {"basic": sorted(basic, key=lambda r: r["name"]), "advanced": sorted(advanced, key=lambda r: r["name"])}
 
-    def resolve(self, text):
-        """"Willpower Bonus yards" -> "7 yards", with this character's numbers."""
+    def resolve(self, text, bonuses_only=False):
+        """"Willpower Bonus yards" -> "7 yards", with this character's numbers. bonuses_only leaves a
+        characteristic named on its own ("a Fellowship Test") as it is."""
         if not isinstance(text, str): return text
         def sub(m):
             c = NAME_CHAR[norm(m.group(1))]
+            if bonuses_only and not m.group(2): return m.group(0)
             return str(self.names[c + "B"] if m.group(2) else self.names[c])
-        return re.sub(r"\b(%s)(\s+Bonus)?\b" % "|".join(CHAR_NAME.values()), sub, text)
+        out = re.sub(r"\b(%s)(\s+Bonus)?\b" % "|".join(CHAR_NAME.values()), sub, text)
+        if bonuses_only and out != text:              # "5 + 7 Wounds" -> "12 Wounds"; "7 + SL" stays
+            while True:
+                new = re.sub(r"(?<![\w+–-])(\d+) \+ (\d+)(?![\w])", lambda m: str(int(m.group(1)) + int(m.group(2))), out, count=1)
+                if new == out: break
+                out = new
+        return out
 
     def spell_price(self, kind, known):
         """The price of a new spell of this kind when `known` are known already, from the table in the
@@ -757,7 +765,11 @@ class Builder:
                                 f"{e['name']} is from the Lore of {lore}; the character has no Arcane Magic talent for it.", ref)
             out.append({"name": e["name"], "ref": ref, "kind": kind, "lore": lore, "cn": f.get("cn"),
                         "range": self.resolve(f.get("range")), "target": self.resolve(f.get("target")),
-                        "duration": self.resolve(f.get("duration")), "cite": self.cite(ref)})
+                        "duration": self.resolve(f.get("duration")), "cite": self.cite(ref),
+                        "summary": self.resolve(f.get("summary"), bonuses_only=True)})
+            if not f.get("summary"):
+                self.note(f"{e['name']} has no summary yet for the printed sheet: write one in your own words on its entry "
+                          f"(set_formulas.py --summary) {self.cite(ref)}.")
             # what it cost: spells are counted per talent that teaches them, in the order learned
             how = s.get("how")
             if how not in SPELL_HOW:
