@@ -34,8 +34,12 @@ One part of a source, as listed in its table of contents, with its printed page 
 _Avoid_: Section, page (as the unit of import)
 
 **Plan**:
-How one chapter splits into entries: which headings start entries, which category each section holds, and the decisions about same-named entries. Kept in Drive beside the source.
+How the import reads one chapter: which headings start entries, which category each section holds, and (for now) the decisions about same-named entries. A helper for importing only: nothing reads it at runtime, and content such as formulas is never kept in it. Kept in Drive beside the source.
 _Avoid_: Config, mapping
+
+**Version**:
+One of two or more entries for the same thing in different sources (a weapon as the Rulebook prints it and as a supplement revises it), joined by a *replaces* mark. A campaign uses the version from the source that comes first in its sources.
+_Avoid_: Override, duplicate
 
 **Entry**:
 One imported game item, such as a career, talent, spell, creature, rule, or table, along with the source, chapter, section and page it came from.

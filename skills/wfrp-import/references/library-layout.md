@@ -224,7 +224,7 @@ Each category folder in a `library-data/` holds:
 | Role | Meaning | Using it |
 |---|---|---|
 | `adds-to` | adds to that entry (more lore, optional rules, a variant) | use both: that entry first, then this one |
-| `replaces` | supersedes that entry (a revised career in a supplement, errata) | when both are in play, use this one and say the other exists |
+| `replaces` | a version of the same thing as that entry (a revised career in a supplement, errata) | of the versions whose sources are in play, a campaign uses the one whose source comes first in its `sources` (§8), whichever way the mark points, and says the others exist. Between versions it ranks the same, and with no campaign, the one that replaces the other |
 | `reprint-of` | the same text printed again (a Starter Set copy of a Rulebook talent) | use either; cite the one whose source comes first in play |
 | `distinct-from` | a different thing that could be taken for that entry: the same name in another category (the *Dodge* skill, the *Dodge* talent if any), or a near name in the same one (*Dagger (Elven)*, *Dagger*) | never combine them |
 | `updated-by` | an older edition's rules for this were updated by that entry | in a campaign of the newer edition this entry doesn't exist (§8) |
@@ -481,7 +481,7 @@ Each folder in `campaigns/` is one campaign, configured by its `campaign.json`:
 | `slug` | Must match the folder name. |
 | `gm` | Name or email of the campaign's GM. |
 | `edition` | The WFRP edition the campaign plays by. Left out means the library's `edition`. |
-| `sources` | The **sources in play**, in order of precedence: library source codes and this campaign's source codes. Only entries from these sources may be used. |
+| `sources` | The **sources in play**, highest precedence first: library source codes and this campaign's source codes. Only entries from these sources may be used, and where two of them have versions of one thing (§4, `replaces`) the campaign uses the version from the source listed first. So a group that wants a supplement's revised weapons lists it before the Rulebook, and one that wants the Rulebook's lists the Rulebook first. |
 | `campaign_sources` | This campaign's own sources (§3). |
 | `house_rules` | Added to the library's `house_rules`. Where they conflict, the campaign's win. Each is a short string, or `{ "id": "hardy-twice", "text": "Hardy may be taken one more time than its Max", "from": "<where the group took it from, if anywhere>", "accepts": ["talent-max:hardy"] }` when it settles something the character builder reports: `accepts` lists the ids (with `*` wildcards) of the differences it allows, on every character in the campaign. |
 | `creation` | How new characters are made: for species, career and characteristics, `random` (roll and keep), `random-or-choose` (roll, and choosing costs the Rulebook's XP bonus), or `choose`. `starting_xp_bonus` false turns the bonus XP for keeping rolls off. Left out means the Rulebook's rules. |
@@ -491,8 +491,10 @@ Each folder in `campaigns/` is one campaign, configured by its `campaign.json`:
 | `in_game_date` | The current date in the Imperial Calendar, as the GM writes it (e.g. "Festag, 33rd Nachexen 2512 IC"). |
 | `notes` | Free text for the GM: setting, tone, things to keep in mind. |
 
-When a campaign is created, campaign sources go first in `sources`, so the
-GM's material overrides the library unless they reorder it.
+When a campaign is created, campaign sources go first in `sources`, then the
+library's sources newest first, so the GM's material and later books' revisions
+take precedence unless the GM reorders them. Ask the GM whether that is the
+order they play by.
 
 **Choosing the active campaign**, in this order:
 
@@ -511,12 +513,12 @@ GM's material overrides the library unless they reorder it.
 2. Keep entries whose `source` is in `sources`, then apply `allowed`. Drop
    entries with `audience: gm` unless the user is the campaign's GM. Drop
    entries of another edition that are `updated-by` an entry.
-3. Entries that share a name follow their `relations` (§4), not source order:
-   an entry that adds to another is used with it, after it; a replacement is
-   used instead of what it replaces (when both are in play, the replaced entry
-   isn't offered); of a reprint and its original, cite the one whose source
-   comes first in `sources`; distinct entries are kept apart (say which one
-   you mean when the question could be either).
+3. Entries that share a name follow their `relations` (§4): an entry that
+   adds to another is used with it, after it; of versions of one thing
+   (`replaces`), the one whose source comes first in `sources` is used and the
+   others aren't offered; of a reprint and its original, cite the one whose
+   source comes first in `sources`; distinct entries are kept apart (say which
+   one you mean when the question could be either).
 4. If a filter removes everything the user asked for, say which rule removed it
    rather than quietly widening the search. If the source is in play but the
    relevant chapter isn't imported yet (§3 chapter status), say that instead of

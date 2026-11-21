@@ -49,14 +49,18 @@ In the entry's `fields`, beside the text it encodes, in two lists:
   the formula: read the entry". A rule that fits the vocabulary only in part is
   written in part, and says so.
 
-They are written in the chapter's plan, under `formulas` by the entry's ref
-(`"talents/coolheaded": {"effects": [...]}`), so a re-import keeps them. They
-go into the entry's `fields` and are not copied into the index.
+The entry in the library is a formula's **only home**. `set_formulas.py`
+writes it into the entry's `fields`; it is not copied into the index and no
+part of it is kept in a chapter's plan (ADR 0006). A re-import writes the entry
+afresh, so the converter copies the formulas over from the entry it replaces,
+and lists any that no longer fit (the block gone, the row renamed) to be
+written again. A formula that is lost is simply regenerated the next time the
+rule is applied.
 
 A **table's row** can carry formulas too, because some rules are rows: a
-mutation, a result of a roll a talent sends you to. The plan names the row by
-the text of one of its cells (`"tables/<slug>": {"rows": {"<name>": {"effects":
-[...]}}}`), which must name exactly one row; the row is the place, so there is
+mutation, a result of a roll a talent sends you to. The row is named by the
+text of one of its cells (the table entry's `fields.rows`: `{"<name>":
+{"effects": [...]}}`), which must name exactly one row; the row is the place, so there is
 no `at`. A character record names the row it has (`{"table": ..., "row": ...}`
 under `psychology` or `mutations`), and that row's formulas are used.
 
@@ -116,7 +120,7 @@ are simple and the most repeated work), requirements after.
 ## Consequences
 
 - The text remains the authority. A formula is an interpretation of it, and a
-  wrong one is corrected in the plan.
+  wrong one is corrected on the entry.
 - The record's `effects` shrink to exceptions; existing records keep working.
 - The import report should list entries whose text names a number or a
   condition and that carry no formula, as candidates, without guessing them.

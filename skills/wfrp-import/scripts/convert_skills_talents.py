@@ -199,6 +199,8 @@ def main(argv=None):
     ap.add_argument('layout')
     ap.add_argument('--plan', required=True)
     ap.add_argument('--out', required=True)
+    ap.add_argument('--formulas-from', help="the library's library-data folder: on a re-import, each entry's "
+                    'formulas are copied from the entry it replaces there (set_formulas.py wrote them)')
     ap.add_argument('--taken', action='append', default=[],
                     help='CATEGORY=_index.json of entries already in the library (repeatable)')
     a = ap.parse_args(argv)
@@ -212,7 +214,7 @@ def main(argv=None):
         with open(path, encoding='utf-8') as f:
             taken.setdefault(cat, set()).update(r['slug'] for r in json.load(f) if r.get('source') != plan['source'])
     entries, records, report = convert_chapter(layout, plan, taken)
-    return write_outputs(entries, records, report, a.out, plan.get('formulas'))
+    return write_outputs(entries, records, report, a.out, a.formulas_from, plan)
 
 
 if __name__ == '__main__':

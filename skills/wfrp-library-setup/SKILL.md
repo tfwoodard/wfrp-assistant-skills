@@ -45,7 +45,9 @@ create each folder and file with Drive tools.
 
 1. Ask for the campaign name (make the slug: lowercase, hyphenated) and who
    the GM is.
-2. Ask which library sources are in play [all of them], how characters are
+2. Ask which library sources are in play [all of them] and in what order of
+   precedence [newest book first: where two books have versions of one thing,
+   the campaign uses the one from the source listed first (layout §8)], how characters are
    created (layout §8 `creation`) [the Rulebook's rules], and any campaign
    house rules or bans. Adventures and homebrew are added later through
    `wfrp-import` as campaign sources; they go first in `sources`. Leave

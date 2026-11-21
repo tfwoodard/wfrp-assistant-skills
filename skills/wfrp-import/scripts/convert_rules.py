@@ -1850,6 +1850,8 @@ def main(argv=None):
     ap.add_argument('layout')
     ap.add_argument('--plan', required=True)
     ap.add_argument('--out', required=True)
+    ap.add_argument('--formulas-from', help="the library's library-data folder: on a re-import, each entry's "
+                    'formulas are copied from the entry it replaces there (set_formulas.py wrote them)')
     ap.add_argument('--taken', action='append', default=[],
                     help='CATEGORY=_index.json of entries already in the library (repeatable)')
     ap.add_argument('--library-data', help="the library's library-data folder (its local copy): an entry "
@@ -1860,65 +1862,82 @@ def main(argv=None):
     with open(a.plan, encoding='utf-8') as f:
         plan = json.load(f)
     entries, records, report = convert(layout, plan, read_taken(a.taken, plan['source']), a.library_data)
-    return write_outputs(entries, records, report, a.out, plan.get('formulas'))
+    return write_outputs(entries, records, report, a.out, a.formulas_from, plan)
 
 
-def add_formulas(entries, formulas, report):
-    """The plan's "formulas" ({"<category>/<slug>": {"effects": [...], "checks": [...]}}, ADR 0005):
-    what an entry's rule does to a number, and what it requires or limits, written once on the
-    entry for the character builder to evaluate. They go in the entry's fields and stay out of the
-    index. Only their shape is checked here: an effect has "on" and "add", a check has "id" and a
-    "test" or a "read", and "at" is the number of the block of the entry that says so. A table's
-    "rows" ({"<a cell of the row>": {"effects": [...]}}) put formulas on single rows."""
-    by = {f'{cat}/{e["slug"]}': e for cat, e in entries}
-    for key, f in (formulas or {}).items():
-        e = by.get(key)
-        if e is None:
-            report['errors'].append({'error': f'formulas: this chapter has no entry {key}'})
+FORMULA_KINDS = ('effects', 'checks', 'rows')
+
+
+def formula_problem(entry, kind, items):
+    """Why these formulas can't sit on this entry, or None (ADR 0005). `kind` is "effects" or
+    "checks" (a list; each names with "at" the block of the entry that says so) or "rows"
+    ({"<a cell of the row>": {"effects": [...], "checks": [...]}}, for single rows of a table entry:
+    the name must be the whole text of a cell of exactly one row). Only the shape is checked: what
+    an effect may be "on" and the words of a "test" are the character builder's to know."""
+    def shape(k, its, row=None):
+        if k not in ('effects', 'checks') or not isinstance(its, list):
+            return 'takes "effects" and "checks", each a list' + ('' if row else ', and "rows" for a table\'s rows')
+        for it in its:
+            if not isinstance(it, dict):
+                return 'each formula is an object'
+            if k == 'effects' and not ('on' in it and 'add' in it):
+                return 'an effect needs "on" and "add"'
+            if k == 'checks' and not (it.get('id') and ('test' in it or it.get('read'))):
+                return 'a check needs an "id" and a "test" or a "read"'
+            if row is None and (not isinstance(it.get('at'), int) or not 0 <= it['at'] < len(entry['content'])):
+                return f'"at" must be the number of one of the entry\'s {len(entry["content"])} blocks (from 0)'
+        return None
+
+    if kind != 'rows':
+        return shape(kind, items)
+    if not isinstance(items, dict):
+        return '"rows" is an object of row name to its formulas'
+    rows = [r for b in entry['content'] if b.get('type') == 'table' for r in b.get('rows', [])]
+    for name, rf in items.items():
+        hits = sum(1 for r in rows if norm(name) in [norm(str(c)) for c in r])
+        if hits != 1:
+            return f'"{name}" names {hits} rows of its table: it must name one, by a cell\'s whole text'
+        if not isinstance(rf, dict) or not rf:
+            return f'row "{name}" needs "effects" or "checks"'
+        bad = next((w for w in (shape(k, v, name) for k, v in rf.items()) if w), None)
+        if bad:
+            return f'row "{name}": {bad}'
+    return None
+
+
+def carry_formulas(entries, library_data, report):
+    """Formulas live on the entry in the library and nowhere else (ADR 0005): set_formulas.py puts
+    them there. A re-import writes the entry afresh, so it copies them from the entry of the same
+    category and slug in `library_data` (the library's own library-data folder). One that no longer
+    fits (its block is gone, its row renamed) is left behind and listed, as a question, to be
+    written again; nothing is carried silently and nothing is dropped silently."""
+    for cat, e in entries:
+        path = os.path.join(library_data, cat, e['slug'] + '.json')
+        if not os.path.exists(path):
             continue
-        def shape(kind, items, row=None):
-            if kind not in ('effects', 'checks') or not isinstance(items, list):
-                return 'takes "effects" and "checks", each a list' + ('' if row else ', and "rows" for a table\'s rows')
-            for it in items:
-                if not isinstance(it, dict):
-                    return 'each formula is an object'
-                if kind == 'effects' and not ('on' in it and 'add' in it):
-                    return 'an effect needs "on" and "add"'
-                if kind == 'checks' and not (it.get('id') and ('test' in it or it.get('read'))):
-                    return 'a check needs an "id" and a "test" or a "read"'
-                if row is None and (not isinstance(it.get('at'), int) or not 0 <= it['at'] < len(e['content'])):
-                    return f'"at" must be the number of one of the entry\'s {len(e["content"])} blocks (from 0)'
-            return None
-
-        for kind, items in f.items():
-            if kind == 'rows':
-                # A table's row can carry formulas too (a mutation's row, a result of a roll): by the
-                # text of one of its cells, which must name exactly one row. The row is the place, so
-                # no "at".
-                rows = [r for b in e['content'] if b.get('type') == 'table' for r in b.get('rows', [])]
-                bad = None if isinstance(items, dict) else '"rows" is an object of row name to its formulas'
-                for name, rf in ({} if bad else items).items():
-                    hits = sum(1 for r in rows if norm(name) in [norm(str(c)) for c in r])
-                    if hits != 1:
-                        bad = f'"{name}" names {hits} rows of its table: it must name one, by a cell\'s whole text'
-                    elif not isinstance(rf, dict) or not rf:
-                        bad = f'row "{name}" needs "effects" or "checks"'
-                    else:
-                        bad = next((f'row "{name}": {w}' for w in (shape(k, v, name) for k, v in rf.items()) if w), None)
-                    if bad: break
-            else:
-                bad = shape(kind, items)
+        with open(path, encoding='utf-8') as f:
+            old = json.load(f).get('fields', {})
+        for kind in FORMULA_KINDS:
+            if kind not in old:
+                continue
+            bad = formula_problem(e, kind, old[kind])
             if bad:
-                report['errors'].append({'error': f'formulas for {key}: {bad}'})
+                report.setdefault('formulas_left_behind', []).append({'entry': f'{cat}/{e["slug"]}', kind: old[kind], 'why': bad})
+                report['questions'].append({'entry': e['name'], 'question': f'its {kind} formulas no longer fit and were '
+                                            f'not carried over ({bad}): write them again with set_formulas.py'})
             else:
-                e['fields'][kind] = items
-                report.setdefault('formulas', []).append({'entry': key, kind: len(items)})
+                e['fields'][kind] = old[kind]
+                report.setdefault('formulas_carried', []).append({'entry': f'{cat}/{e["slug"]}', 'kind': kind})
 
 
-def write_outputs(entries, records, report, out, formulas=None):
+def write_outputs(entries, records, report, out, formulas_from=None, plan=None):
     """Write each entry's .json and .md (rules entries by slug, others as <category>--<slug>),
     `_records.json` and `_report.json`; print the counts. Returns the exit status."""
-    add_formulas(entries, formulas, report)
+    if (plan or {}).get('formulas'):
+        report['errors'].append({'error': 'the plan has "formulas": they live on the library\'s entries, not in a plan. '
+                                          'Take them out, and set them on the entry with set_formulas.py'})
+    if formulas_from:
+        carry_formulas(entries, formulas_from, report)
     os.makedirs(out, exist_ok=True)
     for cat, e in entries:
         for ext, text in (('json', json.dumps(e, ensure_ascii=False, indent=1) + '\n'), ('md', render(e))):
