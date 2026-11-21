@@ -9,6 +9,8 @@ Reads the record as it is and reports, for the current career and the levels rea
   - characteristics the career advances: advances taken, the price of the next one;
   - skills the career lists: the same, per skill the character has under each listed name, and the
     listed name itself when it is a choice ("Lore (Any)") or not yet taken;
+  - spells: how many the character knows under each talent that teaches them, and the price of the
+    next;
   - talents on sale (the current level's, or every level reached where a house rule opens them):
     times taken, the Max as a number, the price, and "at its Max" when it can't be taken again;
   - what completing the current level still needs, and the least XP that takes;
@@ -100,6 +102,16 @@ def report(record, lib):
                 if mx is not None and t["times"] >= mx:
                     row["next"], row["at_max"] = None, True
                 out["talents"].append(row)
+    out["spells"] = []
+    names = [t["name"] for t in m["talents"]]
+    if any(bc.norm(n).startswith("petty magic") for n in names):
+        k = b.spells_known.get("petty", 0)
+        out["spells"].append({"what": "a Petty spell", "known": k, "next": b.spell_price("petty", k)})
+    for n in names:
+        if bc.norm(n).startswith("arcane magic") and spec_of(n):
+            lore = bc.WINDS.get(bc.norm(spec_of(n)), bc.norm(spec_of(n)))
+            k = b.spells_known.get(lore, 0) + (b.spells_known.get(bc.norm(spec_of(n)), 0) if lore != bc.norm(spec_of(n)) else 0)
+            out["spells"].append({"what": f"a spell of {spec_of(n)}", "known": k, "next": b.spell_price("lore", k)})
     out["complete_level"] = completing(b, m, lib, levels, now, price)
     out["unfinished"] = [g for g in m["career"].get("to_complete", [])]
     out["notes"] += [n for n in m["notes"] if "cost table" in n or "Level Advances" in n]
@@ -159,6 +171,9 @@ def text(o):
     L += ["", "Talents (times taken of Max; price)"]
     L += [f"  {t['name']}: {t['times']} of {t['max'] if t['max'] is not None else '?'}; " +
           ("at its Max" if t.get("at_max") else cost(t["next"])) + (" (choose which)" if t.get("choose") else "") for t in o["talents"]]
+    if o.get("spells"):
+        L += ["", "Spells (known; price of the next)"]
+        L += [f"  {x['what']}: {x['known']}; {cost(x['next'])}" for x in o["spells"]]
     c = o.get("complete_level")
     if c:
         L += ["", f"To complete level {c['level']}:"]

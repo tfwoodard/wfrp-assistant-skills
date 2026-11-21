@@ -48,7 +48,12 @@ HOW = ("species", "career", "xp", "free", "imported")
 SETTINGS = {"talent_cost": ("rising", "flat"),                       # 100, 200, 300 ... or 100 each time
             "talents_from": ("current-level", "levels-reached")}     # which career levels sell their talents
 # the numbers a rule's effect can add to (ADR 0005)
-TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption"}
+TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption", "spell_cost"}
+SCALED = {"spell_cost"}            # targets an effect multiplies ("multiply": 0.5) rather than adds to
+# where the price of a new spell is printed: (talent, table title), by the spell's kind
+SPELL_COSTS = {"petty": ("Petty Magic", "Petty Magic Spell Costs"), "lore": ("Arcane Magic", "Arcane Magic Spell Costs"),
+               "arcane": ("Arcane Magic", "Arcane Magic Spell Costs")}
+SPELL_HOW = ("talent", "xp", "free", "imported")
 ANY = re.compile(r"^any\b", re.I)
 ONE = re.compile(r"^any one\b|\s+or\s+|\s*/\s*", re.I)     # a listed name that is one choice: "Lore (Any One)", "Art (A or B)"
 ROLL = re.compile(r"^\d+(\s*[–-]\s*\d+)?$")          # a table's dice column: "36–40"
@@ -369,14 +374,17 @@ class Builder:
         formulas are the only ones evaluated (ADR 0005). `times` is how often a talent was taken."""
         if hasattr(self, "_used"): return self._used
         rec, refs = self.rec, {}
-        def use(ref, what, times=1):
+        self.specs = {}                       # ref -> the specialisations taken of it ("Magical Prodigy")
+        def use(ref, what, times=1, spec=None):
             if not ref: return
             cur, e = self.entry(ref, what)
-            if e: refs[cur] = (e, refs.get(cur, (e, 0))[1] + times)
+            if e:
+                refs[cur] = (e, refs.get(cur, (e, 0))[1] + times)
+                if spec: self.specs.setdefault(cur, set()).add(norm(spec))
         use((rec.get("species") or {}).get("ref"), "Species")
         for c in rec.get("careers", []): use(c.get("ref"), "Career")
         for a in self.ledger:
-            if a.get("talent"): use(a["talent"], "Talent", int(a.get("times", 1)))
+            if a.get("talent"): use(a["talent"], "Talent", int(a.get("times", 1)), a.get("specialisation"))
             elif a.get("skill") and self.lib.current(a["skill"]) not in refs: use(a["skill"], "Skill")
         for x in rec.get("spells", []) + [t for t in rec.get("trappings", []) if t.get("ref")]:
             if self.lib.current(x["ref"]) not in refs: use(x["ref"], "Entry")
@@ -392,7 +400,8 @@ class Builder:
 
     def applies(self, to, ref):
         """Is a formula's "applies" about this character? {"species": [refs], "career": [refs],
-        "class": [names]}; all the keys given must hold. A key the build doesn't know is said and
+        "class": [names], "specialisation": [names]}; all the keys given must hold. "specialisation"
+        is the one the character took of the entry the formula is on (a talent's chosen benefit). A key the build doesn't know is said and
         the formula is left out, never guessed."""
         if not to: return True
         mine = {"species": {self.lib.current((self.rec.get("species") or {}).get("ref") or "")},
@@ -401,6 +410,9 @@ class Builder:
             want = want if isinstance(want, list) else [want]
             if k in mine:
                 if not mine[k] & {self.lib.current(w) for w in want}: return False
+            elif k == "specialisation":
+                self.used()
+                if not self.specs.get(ref, set()) & {norm(w) for w in want}: return False
             elif k == "class":
                 cur = self.rec.get("careers", [])[-1:]
                 _, ce = self.entry(cur[0].get("ref"), "Career") if cur else (None, None)
@@ -418,8 +430,12 @@ class Builder:
             for f in e.get("fields", {}).get("effects", []):
                 if f.get("on") not in TARGETS:
                     self.note(f"{ref}: an effect on '{f.get('on')}', which isn't a number the sheet has, so it isn't applied. Read the entry.")
+                elif (f["on"] in SCALED) != ("multiply" in f):
+                    self.note(f"{ref}: an effect on {f['on']} must " + ("multiply" if f["on"] in SCALED else "add") +
+                              ", so it isn't applied. Read the entry.")
                 elif self.applies(f.get("applies"), ref):
-                    out.append({"on": f["on"], "add": f.get("add", 0), "from": ref, "times": times, "at": f.get("at")})
+                    out.append({"on": f["on"], "add": f.get("add", 0), "from": ref, "times": times, "at": f.get("at"),
+                                **({"multiply": f["multiply"]} if "multiply" in f else {})})
         for row in self.rows():
             for f in row["formulas"].get("effects", []):
                 if f.get("on") not in TARGETS:
@@ -472,6 +488,17 @@ class Builder:
                 continue
             mine.append(dict(e, times=self.used().get(src, (None, 1))[1]))
         return mine
+
+    def scale(self, on):
+        """What the effects on a scaled number multiply it by, and where each comes from."""
+        by, parts = 1, []
+        for e in self.entry_effects():
+            if e["on"] == on and isinstance(e.get("multiply"), (int, float)):
+                by *= e["multiply"]
+                part = {"on": on, "multiply": e["multiply"], "from": e["from"], **({"at": e["at"]} if e.get("at") is not None else {})}
+                parts.append(part)
+                if part not in self.applied: self.applied.append(part)
+        return by, parts
 
     def add_effects(self, on, base):
         total, parts = base, []
@@ -652,10 +679,43 @@ class Builder:
             return str(self.names[c + "B"] if m.group(2) else self.names[c])
         return re.sub(r"\b(%s)(\s+Bonus)?\b" % "|".join(CHAR_NAME.values()), sub, text)
 
+    def spell_price(self, kind, known):
+        """The price of a new spell of this kind when `known` are known already, from the table in the
+        talent that teaches it ("Up to Willpower Bonus × 2: 100 XP ... and so on"), times whatever the
+        character's rules multiply spell prices by. None, with a note, when it can't be read."""
+        talent, title = SPELL_COSTS[kind]
+        ref = self.lib.find("talents", talent)
+        t = self.table((self.lib.current(ref), title)) if ref else None
+        if not t:
+            if not ref: self.note(f"The {talent} talent isn't in the library, so its spells aren't priced.")
+            return None
+        rows = []
+        for r in t["rows"]:
+            m = re.match(r"\s*Up to (.+?) Bonus\s*[×x]\s*(\d+)", str(r[0]))
+            p = re.match(r"\s*(\d+)", str(r[1]))
+            c = NAME_CHAR.get(norm(m.group(1))) if m else None
+            if not (c and p):
+                self.note(f"The '{title}' table has a row the build can't read ({r[0]}: {r[1]}), so those spells aren't priced.")
+                return None
+            rows.append((c, int(m.group(2)), int(p.group(1))))
+        bonus = self.names[rows[0][0] + "B"]
+        if bonus < 1:
+            self.note(f"With a {CHAR_NAME[rows[0][0]]} Bonus of {bonus} the '{title}' table gives no price.")
+            return None
+        band = max(1, -(-known // bonus))                       # known 1..B: the first row; B+1..2B: the second
+        prices = {k: p for _, k, p in rows}
+        top = max(prices)
+        step = prices[top] - prices.get(top - 1, 0)             # "...and so on"
+        price = prices.get(band, prices[top] + step * (band - top))
+        by, _ = self.scale("spell_cost")
+        return -(-price * by // 1) if by != 1 else price
+
     def spells(self, talents):
-        out = []
+        out, self.spell_purchases, self.spells_unpriced = [], [], False
         lores = {norm(t["name"]) for t in talents}
-        for s in self.rec.get("spells", []):
+        mine = [w for w in list(WINDS) + list(WINDS.values()) if any(n.startswith("arcane magic") and w in n for n in lores)]
+        known, free = {}, 0
+        for i, s in enumerate(self.rec.get("spells", [])):
             ref, e = self.entry(s.get("ref"), "Spell")
             if not e: continue
             f = e.get("fields", {})
@@ -670,8 +730,38 @@ class Builder:
             out.append({"name": e["name"], "ref": ref, "kind": kind, "lore": lore, "cn": f.get("cn"),
                         "range": self.resolve(f.get("range")), "target": self.resolve(f.get("target")),
                         "duration": self.resolve(f.get("duration")), "cite": self.cite(ref)})
-        if out:
-            self.note("XP paid for spells isn't worked out yet: the prices are in the Petty Magic and Arcane Magic talents' text.")
+            # what it cost: spells are counted per talent that teaches them, in the order learned
+            how = s.get("how")
+            if how not in SPELL_HOW:
+                self.differ(f"spell-how:{ref.split('/')[-1]}", f"{e['name']}: the record must say how it was learned "
+                            f"({', '.join(SPELL_HOW)}).")
+                how = "imported"
+            group = "petty" if kind == "petty" else norm(s.get("lore") or lore or (mine[0] if mine else "")) if kind in ("lore", "arcane") else None
+            if kind == "arcane" and not s.get("lore") and len({WINDS.get(w, w) for w in mine}) > 1:
+                self.note(f"{e['name']} is an Arcane spell and the character has more than one lore: write the lore it was "
+                          f"learned under on its line in the record. Counted under the first.")
+            before = known.get(group, 0)
+            if group is not None: known[group] = before + 1
+            if how == "imported":
+                self.spells_unpriced = True
+            elif how == "talent":
+                free += 1
+                if kind != "petty":
+                    self.differ(f"spell-free:{ref.split('/')[-1]}", f"{e['name']} is recorded as coming with a talent; only "
+                                f"Petty Magic gives spells that way.", ref)
+            elif how == "xp":
+                cost = self.spell_price(kind, before) if kind in SPELL_COSTS else None
+                if kind not in SPELL_COSTS:
+                    self.note(f"{e['name']} is a {kind}: the build has no price for those. Read how it is learned.")
+                if s.get("xp") is not None and cost is not None and s["xp"] != cost:
+                    self.differ(f"xp-cost:spell-{ref.split('/')[-1]}", f"{e['name']} cost {s['xp']} XP in the record; the rules make it {cost}.", ref)
+                self.spell_purchases.append({"spell": e["name"], "xp": s.get("xp", cost), "by_the_rules": cost})
+        if free > self.names["WPB"]:
+            self.differ("petty-free", f"{free} petty spells are recorded as coming with Petty Magic; it gives as many as the "
+                        f"Willpower Bonus ({self.names['WPB']}).", self.lib.find("talents", "Petty Magic"))
+        self.spells_known = known
+        if self.spells_unpriced:
+            self.note("Some spells were imported from a sheet without their history, so the XP they cost isn't worked out.")
         return out
 
     def trappings(self):
@@ -799,6 +889,11 @@ class Builder:
             if paid is None: unknown = True
             else: spent += paid
             lines.append({"advance": i + 1, "xp": paid, "by_the_rules": cost})
+        for sp in getattr(self, "spell_purchases", []):
+            if sp["xp"] is None: unknown = True
+            else: spent += sp["xp"]
+            lines.append(sp)
+        if getattr(self, "spells_unpriced", False): unknown = True
         total = x.get("total")
         said = x.get("spent")
         out = {"total": total, "spent": said if said is not None else spent,
@@ -1020,7 +1115,8 @@ def markdown(m):
                 (f", from `{x['why']}`" if x.get("why") else "") + f" {x.get('cite', '')}".rstrip() for x in v])
     if m.get("effects"):
         L += ["", "## What rules add", "Already in the numbers above."]
-        L += [f"- {CHAR_NAME.get(e['on'], e['on'].title())} {'+' if e['add'] >= 0 else ''}{e['add']}: `{e['from']}`" for e in m["effects"]]
+        L += [f"- {CHAR_NAME.get(e['on'], e['on'].replace('_', ' ').capitalize())} " +
+              (f"× {e['multiply']}" if "multiply" in e else f"{'+' if e['add'] >= 0 else ''}{e['add']}") + f": `{e['from']}`" for e in m["effects"]]
     more = [(t["name"], t["added_by"]) for t in m["talents"] if t.get("added_by")]
     if more:
         L += ["", "## Rules that add to these talents", "The build doesn't apply these: read them when checking the character."]

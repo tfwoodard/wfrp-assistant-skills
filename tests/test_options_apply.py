@@ -156,6 +156,23 @@ class Apply(Case):
         self.assertEqual(self.apply('buy', '--characteristic', 'Luck').returncode, 1)
         self.assertEqual(self.saved(), record())
 
+    def test_a_spell_is_priced_by_how_many_are_known_and_written_among_the_spells(self):
+        rec = record(xp={'total': 500}, spells=[{'ref': 'spells/glow', 'how': 'talent'}])
+        rec['advances'] += [{'talent': 'talents/glow-magic', 'how': 'free'}, {'talent': 'talents/lamp-magic', 'specialisation': 'Lamps', 'how': 'free'}]
+        self.write(rec)
+        o = options.report(rec, Library(self.root, 'rock'))
+        self.assertEqual(o['spells'], [{'what': 'a Petty spell', 'known': 1, 'next': 30}, {'what': 'a spell of Lamps', 'known': 0, 'next': 80}])
+        self.assertIn('  a Petty spell: 1; 30 XP', options.text(o))
+        r = self.apply('buy', '--spell', 'beam', '--session', '2')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('beam: 80 XP', r.stdout)
+        self.assertIn('Beam learned (CN 4, Touch, Instant)', r.stdout)
+        self.assertEqual(self.saved()['spells'][-1], {'ref': 'spells/beam', 'how': 'xp', 'session': 2})
+        r = self.apply('buy', '--spell', 'Glint', '--how', 'talent')
+        self.assertIn('comes with the talent, no XP', r.stdout)
+        self.assertEqual(self.apply('buy', '--spell', 'Gl').returncode, 1)
+        self.assertEqual(self.apply('buy', '--talent', 'Quick', '--how', 'talent').returncode, 1)
+
     def test_outside_the_career_costs_double_and_log_only_logs(self):
         self.write(record())
         r = self.apply('buy', '--skill', 'Tide Lore')

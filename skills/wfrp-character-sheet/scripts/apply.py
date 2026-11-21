@@ -8,8 +8,10 @@ Commands:
   buy --skill "NAME" [--count N]              advances in a skill, named as the books print it:
                                               "Charm", "Lore (Reikland)"
   buy --talent "NAME"                         a talent, once: "Hardy", "Arcane Magic (Hysh)"
-        with --session N, --date YYYY-MM-DD, --notes TEXT, and --how xp|free (free: given in
-        play, no XP)
+  buy --spell "NAME" [--lore LORE]            a spell; --lore for an Arcane spell when the
+                                              character has more than one lore
+        with --session N, --date YYYY-MM-DD, --notes TEXT, and --how xp|free|talent (free: given
+        in play, no XP; talent: one of the spells Petty Magic gives when it is taken)
   log TEXT [--session N] [--date YYYY-MM-DD]   appends a changelog entry
 
 A purchase is added to the record's `advances` (the build prices it: never write the price), the
@@ -42,6 +44,12 @@ def line_for(a, lib):
             bc.NAME_CHAR.get(bc.norm(a.characteristic))
         if not code: sys.exit(f"'{a.characteristic}' isn't a characteristic: use one of {', '.join(bc.CHARS)}")
         return {"characteristic": code, "count": a.count}, bc.CHAR_NAME[code]
+    if a.spell:
+        ref = lib.find("spells", a.spell)
+        if not ref:
+            near = sorted({r["name"] for _, r in lib.index("spells") if bc.norm(a.spell) in bc.norm(r["name"])})[:8]
+            sys.exit(f"'{a.spell}' isn't one entry among the spells in play" + (f": did you mean {', '.join(near)}?" if near else "."))
+        return {"ref": lib.current(ref), **({"lore": a.lore} if a.lore else {})}, a.spell
     cat, name = ("skills", a.skill) if a.skill else ("talents", a.talent)
     ref, spec = lib.named(cat, name)
     if not ref:
@@ -67,6 +75,9 @@ def moved(before, after):
     old = {r["name"]: r["total"] for r in before["skills"]["basic"] + before["skills"]["advanced"]}
     for r in after["skills"]["basic"] + after["skills"]["advanced"]:
         if old.get(r["name"]) != r["total"]: out.append(f"{r['name']} {old.get(r['name'], 'new')} -> {r['total']}")
+    olds = [x["name"] for x in before["spells"]]
+    for x in after["spells"][len(olds):]:
+        out.append(f"{x['name']} learned (CN {x['cn']}, {x['range']}, {x['duration']})")
     oldt = {t["name"]: t["times"] for t in before["talents"]}
     for t in after["talents"]:
         if oldt.get(t["name"]) != t["times"]: out.append(f"{t['name']}: taken {t['times']}" + (f" of {t['max']}" if t["max"] is not None else ""))
@@ -80,12 +91,14 @@ def buy(record, lib, a):
         if getattr(a, k) is not None: line[k] = getattr(a, k)
     before = bc.build(copy.deepcopy(record), lib)
     new = copy.deepcopy(record)
-    new.setdefault("advances", []).append(line)
+    new.setdefault("spells" if a.spell else "advances", []).append(line)
     trial = bc.build(copy.deepcopy(new), lib)
+    if a.how == "talent" and not a.spell: sys.exit("--how talent is for a spell that comes with Petty Magic")
     paid = trial["xp"]["purchases"][-1] if a.how == "xp" and trial["xp"]["purchases"] else {}
     price = paid.get("xp") if a.how == "xp" else 0
     said = [f"{name}" + (f" x{a.count}" if "count" in line and a.count != 1 else "") +
-            (": " + ("given in play, no XP" if a.how == "free" else f"{price} XP" if price is not None else "price not worked out"))]
+            (": " + ("given in play, no XP" if a.how == "free" else "comes with the talent, no XP" if a.how == "talent" else
+                    f"{price} XP" if price is not None else "price not worked out"))]
     if a.how == "xp" and price is not None and (new.get("xp") or {}).get("spent") is not None:
         new["xp"]["spent"] += price                    # an imported record keeps its total by hand
     after = bc.build(copy.deepcopy(new), lib)
@@ -120,7 +133,7 @@ def buy(record, lib, a):
             pass
     date = a.date or datetime.date.today().isoformat()
     new.setdefault("changelog", []).append({"date": date, **({"session": a.session} if a.session is not None else {}),
-                                            "text": said[0] if a.how == "free" else f"Spent {price} XP on {name}" +
+                                            "text": said[0] if a.how != "xp" else f"Spent {price} XP on {name}" +
                                             (f" x{a.count}" if "count" in line and a.count != 1 else "")})
     return new, said
 
@@ -135,9 +148,10 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("buy")
     g = b.add_mutually_exclusive_group(required=True)
-    g.add_argument("--characteristic"); g.add_argument("--skill"); g.add_argument("--talent")
+    g.add_argument("--characteristic"); g.add_argument("--skill"); g.add_argument("--talent"); g.add_argument("--spell")
+    b.add_argument("--lore")
     b.add_argument("--count", type=int, default=1)
-    b.add_argument("--how", choices=("xp", "free"), default="xp")
+    b.add_argument("--how", choices=("xp", "free", "talent"), default="xp")
     for p in (b, sub.add_parser("log")):
         p.add_argument("--session", type=int)
         p.add_argument("--date")
@@ -153,7 +167,7 @@ def main():
         said = [f"Logged: {a.text}"]
     else:
         if a.count < 1: sys.exit("--count must be 1 or more")
-        if a.talent and a.count != 1: sys.exit("a talent is bought once at a time")
+        if (a.talent or a.spell) and a.count != 1: sys.exit("a talent or a spell is bought once at a time")
         new, said = buy(record, Library(a.library, a.campaign), a)
     print("\n".join(said))
     if a.dry_run:

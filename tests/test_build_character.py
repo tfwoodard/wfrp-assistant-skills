@@ -73,14 +73,22 @@ def library(root, house_rules=()):
         {'slug': 'steady', 'name': 'Steady', 'fields': {'max': 'Toughness Bonus', 'tests': 'Watch at night'}},
         {'slug': 'quick', 'name': 'Quick', 'fields': {'max': '1', 'effects': [{'on': 'WP', 'add': 5, 'at': 0}]}},
         {'slug': 'far-sight', 'name': 'Far Sight', 'fields': {'max': '2'}},
-        {'slug': 'lamp-magic', 'name': 'Arcane Magic', 'fields': {'max': '1'}},
-        {'slug': 'glow-magic', 'name': 'Petty Magic', 'fields': {'max': '1'}},
+        {'slug': 'lamp-magic', 'name': 'Arcane Magic', 'fields': {'max': '1'}, 'content': [
+            table('Arcane Magic Spell Costs', ['Spells known', 'A new spell'], [['Up to Intelligence Bonus × 1', '80 XP'], ['Up to Intelligence Bonus × 2', '160 XP']])]},
+        {'slug': 'bright-blood', 'name': 'Bright Blood', 'fields': {'effects': [
+            {'on': 'spell_cost', 'multiply': 0.5, 'at': 0, 'applies': {'specialisation': 'Quick Study'}}]}, 'content': [para('Two gifts.')]},
+        {'slug': 'glow-magic', 'name': 'Petty Magic', 'fields': {'max': '1'}, 'content': [
+            table('Petty Magic Spell Costs', ['Spells known', 'A new spell'], [['Up to Willpower Bonus × 1', '30 XP'], ['Up to Willpower Bonus × 2', '60 XP']])]},
         {'slug': 'odd', 'name': 'Odd', 'fields': {'max': 'Number of lamps lit', 'effects': [{'on': 'luck', 'add': 1, 'at': 0}]}}])
     write(root, 'spells', [
         {'slug': 'glow', 'name': 'Glow', 'fields': {'kind': 'petty', 'lore': None, 'cn': 0, 'range': 'Willpower yards',
                                                      'target': 'AoE (Willpower Bonus yards)', 'duration': 'Initiative Bonus Rounds'}},
         {'slug': 'beam', 'name': 'Beam', 'fields': {'kind': 'lore', 'lore': 'Lamps', 'cn': 4, 'range': 'Touch',
-                                                     'target': '1', 'duration': 'Instant'}}])
+                                                     'target': '1', 'duration': 'Instant'}}] +
+        [{'slug': n, 'name': n.title(), 'fields': {'kind': 'petty', 'cn': 0}} for n in ('glint', 'gleam', 'glare', 'glimmer', 'gloss', 'glitter', 'glisten')] +
+        [{'slug': 'ray', 'name': 'Ray', 'fields': {'kind': 'lore', 'lore': 'Lamps', 'cn': 5}},
+         {'slug': 'spark', 'name': 'Spark', 'fields': {'kind': 'arcane', 'cn': 2}},
+         {'slug': 'tide-rite', 'name': 'Tide Rite', 'fields': {'kind': 'ritual', 'cn': 9}}])
     write(root, 'trappings', [
         {'slug': 'boat-hook', 'name': 'Boat Hook', 'fields': {'kind': 'melee', 'group': 'Basic', 'enc': '1',
                                                              'reach': 'Long', 'damage': '+SB+1', 'qualities': ['Hooked']}},
@@ -419,17 +427,55 @@ class Experience(Case):
 
 class SpellsAndTrappings(Case):
     def test_spell_numbers_use_the_casters_own(self):
-        r = record(spells=[{'ref': 'spells/glow'}, {'ref': 'spells/beam'}])
+        r = record(spells=[{'ref': 'spells/glow', 'how': 'free'}, {'ref': 'spells/beam', 'how': 'free'}])
         r['advances'] += [{'talent': 'talents/glow-magic', 'how': 'free'},
                           {'talent': 'talents/lamp-magic', 'specialisation': 'Lamps', 'how': 'free'}]
         m = self.build(r)
         self.assertEqual((m['spells'][0]['range'], m['spells'][0]['target'], m['spells'][0]['duration']),
                          ('39 yards', 'AoE (3 yards)', '3 Rounds'))
         self.assertEqual(m['differences'], [])
-        self.assertTrue(any('XP paid for spells' in n for n in m['notes']))
+
+    def caster(self, spells, **over):
+        r = record(spells=spells, xp={'total': 2000}, **over)
+        r['advances'] += [{'talent': 'talents/glow-magic', 'how': 'free'},
+                          {'talent': 'talents/lamp-magic', 'specialisation': 'Lamps', 'how': 'free'}]
+        return r
+
+    def test_spells_are_priced_from_the_talents_tables_by_how_many_are_known(self):
+        petty = ['glow', 'glint', 'gleam', 'glare', 'glimmer', 'gloss', 'glitter', 'glisten']
+        spells = [{'ref': f'spells/{n}', 'how': 'talent' if i < 3 else 'xp'} for i, n in enumerate(petty)]      # Willpower Bonus 3
+        spells += [{'ref': 'spells/beam', 'how': 'xp'}, {'ref': 'spells/spark', 'how': 'xp'}, {'ref': 'spells/ray', 'how': 'free'},
+                   {'ref': 'spells/ray', 'how': 'xp'}]
+        m = self.build(self.caster(spells))
+        self.assertEqual([(p['spell'], p['xp']) for p in m['xp']['purchases']],
+                         [('Glare', 30), ('Glimmer', 60), ('Gloss', 60), ('Glitter', 60), ('Glisten', 90),   # 3 known, 4-6, then "and so on"
+                          ('Beam', 80), ('Spark', 80), ('Ray', 80)])                                         # the lore's own count: 0, 1, 3
+        self.assertEqual(m['xp']['worked_out'], 540)
+        self.assertEqual(m['differences'], [])
+
+    def test_an_effect_can_multiply_the_price_of_spells_for_one_specialisation(self):
+        spells = [{'ref': 'spells/glow', 'how': 'xp'}, {'ref': 'spells/beam', 'how': 'xp'}]
+        r = self.caster(spells)
+        r['advances'] += [{'talent': 'talents/bright-blood', 'specialisation': 'Quick Study', 'how': 'free'}]
+        m = self.build(r)
+        self.assertEqual([p['xp'] for p in m['xp']['purchases']], [15, 40])
+        self.assertIn({'on': 'spell_cost', 'multiply': 0.5, 'from': 'talents/bright-blood', 'at': 0}, m['effects'])
+        self.assertIn('- Spell cost × 0.5: `talents/bright-blood`', bc.markdown(m))
+        r['advances'][-1]['specialisation'] = 'Strong Arm'
+        self.assertEqual([p['xp'] for p in self.build(r)['xp']['purchases']], [30, 80])
+
+    def test_what_cannot_be_priced_is_said(self):
+        m = self.build(self.caster([{'ref': 'spells/glow', 'how': 'imported'}, {'ref': 'spells/tide-rite', 'how': 'xp'},
+                                    {'ref': 'spells/glint'}, {'ref': 'spells/beam', 'how': 'talent'}]))
+        self.assertIsNone(m['xp']['worked_out'])
+        self.assertTrue(any('imported from a sheet' in n for n in m['notes']))
+        self.assertTrue(any('Tide Rite is a ritual: the build has no price' in n for n in m['notes']))
+        self.assertEqual(self.ids(m), ['spell-how:glint', 'spell-free:beam'])
+        four = [{'ref': f'spells/{n}', 'how': 'talent'} for n in ('glow', 'glint', 'gleam', 'glare')]
+        self.assertEqual(self.ids(self.build(self.caster(four))), ['petty-free'])
 
     def test_spells_without_their_talent_are_reported(self):
-        m = self.build(record(spells=[{'ref': 'spells/glow'}, {'ref': 'spells/beam'}]))
+        m = self.build(record(spells=[{'ref': 'spells/glow', 'how': 'free'}, {'ref': 'spells/beam', 'how': 'free'}]))
         self.assertEqual(self.ids(m), ['spell-talent:glow', 'spell-lore:beam'])
 
     def test_trappings_weapons_armour_and_what_counts(self):
@@ -526,12 +572,12 @@ class HouseRules(Case):
 
 class Sheet(Case):
     def test_the_readable_sheet_has_every_part(self):
-        r = record(trappings=[{'ref': 'trappings/boat-hook'}], spells=[{'ref': 'spells/glow'}], incomplete=['Pick a name for the boat'],
+        r = record(trappings=[{'ref': 'trappings/boat-hook'}], spells=[{'ref': 'spells/glow', 'how': 'free'}], incomplete=['Pick a name for the boat'],
                    money={'gc': 0, 'ss': 3, 'd': 4}, ambitions={'short': 'Mend the lamp', 'long': ''})
         md = bc.markdown(self.build(r))
         for part in ('# Mara', 'Keepers · Watchers · Warden 1: Lamp Boy · Status Brass 2', '## To settle', 'Pick a name for the boat',
                      '## Differs from the rules', '`spell-talent:glow`', '| Watch | ✓ | I | 5 | 40 |', '| Steady | 1 | 4 | Watch at night |',
-                     '| Glow | petty | 0 | 39 yards |', 'Damage 6 (+SB+3)', 'Money: 0 gc, 3 ss, 4 d', '- short: Mend the lamp', '## Not worked out'):
+                     '| Glow | petty | 0 | 39 yards |', 'Damage 6 (+SB+3)', 'Money: 0 gc, 3 ss, 4 d', '- short: Mend the lamp'):
             self.assertIn(part, md)
 
     def test_needs_lists_what_a_build_would_read(self):
@@ -621,7 +667,7 @@ class KeptSheet(Case):
         self.assertNotIn('copied', json.dumps(s))
 
     def test_the_build_is_compared_with_what_the_sheet_shows(self):
-        r = record(spells=[{'ref': 'spells/glow'}], xp={'total': 100, 'spent': 105})
+        r = record(spells=[{'ref': 'spells/glow', 'how': 'free'}], xp={'total': 100, 'spent': 105})
         r['advances'] += [{'skill': 'skills/signals', 'specialisation': 'Horn', 'count': 2, 'how': 'imported'}]
         got = {d['what']: (d['shown'], d['built']) for d in bc.compare(self.build(r), rse.read(EXPORT))}
         self.assertEqual(got, {

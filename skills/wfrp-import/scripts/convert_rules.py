@@ -1890,8 +1890,8 @@ def formula_problem(entry, kind, items):
         for it in its:
             if not isinstance(it, dict):
                 return 'each formula is an object'
-            if k == 'effects' and not ('on' in it and 'add' in it):
-                return 'an effect needs "on" and "add"'
+            if k == 'effects' and not ('on' in it and ('add' in it or 'multiply' in it)):
+                return 'an effect needs "on" and "add" (or "multiply", for a price)'
             if k == 'checks' and not (it.get('id') and ('test' in it or it.get('read'))):
                 return 'a check needs an "id" and a "test" or a "read"'
             if row is None and (not isinstance(it.get('at'), int) or not 0 <= it['at'] < len(entry['content'])):

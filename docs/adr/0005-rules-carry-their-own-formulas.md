@@ -73,7 +73,9 @@ relations as everywhere else: a replaced entry's formulas are not used.
 Nothing is evaluated just because it exists in the library.
 
 `applies` narrows a formula to the characters it is about (a species, a career,
-a class, a level). Two books may then state different numbers for different
+a class, a level, or the specialisation the character took of the entry the
+formula is on: a talent's chosen benefit). An effect on a price multiplies
+rather than adds (`"on": "spell_cost", "multiply": 0.5`). Two books may then state different numbers for different
 characters without either replacing the other.
 
 ## What the builder does with them
