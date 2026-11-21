@@ -218,6 +218,8 @@ class ConvertRulesTest(unittest.TestCase):
         self.assertEqual(run('set_formulas.py', smoked, '--effects', '[{"on": "I", "add": -10, "at": 0}]',
                              '--checks', '[{"id": "fresh-air", "read": "Fresh air ends it.", "at": 0}]').returncode, 0)
         self.assertEqual(run('set_formulas.py', wicks, '--row', 'short', '--effects', '[{"on": "I", "add": -5}]').returncode, 0)
+        self.assertEqual(run('set_formulas.py', smoked, '--summary', 'Initiative drops while the smoke lasts.').returncode, 0)
+        self.assertEqual(run('set_formulas.py', smoked, '--summary', 'two\nlines').returncode, 2)
         with open(wicks) as f:
             self.assertEqual(json.load(f)['fields']['rows'], {'Short': {'effects': [{'on': 'I', 'add': -5}]}})   # as printed
         with open(os.path.splitext(smoked)[0] + '.md') as f:
@@ -239,16 +241,17 @@ class ConvertRulesTest(unittest.TestCase):
         r = run('convert_rules.py', layout, '--plan', os.path.join(self.d, 'plan.json'), '--out', again, '--formulas-from', lib)
         self.assertEqual(r.returncode, 0, r.stderr)
         f = self.load(again, 'smoked.json')['fields']
-        self.assertEqual((f['effects'], f['checks'][0]['id']), ([{'on': 'I', 'add': -10, 'at': 0}], 'fresh-air'))
+        self.assertEqual((f['effects'], f['checks'][0]['id'], f['summary']),
+                         ([{'on': 'I', 'add': -10, 'at': 0}], 'fresh-air', 'Initiative drops while the smoke lasts.'))
         self.assertEqual(self.load(again, 'tables--wick-lengths.json')['fields']['rows'], {'Short': {'effects': [{'on': 'I', 'add': -5}]}})
         self.assertNotIn('effects', self.load(again, 'dread.json')['fields'])
         report = self.load(again, '_report.json')
         self.assertEqual(sorted((c['entry'], c['kind']) for c in report['formulas_carried']),
-                         [('rules/smoked', 'checks'), ('rules/smoked', 'effects'), ('tables/wick-lengths', 'rows')])
+                         [('rules/smoked', 'checks'), ('rules/smoked', 'effects'), ('rules/smoked', 'summary'), ('tables/wick-lengths', 'rows')])
         self.assertEqual([(x['entry'], x['why'][:23]) for x in report['formulas_left_behind']], [('rules/dread', '"at" must be the number')])
         self.assertTrue(any('were not carried over' in q.get('question', '') for q in report['questions']))
         for rec in self.load(again, '_records.json'):                      # never in the index
-            self.assertFalse({'effects', 'checks', 'rows'} & set(rec))
+            self.assertFalse({'effects', 'checks', 'rows', 'summary'} & set(rec))
         with open(os.path.join(again, 'smoked.json'), 'rb') as a, open(smoked, 'rb') as b:
             self.assertEqual(a.read(), b.read())                           # the re-import reproduces the library's entry
 
