@@ -306,6 +306,15 @@ class SkillsAndTalents(Case):
         self.assertIn('career-choice:signals-flag-or-horn', self.ids(m))
         self.assertEqual(career, {'Signals (Flag)': False, 'Signals (Horn)': False})
 
+    def test_a_career_skill_the_career_settles_is_shown_without_advances(self):
+        r = record(careers=[{'ref': 'careers/warden', 'level': 2, 'left_incomplete': [1], 'choices': {'Signals (Flag or Horn)': 'Horn'}}])
+        m = self.build(r)
+        self.assertEqual([(x['name'], x['advances'], x['career']) for x in m['skills']['advanced']], [('Signals (Horn)', 0, True)])
+        r['advances'] += [{'skill': 'skills/signals', 'specialisation': 'horn', 'count': 1, 'how': 'xp'}]
+        self.assertEqual([x['advances'] for x in self.build(r)['skills']['advanced'] if x['name'].startswith('Signals')], [1])
+        r = record(careers=[{'ref': 'careers/warden', 'level': 2, 'left_incomplete': [1]}])          # nothing chosen: nothing shown
+        self.assertEqual(self.build(r)['skills']['advanced'], [])
+
     def test_an_open_name_covers_every_specialisation_and_an_exact_one_is_not_a_choice(self):
         r = record()
         r['advances'] += [{'skill': 'skills/tending', 'specialisation': 'Nets', 'count': 1, 'how': 'xp'}]

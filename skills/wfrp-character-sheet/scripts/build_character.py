@@ -659,6 +659,14 @@ class Builder:
             if "advanced" not in f:
                 self.note(f"{e['name']}: the entry doesn't say whether it is basic or advanced; shown as advanced.")
             rows[(ref, spec)] = {"name": e["name"], **f}
+        # a career skill the career settles (an exact name, or the one specialisation chosen for it) is
+        # on the sheet even before any advances are taken in it
+        for sl in self.skill_slots():
+            ref, spec = (sl["choice"] or (None, None)) if sl["kind"] == "one" else \
+                (sl["ref"], self.lib.named("skills", sl["listed"])[1]) if sl["kind"] == "exact" else (None, None)
+            if not ref or not spec or any(r == ref and sp and norm(sp) == norm(spec) for r, sp in rows): continue
+            e = self.lib.entry(ref)
+            if e: rows[(ref, spec)] = {"name": e["name"], **e.get("fields", {})}
         basic, advanced = [], []
         for (ref, spec), f in rows.items():
             c = f.get("characteristic")
