@@ -322,6 +322,7 @@ class Builder:
         m["xp"] = self.xp()
         m["creation"] = self.creation()
         self.levels_complete(m)
+        self.run_checks(m)
         for k in ("money", "ambitions", "details"):
             if rec.get(k) not in (None, "", [], {}): m[k] = rec[k]
         for k in ("psychology", "mutations"):          # plain words as written; table rows with what they say
@@ -1175,6 +1176,142 @@ class Builder:
             if t: self.note(f"Starting money for status '{first.get('status')}' can't be read from the Starting Wealth table.")
         return out
 
+    # ------------------------------------------------------------------ checks (ADR 0005)
+    class Unknown(Exception):
+        pass
+
+    def same_spec(self, have, want):
+        """Specialisations match by name, and a Wind and its Lore are the same ("Hysh" is "Light")."""
+        a, b = norm(have), norm(want)
+        return a == b or WINDS.get(a) == b or WINDS.get(b) == a
+
+    def check_value(self, v, m):
+        """A value in a check's test: a number, a sum in the books' shorthand ("WPB", "WP + 10"), or
+        {"advances": skill ref[, "specialisation"]} (one specialisation, or the highest),
+        {"times": talent ref[, "specialisation"]} (one, or all added up),
+        {"count": {"talent"|"skill": ref or [refs]} | {"spell": {"lore"|"kind": name}}},
+        {"species"|"career"|"class"|"level"|"status": true}."""
+        if isinstance(v, (int, float)): return v
+        if isinstance(v, str):
+            try: return Sums(self.names).value(v)
+            except (ValueError, SyntaxError) as x: raise self.Unknown(f"'{v}' ({x})")
+        if not isinstance(v, dict) or len(v) not in (1, 2): raise self.Unknown(json.dumps(v))
+        if "advances" in v:
+            ref = self.lib.current(v["advances"])
+            got = [a for (r, sp), a in self.check_skills.items() if r == ref and
+                   ("specialisation" not in v or self.same_spec(sp, v["specialisation"]))]
+            return max(got) if got else 0
+        if "times" in v:
+            ref = self.lib.current(v["times"])
+            return sum(t for (r, sp), t in self.check_talents.items() if r == ref and
+                       ("specialisation" not in v or self.same_spec(sp, v["specialisation"])))
+        if "count" in v:
+            c = v["count"]
+            if isinstance(c, dict) and ("talent" in c or "skill" in c):
+                k = "talent" if "talent" in c else "skill"
+                refs = {self.lib.current(r) for r in (c[k] if isinstance(c[k], list) else [c[k]])}
+                pool = self.check_talents if k == "talent" else self.check_skills
+                return sum(1 for (r, _), n in pool.items() if r in refs and n > 0)
+            if isinstance(c, dict) and isinstance(c.get("spell"), dict) and set(c["spell"]) <= {"lore", "kind"}:
+                return sum(1 for s in m["spells"] if all(norm(s.get(k) or "") == norm(w) for k, w in c["spell"].items()))
+            raise self.Unknown(json.dumps(v))
+        c = (m.get("career") or {})
+        for k, got in (("species", lambda: m["species"].get("ref")), ("career", lambda: c.get("ref")), ("class", lambda: c.get("class")),
+                       ("level", lambda: c.get("level")), ("status", lambda: c.get("status"))):
+            if v.get(k) is True and len(v) == 1: return got()
+        raise self.Unknown(json.dumps(v))
+
+    def describe(self, v):
+        """A check's value in words: "Arcane Magic talents taken", "Channelling (Hysh) advances"."""
+        def name(ref):
+            try: return self.lib.entry(self.lib.current(ref))["name"]
+            except RefError: return ref
+        if isinstance(v, (int, float)): return str(v)
+        if isinstance(v, str): return v
+        sp = f" ({v['specialisation']})" if isinstance(v, dict) and v.get("specialisation") else ""
+        if "advances" in v: return f"{name(v['advances'])}{sp} advances"
+        if "times" in v: return f"times {name(v['times'])}{sp} is taken"
+        if "count" in v:
+            c = v["count"]
+            for k in ("talent", "skill"):
+                if k in c:
+                    refs = c[k] if isinstance(c[k], list) else [c[k]]
+                    return " or ".join(name(r) for r in refs) + f" {k}s taken"
+            if "spell" in c: return " ".join(f"{w}" for w in c["spell"].values()) + " spells known"
+        return next((k for k in ("species", "career", "class", "level", "status") if k in v), json.dumps(v))
+
+    def check_test(self, t, m, why):
+        """Evaluate a test: {"all"|"any": [tests]}, {"not": test}, or {"value": V, and one of
+        "at_least", "at_most", "equals" (a value, or a list it must be one of)}. Appends to `why`
+        the comparisons that failed, in words."""
+        if not isinstance(t, dict): raise self.Unknown(json.dumps(t))
+        if set(t) == {"all"}: return all([self.check_test(x, m, why) for x in t["all"]])
+        if set(t) == {"any"}:
+            sub = []
+            ok = any([self.check_test(x, m, sub) for x in t["any"]])
+            if not ok: why.append("none of these holds: " + "; ".join(sub))
+            return ok
+        if set(t) == {"not"}:
+            ok = not self.check_test(t["not"], m, [])
+            if not ok:
+                inner = t["not"]
+                why.append(f"{self.describe(inner['value'])} must not be {[k for k in inner if k != 'value'][0].replace('_', ' ')} "
+                           f"{inner[[k for k in inner if k != 'value'][0]]}" if isinstance(inner, dict) and "value" in inner
+                           else f"not wanted: {json.dumps(inner)}")
+            return ok
+        ops = [k for k in ("at_least", "at_most", "equals") if k in t]
+        if "value" not in t or len(ops) != 1 or set(t) != {"value", ops[0]}: raise self.Unknown(json.dumps(t))
+        a, op, b = self.check_value(t["value"], m), ops[0], t[ops[0]]
+        if op == "equals":
+            want = [self.check_value(x, m) if not isinstance(x, str) or not re.match(r"^[a-z]+/", x) else self.lib.current(x)
+                    for x in (b if isinstance(b, list) else [b])]
+            ok = a in want
+        else:
+            bv = self.check_value(b, m)
+            ok = a >= bv if op == "at_least" else a <= bv
+            want = bv
+        if not ok:
+            def show(x):
+                return self.describe(x) if not (isinstance(x, str) and re.match(r"^[a-z]+/", x)) else \
+                    (lambda r: self.lib.entry(r)["name"] if r else x)(self.lib.current(x))
+            want_s = (" or ".join(show(x) for x in (b if isinstance(b, list) else [b])) if op == "equals"
+                      else (f"{b} ({want})" if isinstance(b, str) and str(b) != str(want) else str(want)))
+            why.append(f"{self.describe(t['value'])}: {show(a) if isinstance(a, str) else a}, wanted " +
+                       ("" if op == "equals" else op.replace("_", " ") + " ") + want_s)
+        return ok
+
+    def run_checks(self, m):
+        """Evaluate the checks on the entries the character uses (ADR 0005): a failed test is the
+        difference check:<entry>/<id>; a "read" (or a test the build can't evaluate) is kept for
+        reading, unless an exception or house rule names that id."""
+        self.check_skills, self.check_talents = {}, {}
+        for a in self.ledger:
+            if a.get("skill"):
+                k = (self.lib.current(a["skill"]), a.get("specialisation") or "")
+                self.check_skills[k] = self.check_skills.get(k, 0) + int(a.get("count", 0))
+            elif a.get("talent"):
+                k = (self.lib.current(a["talent"]), a.get("specialisation") or "")
+                self.check_talents[k] = self.check_talents.get(k, 0) + int(a.get("times", 1))
+        self.reads = []
+        for ref, (e, _) in self.used().items():
+            for c in e.get("fields", {}).get("checks", []):
+                cid = f"check:{ref.split('/')[-1]}/{c.get('id')}"
+                if not self.applies(c.get("applies"), ref): continue
+                if "test" in c:
+                    why = []
+                    try:
+                        ok = self.check_test(c["test"], m, why)
+                    except self.Unknown as x:
+                        self.reads.append({"id": cid, "rule": ref, "text": f"{e['name']}: {c.get('read') or c.get('id')} "
+                                           f"(the build doesn't know the word {x}) {self.cite(ref)}"})
+                        continue
+                    if not ok:
+                        self.differ(cid, f"{e['name']}: {c.get('says') or c.get('read') or c.get('id')}. Here {'; '.join(why)}.", ref)
+                    elif c.get("read"):
+                        self.reads.append({"id": cid, "rule": ref, "text": f"{e['name']}: {c['read']} {self.cite(ref)}"})
+                elif c.get("read"):
+                    self.reads.append({"id": cid, "rule": ref, "text": f"{e['name']}: {c['read']} {self.cite(ref)}"})
+
     def creation_xp(self):
         """The XP the creation steps gave, by how the record says each was settled: each step's rule
         carries the amounts as "xp" effects, narrowed with "applies": {"how": [...]}. {"xp": total or
@@ -1283,6 +1420,14 @@ class Builder:
                 accepted.append({**d, "why": hit[1], **({"house_rule": hit[2]} if hit[2] else {})})
             else:
                 opened.append(d)
+        for r in getattr(self, "reads", []):                 # rules to read: settled once an exception names them
+            hit = next((a for a in accept if fnmatch.fnmatchcase(r["id"], a[0])), None)
+            if hit:
+                used.add(hit[0])
+                accepted.append({"id": r["id"], "text": "Read: " + r["text"], "rule": r["rule"], "why": hit[1],
+                                 **({"house_rule": hit[2]} if hit[2] else {})})
+            else:
+                self.note(f"Read {r['text']} `{r['id']}`")
         for x in self.rec.get("exceptions", []):
             if x.get("id") not in used:
                 self.note(f"The exception '{x.get('id')}' matches no difference in this build: it may no longer be needed.")

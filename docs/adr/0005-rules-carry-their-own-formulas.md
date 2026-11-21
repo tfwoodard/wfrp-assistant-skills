@@ -85,19 +85,28 @@ characters without either replacing the other.
 - An effect is added to its number, with the entry as its source, exactly as a
   record's effect is. A record's own `effects` remain, for one-off cases.
 - A failed test is a **difference**, `check:<entry>/<id>`, with the entry as
-  its rule. Exceptions and house rules accept it like any other difference.
-- A `read` is listed on the sheet with the entry, for Claude to read and apply.
+  its rule. Its text is the check's `says` (the requirement in Claude's own
+  words) and what was found, in words ("Arcane Magic talents taken: 2, wanted
+  at most 1"). Exceptions and house rules accept it like any other difference.
+- A `read` is listed in the sheet's To do, with the entry, for Claude to read
+  and apply, until an exception (or a house rule's `accepts`) names its id:
+  then it is listed with the accepted differences and why. A check with both a
+  test and a `read` is tested, and the `read` is listed too.
 - Two formulas that both apply are both evaluated and both reported. The
   builder never chooses between books.
 - A word the builder does not know is a note on the sheet, never skipped.
 
 ## The vocabulary is small and closed
 
-Values: a characteristic or its bonus; advances in a skill (one specialisation
-or the highest); times a talent is taken (one specialisation or all); how many
-talents, skills or spells match (by entry, lore or kind); the species, career,
-class, level and status. Comparisons: `at_least`, `at_most`, `equals`.
-Combining: `all`, `any`, `not`. Sums as the species formulas already use.
+Values: a characteristic or its bonus, or a sum of them as the species
+formulas write it (`"WPB"`, `"WP + 10"`); `{"advances": skill, "specialisation"}`
+(one specialisation or the highest); `{"times": talent, "specialisation"}` (one
+specialisation or all); `{"count": {"talent"|"skill": ref or [refs]}}` (how many
+of them are taken) or `{"count": {"spell": {"lore"|"kind": name}}}`; and
+`{"species"|"career"|"class"|"level"|"status": true}`. A Wind and its Lore are
+the same specialisation ("Hysh" is "Light"). Comparisons: `{"value": V,
+"at_least"|"at_most"|"equals": W}`, where `equals` may list what it may be.
+Combining: `all`, `any`, `not`.
 
 Adding a word to it is a change to the builder and gets a decision of its own.
 A rule that needs more than this is a `read`.

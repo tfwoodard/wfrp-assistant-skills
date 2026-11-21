@@ -573,6 +573,78 @@ class CreationGrants(Case):
         self.assertIn('creation:career-skill', self.ids(self.build(self.made())))
 
 
+class Checks(Case):
+    def checks(self, slug, checks, cat='talents'):
+        p = os.path.join(self.root, 'library-data', cat, slug + '.json')
+        with open(p) as f: e = json.load(f)
+        e.setdefault('fields', {})['checks'] = checks
+        with open(p, 'w') as f: json.dump(e, f)
+
+    def lamps(self, *lores):
+        r = record(xp={'total': 2000})
+        r['advances'] += [{'talent': 'talents/lamp-magic', 'specialisation': s, 'how': 'xp'} for s in lores]
+        r['advances'] += [{'skill': 'skills/signals', 'specialisation': 'Flag', 'count': 6, 'how': 'xp'}]
+        return r
+
+    def test_a_failed_test_is_a_difference_naming_what_was_counted(self):
+        self.checks('lamp-magic', [{'id': 'one-lore', 'says': 'One lore, unless a Keeper', 'at': 0, 'test': {'any': [
+            {'value': {'species': True}, 'equals': ['species/keepers']},
+            {'value': {'count': {'talent': 'talents/lamp-magic'}}, 'at_most': 1}]}}])
+        self.assertEqual([i for i in self.ids(self.build(self.lamps('Lamps', 'Tides'))) if i.startswith('check:')], [])   # a Keeper
+        sp = os.path.join(self.root, 'library-data', 'species', 'keepers.json')
+        with open(sp) as f: e = json.load(f)
+        r = self.lamps('Lamps', 'Tides')
+        r['species'] = {'ref': 'species/marsh-folk', 'how': 'chosen'}
+        e['slug'], e['name'] = 'marsh-folk', 'Marsh Folk'
+        with open(os.path.join(self.root, 'library-data', 'species', 'marsh-folk.json'), 'w') as f: json.dump(e, f)
+        idx = os.path.join(self.root, 'library-data', 'species', '_index.json')
+        with open(idx) as f: rows = json.load(f)
+        rows.append(dict(rows[0], slug='marsh-folk', name='Marsh Folk', aliases=[]))
+        with open(idx, 'w') as f: json.dump(rows, f)
+        d = [x for x in self.build(r)['differences'] if x['id'] == 'check:lamp-magic/one-lore']
+        self.assertEqual(len(d), 1)
+        self.assertIn('One lore, unless a Keeper', d[0]['text'])
+        self.assertIn('species: Marsh Folk, wanted Keepers; Arcane Magic talents taken: 2, wanted at most 1', d[0]['text'])
+        self.assertEqual(d[0]['rule'], 'talents/lamp-magic')
+
+    def test_values_sums_advances_times_and_spells(self):
+        self.checks('lamp-magic', [
+            {'id': 'lores-by-will', 'at': 0, 'test': {'value': {'count': {'talent': 'talents/lamp-magic'}}, 'at_most': 'WPB - 1'}},
+            {'id': 'signals', 'at': 0, 'test': {'all': [{'value': {'advances': 'skills/signals', 'specialisation': 'Flag'}, 'at_least': 5},
+                                                        {'value': {'advances': 'skills/signals'}, 'at_least': 10}]}},
+            {'id': 'lit', 'at': 0, 'test': {'value': {'count': {'spell': {'lore': 'Lamps'}}}, 'at_least': 1}},
+            {'id': 'no-glow', 'at': 0, 'test': {'not': {'value': {'times': 'talents/glow-magic'}, 'at_least': 1}}}])
+        r = self.lamps('Lamps', 'Tides', 'Fog')                                     # WPB 3: at most 2 lores
+        r['advances'].append({'talent': 'talents/glow-magic', 'how': 'xp'})
+        ids = self.ids(self.build(r))
+        self.assertEqual(sorted(i for i in ids if i.startswith('check:')),
+                         ['check:lamp-magic/lit', 'check:lamp-magic/lores-by-will', 'check:lamp-magic/no-glow', 'check:lamp-magic/signals'])
+        r = self.lamps('Lamps')
+        r['advances'].append({'skill': 'skills/signals', 'specialisation': 'Flag', 'count': 4, 'how': 'xp'})
+        r['spells'] = [{'ref': 'spells/beam', 'how': 'free'}]
+        self.assertEqual([i for i in self.ids(self.build(r)) if i.startswith('check:')], [])
+
+    def test_a_read_or_an_unknown_word_is_to_do_until_an_exception_settles_it(self):
+        self.checks('lamp-magic', [{'id': 'order', 'read': 'Each lore after the first needs the one before mastered.', 'at': 0},
+                                   {'id': 'odd', 'read': 'Moon phase', 'at': 0, 'test': {'value': {'moon': True}, 'equals': 'full'}}])
+        m = self.build(self.lamps('Lamps'))
+        self.assertTrue(any(n.startswith('Read Arcane Magic: Each lore after the first') and '`check:lamp-magic/order`' in n for n in m['notes']))
+        self.assertTrue(any("doesn't know the word" in n and 'check:lamp-magic/odd' in n for n in m['notes']))
+        r = self.lamps('Lamps')
+        r['exceptions'] = [{'id': 'check:lamp-magic/order', 'why': 'The GM checked it'}]
+        m = self.build(r)
+        self.assertFalse(any('check:lamp-magic/order' in n for n in m['notes']))
+        self.assertIn(('check:lamp-magic/order', 'The GM checked it'), [(a['id'], a['why']) for a in m['accepted']])
+
+    def test_applies_narrows_and_an_entry_that_adds_to_one_brings_its_checks(self):
+        self.checks('steady-at-sea', [{'id': 'sea-legs', 'at': 0, 'says': 'Needs Rowing', 'applies': {'species': ['species/keepers']},
+                                       'test': {'value': {'advances': 'skills/rowing'}, 'at_least': 1}}], cat='rules')
+        self.assertIn('check:steady-at-sea/sea-legs', self.ids(self.build(record())))       # Steady is taken; Rowing isn't
+        self.checks('steady-at-sea', [{'id': 'sea-legs', 'at': 0, 'applies': {'species': ['species/nobody']},
+                                       'test': {'value': {'advances': 'skills/rowing'}, 'at_least': 1}}], cat='rules')
+        self.assertNotIn('check:steady-at-sea/sea-legs', self.ids(self.build(record())))
+
+
 class SpellsAndTrappings(Case):
     def test_spell_numbers_use_the_casters_own(self):
         r = record(spells=[{'ref': 'spells/glow', 'how': 'free'}, {'ref': 'spells/beam', 'how': 'free'}])
