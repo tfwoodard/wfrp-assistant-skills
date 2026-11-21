@@ -90,5 +90,17 @@ _Avoid_: Rank, tier
 One purchase of experience: a characteristic or skill advance, a talent taken, or a career change.
 _Avoid_: Level-up
 
+**Effect**:
+What a rule does to one of a character's numbers (a talent that adds to Wounds or to a starting characteristic), written in the character record with the entry that says so, because the builder can't read a rule's text.
+_Avoid_: Modifier, bonus (a characteristic's bonus is its tens digit)
+
+**Difference**:
+A place where a character record and the rules disagree, found by the builder and given an id. It is reported, never corrected.
+_Avoid_: Error, violation, illegal
+
+**Exception**:
+A difference the group has accepted for one character, written in the character record with why. A house rule accepts a difference for every character in a campaign.
+_Avoid_: Override, waiver
+
 **Party ambitions**:
 The short- and long-term goals the party sets together, alongside each character's own ambitions.
