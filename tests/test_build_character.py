@@ -459,6 +459,7 @@ class SpellsAndTrappings(Case):
         r['advances'] += [{'talent': 'talents/bright-blood', 'specialisation': 'Quick Study', 'how': 'free'}]
         m = self.build(r)
         self.assertEqual([p['xp'] for p in m['xp']['purchases']], [15, 40])
+        self.assertTrue(all(isinstance(p['xp'], int) for p in m['xp']['purchases']))
         self.assertIn({'on': 'spell_cost', 'multiply': 0.5, 'from': 'talents/bright-blood', 'at': 0}, m['effects'])
         self.assertIn('- Spell cost × 0.5: `talents/bright-blood`', bc.markdown(m))
         r['advances'][-1]['specialisation'] = 'Strong Arm'

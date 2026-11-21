@@ -708,7 +708,7 @@ class Builder:
         step = prices[top] - prices.get(top - 1, 0)             # "...and so on"
         price = prices.get(band, prices[top] + step * (band - top))
         by, _ = self.scale("spell_cost")
-        return -(-price * by // 1) if by != 1 else price
+        return int(-(-price * by // 1))                         # a part of an XP is rounded up
 
     def spells(self, talents):
         out, self.spell_purchases, self.spells_unpriced = [], [], False
