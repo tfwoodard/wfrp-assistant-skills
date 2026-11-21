@@ -34,7 +34,7 @@ PLAN = {'source': 'TEST', 'chapter': 'ch4',
         'boxes': {'1.1': {'to': 'Whale Oil'}}, 'relations': {}}
 
 
-def draw_page(path, smoke=True):
+def draw_page(path, smoke=True, shelf=True):
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     y = [h - 110]
@@ -66,7 +66,8 @@ def draw_page(path, smoke=True):
     labelled('Smoke', 'Thick and black')
     text('The lamp spits and smells of the kitchen.', gap=24)
     text('Jinxed Lamps', 'Helvetica-Bold', 19, gap=16)
-    text('Some lamps are best left on the shelf.', gap=20)
+    if shelf:
+        text('Some lamps are best left on the shelf.', gap=20)
     text('The Drowned Lamp', 'Helvetica-Bold', 12, gap=13)
     labelled('Gift', 'Burns under water')
     labelled('Price', 'Draws every gull for a mile')
@@ -89,13 +90,13 @@ def run(script, *args):
 
 @unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the fixture PDF')
 class SplitFieldsTest(unittest.TestCase):
-    def convert(self, d, errors=0, args=(), **draw):
+    def convert(self, d, errors=0, args=(), plan=None, **draw):
         pdf, layout, planf, out = (os.path.join(d, n) for n in ('p.pdf', 'layout.json', 'plan.json', 'out'))
         draw_page(pdf, **draw)
         r = run('pdf_layout.py', pdf, '--pages', '1', '--boxes', '--out', layout)
         self.assertEqual(r.returncode, 0, r.stderr)
         with open(planf, 'w') as f:
-            json.dump(PLAN, f)
+            json.dump(plan or PLAN, f)
         r = run('convert_rules.py', layout, '--plan', planf, '--out', out, *args)
         self.assertEqual(r.returncode, 1 if errors else 0, r.stdout + r.stderr)
         with open(os.path.join(out, '_report.json')) as f:
@@ -107,6 +108,24 @@ class SplitFieldsTest(unittest.TestCase):
     def entry(self, out, name):
         with open(os.path.join(out, name)) as f:
             return json.load(f)
+
+    def test_a_heading_whose_items_were_all_split_off_can_be_left_out(self):
+        marked = dict(PLAN, entries=[PLAN['entries'][0], dict(PLAN['entries'][1], heading_only=True)])
+        with tempfile.TemporaryDirectory() as d:
+            layout, out, report, records = self.convert(d, plan=marked, shelf=False)
+            self.assertEqual(report['errors'], [])
+            self.assertEqual(report['headings_only'], [{'name': 'Jinxed Lamps', 'page': 1}])
+            self.assertNotIn('jinxed-lamps', records)
+            self.assertEqual(records['the-drowned-lamp']['gift'], 'Burns under water')      # its item is written as before
+            self.assertNotIn('jinxed-lamps.json', os.listdir(out))
+            r = run('check_coverage.py', layout, out)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        with tempfile.TemporaryDirectory() as d:                                # unmarked, it is reported as empty
+            layout, out, report, records = self.convert(d, shelf=False)
+            self.assertEqual(report['empty_entries'], [{'category': 'rules', 'name': 'Jinxed Lamps', 'page': 1}])
+        with tempfile.TemporaryDirectory() as d:                                # marked, but with a sentence of its own
+            layout, out, report, records = self.convert(d, errors=1, plan=marked)
+            self.assertIn("'Jinxed Lamps' is marked heading_only", report['errors'][0]['error'])
 
     def test_each_split_entry_reads_its_labelled_lines_as_fields(self):
         with tempfile.TemporaryDirectory() as d:
