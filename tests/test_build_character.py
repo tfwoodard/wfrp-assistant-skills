@@ -106,6 +106,9 @@ def library(root, house_rules=()):
         table('Sea Madness', ['d10', 'Madness', 'What it does'],
               [['1–5', 'Salt Dreams', 'Stubborn and cold'], ['6–9', 'Gull Fear', 'Afraid of gulls'], ['10', 'Gull Fear', 'Twice over']])],
         'fields': {'rows': {'Salt Dreams': {'effects': [{'on': 'WP', 'add': 10}, {'on': 'Fel', 'add': -10}]}}}},
+        {'slug': 'random-callings', 'name': 'Random Callings Table', 'fields': {'roll': 'd100'}, 'content': [
+            table('Random Callings Table', ['Class', 'Calling', 'Keepers', 'Marsh Folk'],
+                  [['WATCHERS', 'Warden', '01–60', '–'], ['', 'Lamplighter', '61–00', '01–50'], ['RIVERMEN', 'Ferryman', '–', '51–00']])]},
         {'slug': 'lucky-gifts', 'name': 'Lucky Gifts', 'content': [
             table('Lucky Gifts', ['d10', 'Gift'], [['1–5', 'Quick'], ['6–10', 'Steady']])]}])
     write(root, 'rules', [
