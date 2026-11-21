@@ -648,7 +648,11 @@ class Builder:
                             RULE["non-career"])
             out.append({"name": name, "ref": ref, "times": g["times"], "max": mx, "max_text": f.get("max"),
                         "tests": f.get("tests"), "cite": self.cite(ref) if e else "",
+                        "summary": self.resolve(f.get("summary"), bonuses_only=True),
                         **({"added_by": self.lib.added_by(ref)} if self.lib.added_by(ref) else {})})
+            if e and not f.get("summary") and ref not in {o["ref"] for o in out[:-1]}:
+                self.note(f"{e['name']} has no summary yet for the printed sheet: write one in your own words on its entry "
+                          f"(set_formulas.py --summary) {self.cite(ref)}.")
         self.choose_one(got)
         return sorted(out, key=lambda t: t["name"])
 
@@ -1562,6 +1566,8 @@ def markdown(m):
         L += [f"| {r['name']} | {'✓' if r['career'] else ''} | {r['characteristic']} | {r['advances']} | {r['total']} |" for r in rows]
     L += ["", "## Talents", "| Talent | Taken | Max | Tests | |", "|---|---|---|---|---|"]
     L += [f"| {t['name']} | {t['times']} | {t['max'] if t['max'] is not None else '–'} | {t['tests'] or ''} | {t['cite']} |" for t in m["talents"]]
+    if any(t.get("summary") for t in m["talents"]):
+        L += [""] + [f"- **{t['name']}**: {t['summary']}" for t in m["talents"] if t.get("summary")]
     if m["spells"]:
         L += ["", "## Spells", "| Spell | Lore | CN | Range | Target | Duration | |", "|---|---|---|---|---|---|---|"]
         L += [f"| {s['name']} | {s['lore'] or s['kind']} | {s['cn']} | {s['range']} | {s['target']} | {s['duration']} | {s['cite']} |" for s in m["spells"]]

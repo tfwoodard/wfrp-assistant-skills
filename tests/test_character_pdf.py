@@ -42,7 +42,7 @@ class Sheet(unittest.TestCase):
                   'Age <b>31</b>', 'Eyes <b>Grey</b>', 'Not worked out', 'Fortune and Resolve', '<h2>Corruption</h2>'):
             self.assertIn(s, html, s)
         todo = html[html.index('class="todo"'):html.index('Basic skills')]
-        self.assertLess(html.index('class="cols"'), html.index('class="todo"'))     # in the column above the basic skills
+        self.assertLess(html.index('class="flow"'), html.index('class="todo"'))     # at the top of the columns, above the basic skills
         self.assertNotIn('background:', html)                                          # no fills: they waste ink
         for s in ('Still to complete', 'Differs from the rules', 'To settle', 'Not worked out'):
             self.assertIn(s, todo, s)
@@ -69,6 +69,21 @@ class Sheet(unittest.TestCase):
         html = character_pdf.document(m)
         self.assertIn('Lights a lamp 7 yards off', html)
         self.assertIn('No summary yet', html)
+
+    def test_talents_print_with_their_summary(self):
+        import json
+        p = os.path.join(self.root, 'library-data', 'talents', 'far-sight.json')
+        with open(p) as f: e = json.load(f)
+        e['fields']['summary'] = 'See Initiative Bonus miles further on a clear day.'
+        with open(p, 'w') as f: json.dump(e, f)
+        m = self.model()
+        self.assertEqual([t['summary'] for t in m['talents']], ['See 3 miles further on a clear day.', None])
+        self.assertTrue(any('Steady has no summary yet' in n for n in m['notes']))
+        self.assertFalse(any('Far Sight has no summary' in n for n in m['notes']))
+        html = character_pdf.document(m)
+        self.assertIn('See 3 miles further on a clear day.', html)
+        self.assertIn('1 of 4 · Tests: Watch at night · (LAMP p. 12)', html)
+        self.assertEqual(character_pdf.short('(CRB, ch. 4 › Master Talent List, p. 132)'), '(CRB p. 132)')
 
     def test_the_play_page_marks_what_is_taken_and_lists_the_conditions(self):
         m = self.model(state={'wounds_taken': 2, 'fortune_spent': 1, 'corruption': 1, 'conditions': [{'name': 'Soaked', 'count': 2}]})

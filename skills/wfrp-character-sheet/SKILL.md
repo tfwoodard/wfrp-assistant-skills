@@ -197,9 +197,9 @@ on the second; and a page to mark in play: Wounds, Fortune and Resolve as
 boxes, and every condition in play with boxes to count it. Upload both beside
 the record.
 
-Each spell prints with a one-line summary of what it does, from its entry's
+Each spell and talent prints with a one-line summary of what it does, from its entry's
 `summary`, with any bonus it names in the character's own numbers ("heals 12
-Wounds"). A spell without one is in the To do box: read the entry and write
+Wounds"). A spell or talent without one is in the To do box: read the entry and write
 one line in your own words, never the book's sentences, show it to the
 Librarian, and set it with `set_formulas.py <spell>.json --summary "..."`. Say who
 makes every Test it names ("if you pass…", "if the target passes…").
