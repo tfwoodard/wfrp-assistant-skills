@@ -71,9 +71,16 @@ on it, show the roll, and `buy --talent ... --how species` the result).
    level 1 advances the rules give at creation; check every choice against the
    lists in the entries.
 5. **Trappings**: the class's and career level's trappings, and starting
-   wealth from the career level's status.
+   wealth from the career level's status. While the record is being created,
+   options.py lists them, each marked had or to add, with its choices ("Chalk
+   or Chisel"), dice ("1d10 sheets of Parchment": roll for how many) and
+   container, and the money roll. Add each with `apply.py ... item "Sling Bag"
+   --id bag`, `item "Writing Kit" --in bag`, and the money with `money --ss 7`.
 6. **Details**: name, age, height, eyes, hair, ambitions, and the party's
    ambitions (to `campaign.json`).
+7. **Finish**: `apply.py ... finish` says what creation still had to give (a
+   grant not used up, a trapping not taken, an empty purse) and ends creation.
+   Go through what it lists with the player before building the sheet.
 
 Use real dice for rolls the player makes; when asked to roll for them, say
 which table and show each roll. The bonus XP isn't written by hand: `--species-how`,

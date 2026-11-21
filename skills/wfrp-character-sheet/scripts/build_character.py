@@ -58,6 +58,12 @@ SPELL_HOW = ("talent", "xp", "free", "imported")
 # `career` advance lines are checked against, with any entry in play that adds to them
 CREATION_RULES = ("rules/species-skills-and-talents", "rules/career-skills-and-talents", "rules/advance-characteristics")
 GRANT_FROM = ("species", "first-career-level", "table")
+# where a new character's trappings and money are printed: each class's list ("**Academics**: ...")
+# and the starting wealth by status tier ("2d10 brass pennies per Status Level"); the first career
+# level's own trappings are on the career
+CLASS_TRAPPINGS = "rules/class-trappings"
+STARTING_WEALTH = ("rules/career-trappings", "Starting Wealth")
+COINS = {"brass": "d", "silver": "ss", "gold": "gc"}      # the record's purse, by the coin's first word
 # the creation steps that can earn XP, the rule that says how much (its "xp" effects, ADR 0005), and
 # the ways the record can say the step was settled
 CREATION = (("species", "rules/step-1-species", ("rolled", "chosen")),
@@ -294,6 +300,8 @@ class Builder:
         if rec.get("schema") != 2:
             self.note(f"The record is schema {rec.get('schema')}; this build reads schema 2 (references/character-record.md).")
         m = {"name": rec.get("name"), "player": rec.get("player"), "slug": rec.get("slug")}
+        if rec.get("creating"):
+            self.note("The character is still being created: options.py lists what is left, apply.py finish ends it.")
         self.ledger = rec.get("advances", [])
         for i, a in enumerate(self.ledger):
             if a.get("how") not in HOW:
@@ -1069,6 +1077,82 @@ class Builder:
                  for a in lines if any(a.get(k) for k in ("skill", "talent", "characteristic"))}
         for how, kind in sorted(kinds - set(groups)):
             self.differ(f"creation:{how}-{kind}", f"The record has {kind}s gained from the {how} at creation, and no creation rule grants any.")
+        return out
+
+    def trapping_item(self, text):
+        """One printed trapping: {text, name, qty (a number or dice), choose_one, ref, have}."""
+        t = re.sub(r"\*", "", text).strip()
+        item = {"text": t}
+        t = re.sub(r"^(a|an)\s+", "", t, flags=re.I)
+        m = re.match(r"(\d+d\d+|\d+)\s+(.+)", t)
+        if m: item["qty"], t = (int(m.group(1)) if m.group(1).isdigit() else m.group(1)), m.group(2)
+        opts = [o.strip() for o in re.split(r"\s+or\s+", t) if o.strip()]
+        if len(opts) > 1: item["choose_one"] = opts
+        item["name"] = t
+        if not hasattr(self, "_trapping_names"):           # from the index: no entry is opened
+            self._trapping_names = {}
+            for _, r in self.lib.index("trappings"):
+                self._trapping_names.setdefault(f"trappings/{r['slug']}", r["name"])
+        if len(opts) == 1:
+            refs = {self.lib.current(r) for r, n in self._trapping_names.items() if norm(n) == norm(t)}
+            if len(refs) == 1: item["ref"] = refs.pop()
+        mine = set()
+        for x in self.rec.get("trappings", []):
+            mine.add(norm(x.get("name") or ""))
+            if x.get("ref"): mine.add(norm(self._trapping_names.get(self.lib.current(x["ref"]), "")))
+        item["have"] = any(norm(o) in mine for o in opts)
+        return item
+
+    def trapping_list(self, text):
+        """A printed list, with "X containing A, B and C": the container and what is in it to the end."""
+        out, inside = [], None
+        for part in split_list(text):
+            m = re.match(r"(.+?)\s+containing\s+(.+)", part)
+            if m:
+                inside = self.trapping_item(m.group(1))
+                inside["contains"] = []
+                out.append(inside)
+                for x in re.split(r",\s*|\s+and\s+", m.group(2)):
+                    if x.strip(): inside["contains"].append(self.trapping_item(x))
+            elif inside is not None:
+                for x in re.split(r"\s+and\s+", part):
+                    if x.strip(): inside["contains"].append(self.trapping_item(x))
+            else:
+                out.append(self.trapping_item(part))
+        return out
+
+    def starting(self):
+        """What a new character starts with: the class's trappings, the first career level's, and the
+        money its status gives. Each is read from the library; None where it isn't there."""
+        c = (self.rec.get("careers") or [{}])[0]
+        try:
+            cref = self.lib.current(c.get("ref") or ""); ce = self.lib.entry(cref)
+        except RefError:
+            return None
+        f = ce.get("fields", {})
+        first = f.get("advances", {}).get("1", {})
+        out = {"career": {"name": ce["name"], "cite": self.cite(cref), "items": self.trapping_list(", ".join(first.get("trappings", [])))}}
+        cls = f.get("class")
+        try:
+            ref = self.lib.current(CLASS_TRAPPINGS); e = self.lib.entry(ref)
+            text = self.lib.text(e.get("content", []))
+            m = re.search(r"\*\*%s\*\*:?\s*(.*?)(?=\s*\*\*[A-Z][^*]*\*\*:|\n|$)" % re.escape(cls or "?"), text, re.S)
+            out["class"] = {"name": cls, "cite": self.cite(ref), "items": self.trapping_list(m.group(1)) if m else None}
+            if not m: self.note(f"{e['name']} has no list for the class {cls}.")
+        except RefError:
+            out["class"] = None
+        st = re.match(r"\s*(\w+)\s+(\d+)", str(first.get("status") or ""))
+        t = self.table(STARTING_WEALTH)
+        row = next((r for r in (t or {}).get("rows", []) if st and norm(str(r[0])) == norm(st.group(1))), None)
+        m = re.match(r"\s*(\d+)(?:d(\d+))?\s+(\w+)\s+\w+\s+per Status Level", str(row[1]), re.I) if row else None
+        if st and m and COINS.get(norm(m.group(3))):
+            n, die = int(m.group(1)) * int(st.group(2)), m.group(2)
+            out["money"] = {"status": first["status"], "coin": COINS[norm(m.group(3))], "says": row[1],
+                            "roll": f"{n}d{die}" if die else None, "amount": None if die else n,
+                            "cite": self.cite(STARTING_WEALTH[0])}
+        else:
+            out["money"] = None
+            if t: self.note(f"Starting money for status '{first.get('status')}' can't be read from the Starting Wealth table.")
         return out
 
     def creation_xp(self):

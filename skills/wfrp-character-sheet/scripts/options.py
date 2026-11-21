@@ -17,6 +17,9 @@ Reads the record as it is and reports, for the current career and the levels rea
     with what it still gives, what has been taken from it, and the list it gives from; the
     species' talents not yet taken (an "or" is one choice), and random talents left to roll on
     their table;
+  - while the record is being created (`creating`, set by apply.py start): the class's and the first
+    career level's trappings, each marked as had or to add (with its choices, dice and container),
+    and the money the career's status gives;
   - what completing the current level still needs, and the least XP that takes;
   - earlier levels left unfinished.
 
@@ -136,6 +139,8 @@ def report(record, lib):
             k = b.spells_known.get(lore, 0) + (b.spells_known.get(bc.norm(spec_of(n)), 0) if lore != bc.norm(spec_of(n)) else 0)
             out["spells"].append({"what": f"a spell of {spec_of(n)}", "known": k, "next": b.spell_price("lore", k)})
     out["creation"] = creation(b, m)
+    if record.get("creating"):
+        out["starting"] = b.starting()
     out["complete_level"] = completing(b, m, lib, levels, now, price)
     out["unfinished"] = [g for g in m["career"].get("to_complete", [])]
     out["notes"] += [n for n in m["notes"] if "cost table" in n or "Level Advances" in n]
@@ -203,6 +208,23 @@ def text(o):
                      "; ".join(([f"{left} left"] if left else []) + (["to take: " + ", ".join(g["to_take"])] if g["to_take"] else [])))
             if g["taken"]: L.append("    taken: " + ", ".join(g["taken"]))
             if not g["to_take"]: L.append("    from: " + ", ".join(g["from"]))
+    st = o.get("starting")
+    if st:
+        L += ["", "Starting trappings and money (creation)"]
+        def show(it, pad="  "):
+            mark = "has" if it["have"] else "to add"
+            extra = [f"choose one: {' or '.join(it['choose_one'])}"] if it.get("choose_one") else []
+            if isinstance(it.get("qty"), str): extra.append(f"roll {it['qty']} for how many")
+            L.append(f"{pad}[{mark}] {it['text']}" + (f" (`{it['ref']}`)" if it.get("ref") else "") + (f": {'; '.join(extra)}" if extra else ""))
+            for c in it.get("contains", []): show(c, pad + "    in it: ")
+        for k in ("class", "career"):
+            if st.get(k) and st[k].get("items") is not None:
+                L.append(f"  {st[k]['name']} {st[k]['cite']}:")
+                for it in st[k]["items"]: show(it, "    ")
+        mo = st.get("money")
+        if mo:
+            L.append(f"  Money for {mo['status']} {mo['cite']}: " + (f"roll {mo['roll']}" if mo["roll"] else str(mo["amount"])) +
+                     f" ({mo['says']}) into `money.{mo['coin']}`")
     if o.get("spells"):
         L += ["", "Spells (known; price of the next)"]
         L += [f"  {x['what']}: {x['known']}; {cost(x['next'])}" for x in o["spells"]]

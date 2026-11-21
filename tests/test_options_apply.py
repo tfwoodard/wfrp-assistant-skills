@@ -229,6 +229,33 @@ class Creating(Case):
         self.assertIn('Talents from the species', text)
         self.assertIn('to take: Far Sight', text)
 
+    def test_starting_trappings_and_money_are_listed_while_creating_and_finish_says_what_is_left(self):
+        self.apply('start', '--name', 'Ida', '--species', 'Keepers', '--species-how', 'rolled', '--career', 'Warden', '--career-how', 'chosen')
+        self.assertTrue(self.saved()['creating'])
+        self.assertIn('trappings/satchel', self.apply('item', 'Satchel', '--id', 'bag').stdout)
+        r = self.apply('item', 'Wicks', '--qty', '7', '--in', 'bag')
+        self.assertIn("no one trapping in play is named 'Wicks'", r.stdout)
+        self.assertEqual(self.apply('item', 'Flint', '--in', 'nowhere').returncode, 1)
+        self.apply('item', 'Lamp')
+        self.assertEqual(self.saved()['trappings'], [{'ref': 'trappings/satchel', 'id': 'bag'}, {'name': 'Wicks', 'qty': 7, 'in': 'bag'}, {'ref': 'trappings/lamp'}])
+        st = options.report(self.saved(), Library(self.root, 'rock'))['starting']
+        bag = st['class']['items'][1]
+        self.assertEqual([(i['name'], i['have']) for i in st['class']['items']], [('Coat', False), ('Satchel', True)])
+        self.assertEqual([(c['name'], c.get('qty'), c.get('choose_one'), c['have']) for c in bag['contains']],   # to the list's end
+                         [('Wicks', '1d10', None, True), ('Flint or Steel', None, ['Flint', 'Steel'], False), ('Oilcan', None, None, False)])
+        self.assertEqual([(i['name'], i.get('ref'), i['have']) for i in st['career']['items']], [('Lamp', 'trappings/lamp', True)])
+        self.assertEqual({k: st['money'][k] for k in ('status', 'coin', 'roll')}, {'status': 'Brass 2', 'coin': 'd', 'roll': '4d10'})
+        text = options.text(options.report(self.saved(), Library(self.root, 'rock')))
+        self.assertIn('in it: [to add] a Flint or Steel: choose one: Flint or Steel', text)
+        self.assertIn('roll 4d10 (2d10 brass pennies per Status Level) into `money.d`', text)
+        self.assertIn('Money: 0 gc, 0 ss, 23 d', self.apply('money', '--d', '23').stdout)
+        r = self.apply('finish')
+        self.assertIn('Not among the trappings: Coat (class)', r.stdout)
+        self.assertIn('Left ungiven (career-skills-and-talents, skills): 10', r.stdout)
+        self.assertNotIn('purse is empty', r.stdout)
+        self.assertNotIn('creating', self.saved())
+        self.assertNotIn('starting', options.report(self.saved(), Library(self.root, 'rock')))
+
     def test_an_origin_is_found_by_its_heading_or_given_in_full(self):
         r = self.apply('start', '--name', 'Ida', '--species', 'Keepers', '--origin', 'South Isle', '--species-how', 'rolled',
                        '--career', 'Warden', '--career-how', 'chosen')
