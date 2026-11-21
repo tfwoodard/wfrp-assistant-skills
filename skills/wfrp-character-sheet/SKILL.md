@@ -81,6 +81,7 @@ For every purchase:
 python3 scripts/apply.py <record>.json --library <root> --campaign <slug> --dry-run buy --skill "Lore (Reikland)" --count 2
 python3 scripts/apply.py <record>.json ... buy --talent "Hardy" --session 7
 python3 scripts/apply.py <record>.json ... buy --characteristic WP --count 5
+python3 scripts/apply.py <record>.json ... buy --spell "Dart"
 ```
 
 1. Run it with `--dry-run` first and show the player what it prints: the

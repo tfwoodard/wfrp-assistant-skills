@@ -73,7 +73,7 @@ shows up on the next build, and nothing in the record goes stale.
 | `effects` | What a rule does to one of this character's numbers, when the rule's own entry doesn't carry it: `on` is a characteristic code, `wounds`, `movement`, `fate`, `resilience`, `encumbrance` or `corruption`; `add` a number or a sum in the books' shorthand (`SB`, `TB`, `WPB` and the other bonuses, the characteristic codes, and `times` for how often the `from` talent has been taken); `from` the entry that says so. Most effects belong on the entry instead (see "Effects on entries"); the record's are for one-off cases and for a rule whose formula the Librarian hasn't confirmed yet. |
 | `advances` | Everything gained, in the order it was gained: one line per gain, naming a `characteristic` (code), a `skill`, a `talent` or a `career` (a change of level or career). `count` advances for characteristics and skills, `times` for talents (1 when left out); `specialisation` for a grouped skill or talent. `how` says where it came from: `species` or `career` (free, at creation), `xp`, `free` (given in play), or `imported` (from a sheet kept elsewhere, history unknown). |
 | `advances[].xp` | Leave out: the build works out the price from the library's cost tables, the number already taken, and whether the career lists it. Write it only for a career change (which the build can't price) or when something else was actually paid; the build then reports the difference. |
-| `spells` | Spells memorised, by ref. |
+| `spells` | Spells memorised, in the order they were learned, each with `how`: `talent` (one of the spells Petty Magic gives when it is taken, as many as the Willpower Bonus), `xp`, `free` (given in play) or `imported`. The build prices an `xp` spell from the table in the talent that teaches it, by how many spells the character already knew under that talent; write `xp` on the line only when something else was paid. An Arcane spell learned by a character with more than one lore says which with `lore`. |
 | `xp` | `total` earned (including the creation bonus). `spent` only when it can't be worked out from `advances` (an imported character); otherwise leave it out. |
 | `trappings` | Library trappings by `ref`, or anything else by `name` with its `enc`. `id` names a container so other lines can be `in` it (only the container's own Encumbrance counts); `worn` takes 1 off; `stowed` is owned but not carried. Armour counts on the sheet's locations only when `worn`. |
 | `state` | What changes in play. Wounds left, Fortune and Resolve left are worked out. |
@@ -90,7 +90,9 @@ print them. Keep the record's key order as above, so changes diff cleanly.
 A rule's effect is written once, on the entry that states it (ADR 0005), as
 `fields.effects`: `[{ "on": "WP", "add": 5, "at": 1 }]`, where `at` is the
 number of the entry's block that says so and `applies` (`species`, `career`,
-`class`) narrows it to the characters it is about. The build adds the effects
+`class`, or `specialisation` for the one the character took of the entry
+itself) narrows it to the characters it is about. An effect on `spell_cost`
+has `multiply` instead of `add` (a talent that halves the price of spells). The build adds the effects
 of every entry the character uses (species, careers, talents, skills, spells,
 trappings), of the table rows it names under `psychology` and `mutations`,
 and of the entries in play that add to those, lists them on the
