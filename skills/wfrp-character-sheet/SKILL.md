@@ -227,7 +227,9 @@ differences, each with the rule that decides it. The checks written on the
 entries the character uses are evaluated (`check:<entry>/<id>`); a rule to
 read is in the To do list: read it, apply it, tell the player and GM what you
 found, and when they agree it is met (or accepted), settle it with an
-exception naming its id and why. Then check what the build
+exception naming its id and why. When it is known not to be met yet and is
+owed (a spell still to learn), put its id in the record's `to_complete` with
+what is owed: the sheet lists it under "Still to complete" until it is met. Then check what the build
 can't: read each talent's entry for conditions written in its text (a talent
 that may be taken once whatever its specialisation, a prerequisite), together
 with every entry the sheet lists under "Rules that add to these talents" (a

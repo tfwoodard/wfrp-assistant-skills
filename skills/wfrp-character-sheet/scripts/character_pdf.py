@@ -109,9 +109,11 @@ def todo(m):
     work out. Empty when there is nothing."""
     parts = []
     gaps = (m.get("career") or {}).get("to_complete") or []
-    if gaps:
+    owed = m.get("to_complete") or []
+    if gaps or owed:
         parts.append("<b>Still to complete</b><ul>" + "".join(
-            f"<li>{e(g['career'])} {e(g['level'])} ({e(g['level_name'])}): {e('; '.join(g['missing']))}</li>" for g in gaps) + "</ul>")
+            f"<li>{e(g['career'])} {e(g['level'])} ({e(g['level_name'])}): {e('; '.join(g['missing']))}</li>" for g in gaps) + "".join(
+            f"<li>{e(o['what'] or o['text'])}</li>" for o in owed) + "</ul>")
     if m["differences"]:
         parts.append("<b>Differs from the rules</b><ul>" + "".join(
             f"<li>{e(d['text'])} <span class='cite'>{e(d['id'])}</span></li>" for d in m["differences"]) + "</ul>")

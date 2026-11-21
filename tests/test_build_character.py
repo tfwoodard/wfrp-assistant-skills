@@ -636,6 +636,20 @@ class Checks(Case):
         self.assertFalse(any('check:lamp-magic/order' in n for n in m['notes']))
         self.assertIn(('check:lamp-magic/order', 'The GM checked it'), [(a['id'], a['why']) for a in m['accepted']])
 
+    def test_a_rule_known_to_be_unmet_is_still_to_complete_not_unread(self):
+        self.checks('lamp-magic', [{'id': 'order', 'read': 'Each lore after the first needs the one before mastered.', 'at': 0}])
+        r = self.lamps('Lamps')
+        r['to_complete'] = [{'id': 'check:lamp-magic/order', 'what': 'A fourth lamp spell'}, {'id': 'xp-cost:*', 'what': 'Repay the XP'},
+                            {'id': 'check:gone/x', 'what': 'Old'}]
+        r['advances'].append({'skill': 'skills/watch', 'count': 1, 'how': 'xp', 'xp': 99})
+        m = self.build(r)
+        owed = {(o['id'].split(':')[0], o['what'], o['kind']) for o in m['to_complete']}
+        self.assertEqual(owed, {('xp-cost', 'Repay the XP', 'difference'), ('check', 'A fourth lamp spell', 'read')})
+        self.assertFalse(any(d['id'].startswith('xp-cost:') for d in m['differences']))
+        self.assertFalse(any('check:lamp-magic/order' in n for n in m['notes'] if n.startswith('Read')))
+        self.assertTrue(any("'check:gone/x' matches nothing" in n for n in m['notes']))
+        self.assertIn('Still to complete: A fourth lamp spell `check:lamp-magic/order`', bc.markdown(m))
+
     def test_applies_narrows_and_an_entry_that_adds_to_one_brings_its_checks(self):
         self.checks('steady-at-sea', [{'id': 'sea-legs', 'at': 0, 'says': 'Needs Rowing', 'applies': {'species': ['species/keepers']},
                                        'test': {'value': {'advances': 'skills/rowing'}, 'at_least': 1}}], cat='rules')

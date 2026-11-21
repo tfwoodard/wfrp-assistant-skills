@@ -81,6 +81,7 @@ shows up on the next build, and nothing in the record goes stale.
 | `state` | What changes in play. Wounds left, Fortune and Resolve left are worked out. |
 | `psychology`, `mutations` | Each item is plain words (`"Animosity (Sigmarites)"`), or a row of a table in the library: `{ "table": "tables/<slug>", "row": "<the row's name as its cell prints it>", "from": "<the entry that gave it, if one did>", "notes": "" }`. Write a row that way whenever the table is in the library: the sheet then shows what the row says with its citation, and the build applies the formulas the table's entry carries for that row. A row without a formula is noted on the sheet: read it. |
 | `exceptions` | Differences from the rules the group has settled for this character, by the difference's `id`, with `why`, and `house_rule` when a campaign house rule is the reason. A rule the sheet lists to read (`check:<entry>/<id>`) is settled the same way once it has been read and applied. See below. |
+| `to_complete` | What the group has checked and knows is still owed: `[{"id": "check:asur-magehood/previous-lore", "what": "A fourth Hysh spell, owed for Arcane Magic (Chamon)"}]`. The difference or rule to read with that `id` is listed under "Still to complete" with `what`, not as open; when it no longer turns up, the sheet says the entry can come off. |
 | `incomplete` | Things the player still has to settle; the sheet shows them at the top until they're fixed. |
 | `changelog` | Every change, newest last. |
 

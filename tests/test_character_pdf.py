@@ -46,6 +46,11 @@ class Sheet(unittest.TestCase):
         self.assertNotIn('background:', html)                                          # no fills: they waste ink
         for s in ('Still to complete', 'Differs from the rules', 'To settle', 'Not worked out'):
             self.assertIn(s, todo, s)
+        m = bc.build(dict(r, to_complete=[{'id': 'xp-cost:*', 'what': 'Pay back the 87 XP'}]), Library(self.root, 'rock'))
+        todo = character_pdf.document(m)
+        todo = todo[todo.index('class="todo"'):todo.index('Basic skills')]
+        self.assertLess(todo.index('Still to complete'), todo.index('Pay back the 87 XP'))
+        self.assertNotIn('Differs from the rules', todo)
         for s in ('Accepted differences', 'the GM moved her on', 'House rules used', 'What rules add'):
             self.assertNotIn(s, html, s)
         self.assertEqual(html.count('class="page'), 3)
