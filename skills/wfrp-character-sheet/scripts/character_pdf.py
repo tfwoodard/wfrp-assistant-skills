@@ -6,14 +6,15 @@
 
 The sheet is the build (build_character.py) of the record, never the record's own numbers, on three
 pages: (1) characteristics with their bonuses, the attributes (Wounds, Movement, Fate and Fortune,
-Resilience and Resolve, Corruption, Encumbrance, XP), the career, a "To do" box (earlier levels
-still to complete, differences from the rules, what the record says is to settle, what the build
-couldn't work out), skills and talents; (2) weapons, armour by location, trappings in their
+Resilience and Resolve, Corruption, Encumbrance, XP), then two columns: the career and a "To do" box
+(earlier levels still to complete, differences from the rules, what the record says is to settle,
+what the build couldn't work out) above the basic skills, and the advanced skills and talents; (2) weapons, armour by location, trappings in their
 containers, money, spells each with a one-line summary of what it does (the entry's `summary`),
 ambitions, psychology and mutations (these follow on from the first page, so no page is left
 nearly empty); (3) a page of its own to mark in play: Wounds, Fortune, Resolve and Corruption as
 boxes, Advantage (a tally at +10 each, or one box where a house rule sets `"advantage": "on-off"`),
-and every condition in play with boxes to count it. Accepted differences, house rules and
+and every condition in play with boxes to count it. Nothing is printed on a filled background, to
+save ink: a box already marked (a Wound taken, Fortune spent) shows a cross. Accepted differences, house rules and
 what rules add are on the markdown sheet (build_character.py --md), not the printed one.
 
 The PDF is printed with Playwright when it is installed, otherwise with a local Chrome, Edge or
@@ -47,7 +48,7 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--acce
 .ch .bon{display:inline-block;border:1px solid var(--line);border-radius:8px;padding:0 6px;font-size:10px}
 .ch .how{font-size:8.5px;color:var(--muted);margin-top:2px}
 .attrs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
-.at{border:1px solid var(--line);background:var(--soft);text-align:center;padding:3px 2px}
+.at{border:1px solid var(--line);text-align:center;padding:3px 2px}
 .at b{display:block;font-size:14px;font-weight:normal;font-variant-numeric:tabular-nums}
 .at span{font-size:8.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 .at i{display:block;font-size:8.5px;color:var(--muted);font-style:normal}
@@ -61,7 +62,7 @@ tr{break-inside:avoid}
 .car{font-size:9px;color:var(--accent)}
 .cite{color:var(--muted);font-size:8.5px}
 .box{border:1px solid var(--line);padding:4px 6px;margin:4px 0;break-inside:avoid}
-.box.warn{border-color:var(--accent);background:#fbf3f1}
+.box.warn{border-color:var(--accent)}
 .small{font-size:9.5px}
 ul{margin:2px 0 2px 16px;padding:0} li{margin:1px 0}
 .armour{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
@@ -69,8 +70,9 @@ ul{margin:2px 0 2px 16px;padding:0} li{margin:1px 0}
 .armour b{display:block;font-size:14px;font-weight:normal}
 .armour span{font-size:8.5px;color:var(--muted);text-transform:uppercase}
 .track{display:inline-block;width:11px;height:11px;border:1px solid var(--fg);border-radius:2px;margin-right:2px;vertical-align:middle}
-.track.on{background:var(--fg)}
-.todo{border:1.5px solid var(--accent);background:#fbf3f1;padding:4px 8px;margin:6px 0;break-inside:avoid;font-size:9.5px}
+.track.on{text-align:center;font-size:9px;line-height:10px;vertical-align:middle}
+.trk .track.on{font-size:12px;line-height:15px} .cond .track.on{font-size:10px;line-height:12px}
+.todo{border:1.5px solid var(--accent);padding:4px 8px;margin:6px 0;break-inside:avoid;font-size:9.5px}
 .todo b.t{display:block;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:2px}
 .todo ul{margin:1px 0 3px 16px}
 .spell{border-bottom:1px solid #ece6da;padding:3px 0;break-inside:avoid}
@@ -98,7 +100,7 @@ def table(cols, rows, num=()):
 
 
 def boxes(n, filled=0):
-    return "".join(f'<span class="track{" on" if i < filled else ""}"></span>' for i in range(max(0, int(n or 0))))
+    return "".join('<span class="track on">✕</span>' if i < filled else '<span class="track"></span>' for i in range(max(0, int(n or 0))))
 
 
 def todo(m):
@@ -144,14 +146,13 @@ def page_one(m):
              ("XP", x["current"], f'{x["spent"]} spent of {x["total"]}')]
     out.append('<div class="attrs">' + "".join(f'<div class="at"><span>{e(a)}</span><b>{e(b)}</b><i>{e(i)}</i></div>' for a, b, i in attrs) + "</div>")
     path = c.get("path") or []
-    if path:
-        out.append('<div class="box small">' + "<br>".join(f"{e(p['class'])}: {e(p['name'])} ({e(', '.join(p['levels']))})" for p in path) + "</div>")
-    out.append(todo(m))
+    callouts = ('<div class="box small">' + "<br>".join(f"{e(p['class'])}: {e(p['name'])} ({e(', '.join(p['levels']))})" for p in path)
+                + "</div>" if path else "") + todo(m)
     def skills(rows):
         return table(["Skill", "", "Char", "Adv", "Total"],
                      [[e(s["name"]), '<span class="car">career</span>' if s["career"] else "", e(s["characteristic"]),
                        e(s["advances"]), f"<b>{e(s['total'])}</b>"] for s in rows], num=(3, 4))
-    out.append(f'<div class="cols"><div><h2>Basic skills</h2>{skills(m["skills"]["basic"])}</div>'
+    out.append(f'<div class="cols"><div>{callouts}<h2>Basic skills</h2>{skills(m["skills"]["basic"])}</div>'
                f'<div><h2>Advanced skills</h2>{skills(m["skills"]["advanced"])}'
                f'<h2>Talents</h2>' + table(["Talent", "Taken", "Tests"],
                     [[e(t["name"]) + f' <span class="cite">{e(t["cite"])}</span>',

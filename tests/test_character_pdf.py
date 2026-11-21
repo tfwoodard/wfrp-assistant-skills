@@ -42,6 +42,8 @@ class Sheet(unittest.TestCase):
                   'Age <b>31</b>', 'Eyes <b>Grey</b>', 'Not worked out', 'Fortune and Resolve', '<h2>Corruption</h2>'):
             self.assertIn(s, html, s)
         todo = html[html.index('class="todo"'):html.index('Basic skills')]
+        self.assertLess(html.index('class="cols"'), html.index('class="todo"'))     # in the column above the basic skills
+        self.assertNotIn('background:', html)                                          # no fills: they waste ink
         for s in ('Still to complete', 'Differs from the rules', 'To settle', 'Not worked out'):
             self.assertIn(s, todo, s)
         for s in ('Accepted differences', 'the GM moved her on', 'House rules used', 'What rules add'):
@@ -67,7 +69,7 @@ class Sheet(unittest.TestCase):
         m = self.model(state={'wounds_taken': 2, 'fortune_spent': 1, 'corruption': 1, 'conditions': [{'name': 'Soaked', 'count': 2}]})
         html = character_pdf.document(m, [{'name': 'Soaked', 'cite': '(LAMP, p. 1)'}, {'name': 'Dazzled'}])
         play = html[html.index('class="page new play"'):]
-        self.assertEqual(play.count('track on'), 2 + 1 + 1 + 2)            # wounds, fortune, corruption, Soaked
+        self.assertEqual(play.count('track on">✕'), 2 + 1 + 1 + 2)        # wounds, fortune, corruption, Soaked: marked, not filled
         self.assertIn('Dazzled', play)
         self.assertIn('Corruption', play)
         self.assertIn('+10 each', play)
