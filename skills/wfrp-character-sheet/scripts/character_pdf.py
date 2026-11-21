@@ -6,10 +6,12 @@
 
 The sheet is the build (build_character.py) of the record, never the record's own numbers, on three
 pages: (1) characteristics with their bonuses, the attributes (Wounds, Movement, Fate and Fortune,
-Resilience and Resolve, Corruption, Encumbrance, XP), then two columns: the career and a "To do" box
-(earlier levels still to complete, differences from the rules, what the record says is to settle,
-what the build couldn't work out) above the basic skills, and the advanced skills and talents; (2) weapons, armour by location, trappings in their
-containers, money, spells each with a one-line summary of what it does (the entry's `summary`),
+Resilience and Resolve, Corruption, Encumbrance, XP), then two balanced columns that flow on: the
+career and a "To do" box (earlier levels still to complete, differences from the rules, what the
+record says is to settle, what the build couldn't work out) above the basic skills, then the
+advanced skills and the talents, each with a one-line summary; (2) weapons, armour by location, trappings in their
+containers, money, spells each with a one-line summary of what it does (the entry's `summary`, as
+for each talent on the first page),
 ambitions, psychology and mutations (these follow on from the first page, so no page is left
 nearly empty); (3) a page of its own to mark in play: Wounds, Fortune, Resolve and Corruption as
 boxes, Advantage (a tally at +10 each, or one box where a house rule sets `"advantage": "on-off"`),
@@ -21,7 +23,7 @@ The PDF is printed with Playwright when it is installed, otherwise with a local 
 Chromium in headless mode. Without one, open the HTML in a browser and print it (Letter,
 background graphics on). Nothing in the record is changed.
 """
-import argparse, html, json, os, shutil, subprocess, sys, tempfile
+import argparse, html, json, os, re, shutil, subprocess, sys, tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_character as bc  # noqa: E402
@@ -76,6 +78,9 @@ ul{margin:2px 0 2px 16px;padding:0} li{margin:1px 0}
 .todo b.t{display:block;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;font-size:10px;margin-bottom:2px}
 .todo ul{margin:1px 0 3px 16px}
 .spell{border-bottom:1px solid #ece6da;padding:3px 0;break-inside:avoid}
+.flow{column-count:2;column-gap:16px}
+.flow h2:first-child,.flow .box:first-child{margin-top:0}
+.flow table{break-inside:auto}
 .spell .nm{font-size:11px;font-weight:bold}
 .spell .st{color:var(--muted);font-size:9px;margin-left:6px}
 .spell .sum{margin:1px 0 0 10px}
@@ -87,6 +92,12 @@ ul{margin:2px 0 2px 16px;padding:0} li{margin:1px 0}
 .cond{display:flex;align-items:center;gap:4px;border-bottom:1px solid #ece6da;padding:2px 0}
 .cond .cn{width:110px} .cond .track{width:13px;height:13px}
 """
+
+
+def short(cite):
+    """"(CRB, ch. 4 › Master Talent List, p. 132)" -> "(CRB p. 132)": the source and page are enough on paper."""
+    m = re.match(r"\((\w+),.*?(p\. [\d–-]+)\)\s*$", cite or "")
+    return f"({m.group(1)} {m.group(2)})" if m else (cite or "")
 
 
 def e(x):
@@ -154,12 +165,17 @@ def page_one(m):
         return table(["Skill", "", "Char", "Adv", "Total"],
                      [[e(s["name"]), '<span class="car">career</span>' if s["career"] else "", e(s["characteristic"]),
                        e(s["advances"]), f"<b>{e(s['total'])}</b>"] for s in rows], num=(3, 4))
-    out.append(f'<div class="cols"><div>{callouts}<h2>Basic skills</h2>{skills(m["skills"]["basic"])}</div>'
-               f'<div><h2>Advanced skills</h2>{skills(m["skills"]["advanced"])}'
-               f'<h2>Talents</h2>' + table(["Talent", "Taken", "Tests"],
-                    [[e(t["name"]) + f' <span class="cite">{e(t["cite"])}</span>',
-                      e(t["times"]) + (f" of {e(t['max'])}" if t.get("max") is not None else ""), e(t.get("tests") or "")]
-                     for t in m["talents"]]) + "</div></div>")
+    flow = f'{callouts}<h2>Basic skills</h2>{skills(m["skills"]["basic"])}<h2>Advanced skills</h2>{skills(m["skills"]["advanced"])}'
+    seen, rows = set(), []
+    for t in m["talents"]:
+        first = t["ref"] not in seen
+        seen.add(t["ref"])
+        summary = (e(t["summary"]) if t.get("summary") else "<i>No summary yet: read the entry.</i>") if first else "<i>As above.</i>"
+        rows.append(f'<div class="spell"><span class="nm">{e(t["name"])}</span><span class="st">'
+                    f'{e(t["times"])}{" of " + e(t["max"]) if t.get("max") is not None else ""}'
+                    f'{" · Tests: " + e(t["tests"]) if t.get("tests") else ""} · {e(short(t["cite"]))}</span>'
+                    f'<div class="sum">{summary}</div></div>')
+    out.append(f'<div class="flow">{flow}<h2>Talents</h2>' + "".join(rows) + "</div>")
     return '<div class="page">' + "".join(out) + "</div>"
 
 
@@ -184,12 +200,6 @@ def page_two(m):
     money = m.get("money") or {}
     out.append(f'<div class="box small"><b>Money</b>: {e(money.get("gc", 0))} gc · {e(money.get("ss", 0))} ss · {e(money.get("d", 0))} d'
                f' &nbsp; <b>Encumbrance</b>: {e(m["encumbrance"]["carried"])} of {e(m["encumbrance"]["max"])}</div>')
-    if m["spells"]:
-        out.append("<h2>Spells</h2>" + "".join(
-            f'<div class="spell"><span class="nm">{e(s["name"])}</span><span class="st">{e(s["lore"] or s["kind"])} · CN {e(s["cn"])} · '
-            f'Range {e(s["range"])} · Target {e(s["target"])} · Duration {e(s["duration"])} · {e(s["cite"])}</span>'
-            f'<div class="sum">{e(s["summary"]) if s.get("summary") else "<i>No summary yet: read the entry.</i>"}</div></div>'
-            for s in m["spells"]))
     side = []
     if m.get("ambitions"):
         side.append("<h2>Ambitions</h2><ul>" + "".join(f"<li>{e(k.title())}: {e(v)}</li>" for k, v in m["ambitions"].items() if v) + "</ul>")
@@ -206,6 +216,12 @@ def page_two(m):
                                                        for x in st[key]) + "</ul>")
     if side:
         out.append(f'<div class="cols"><div>{"".join(side[:len(side) // 2 + len(side) % 2])}</div><div>{"".join(side[len(side) // 2 + len(side) % 2:])}</div></div>')
+    if m["spells"]:
+        out.append("<h2>Spells</h2>" + "".join(
+            f'<div class="spell"><span class="nm">{e(s["name"])}</span><span class="st">{e(s["lore"] or s["kind"])} · CN {e(s["cn"])} · '
+            f'Range {e(s["range"])} · Target {e(s["target"])} · Duration {e(s["duration"])} · {e(short(s["cite"]))}</span>'
+            f'<div class="sum">{e(s["summary"]) if s.get("summary") else "<i>No summary yet: read the entry.</i>"}</div></div>'
+            for s in m["spells"]))
     return '<div class="page">' + "".join(out) + "</div>"
 
 
