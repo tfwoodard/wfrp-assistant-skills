@@ -39,7 +39,7 @@ PLAN = {
 }
 
 
-def draw_chapter(path, unplanned=False):
+def draw_chapter(path, unplanned=False, bare=False):
     """Page 1: chapter title, an intro paragraph, "Trimming Wicks" (with a subheading, a list and a
     word split at a line end), a boxed ruled table, and the condition "Smoked". Page 2: the
     table's continuation in a box, a psychology trait and a disease."""
@@ -103,6 +103,8 @@ def draw_chapter(path, unplanned=False):
 
     box_table(L, h - 60, [('9–10', 'Endless')], header=False)
     y = h - 120
+    if bare:                      # a heading with nothing under it but the sections that follow
+        text(L, y, 'Lamp Ailments', 'Helvetica-Bold', 18); y -= 18
     text(L, y, 'Dread (Rating)', 'Helvetica-Bold', 12); y -= 14
     for s in ('A keeper with Dread fears the dark.', 'Test Cool to climb an unlit tower.'):
         text(L, y, s); y -= 11
@@ -162,6 +164,40 @@ class ConvertRulesTest(unittest.TestCase):
         self.assertEqual(recs[('tables', 'wick-lengths')]['relations'], rel)
         self.assertEqual(recs[('rules', 'smoked')]['relations'][0]['role'], 'distinct-from')
         self.assertNotIn('relations', recs[('rules', 'trimming-wicks')])
+
+    def bare_plan(self, **mark):
+        entries = list(PLAN['entries'])
+        entries.insert(2, dict({'name': 'Lamp Ailments', 'page': 2, 'kind': 'other'}, **mark))
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(dict(PLAN, entries=entries), f)
+
+    def test_an_entry_with_nothing_of_its_own_is_reported(self):
+        self.bare_plan()
+        r, out, layout, report = self.convert(bare=True)
+        self.assertEqual(r.returncode, 0, report['errors'])
+        self.assertEqual(report['empty_entries'], [{'category': 'rules', 'name': 'Lamp Ailments', 'page': 2}])
+        self.assertEqual(self.load(out, 'lamp-ailments.json')['content'], [])
+        self.assertNotIn('headings_only', report)
+
+    def test_a_heading_marked_heading_only_gets_no_entry_and_is_recorded(self):
+        self.bare_plan(heading_only=True)
+        r, out, layout, report = self.convert(bare=True)
+        self.assertEqual(r.returncode, 0, report['errors'])
+        self.assertEqual(report['headings_only'], [{'name': 'Lamp Ailments', 'page': 2}])
+        self.assertNotIn('empty_entries', report)
+        self.assertNotIn('lamp-ailments.json', os.listdir(out))
+        self.assertNotIn('lamp-ailments', [x['slug'] for x in self.load(out, '_records.json')])
+        self.assertIn('Lamp Ailments', report['left_out'])
+        self.assertTrue(self.load(out, 'dread.json')['content'])               # the next section is its own, as before
+        cov = run('check_coverage.py', layout, out)
+        self.assertEqual(cov.returncode, 0, cov.stdout + cov.stderr)
+
+    def test_heading_only_on_an_entry_with_text_is_an_error(self):
+        entries = [dict(e, heading_only=True) if e['name'] == 'Smoked' else e for e in PLAN['entries']]
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(dict(PLAN, entries=entries), f)
+        r, out, layout, report = self.convert()
+        self.assertTrue(any("'Smoked' is marked heading_only" in e['error'] for e in report['errors']), report['errors'])
 
     def test_a_box_sent_to_several_entries_is_copied_into_each(self):
         plan = dict(PLAN, boxes={'1.1': {'to': ['Trimming Wicks', 'Smoked']}})

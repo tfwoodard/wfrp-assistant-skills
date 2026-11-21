@@ -153,6 +153,15 @@ in `_records.json` (rules or tables), and `_report.json`:
 - `folded_keys`: a "fold_join" table's key column as printed in its later parts, kept once.
 - `same_name`: entries whose slug another source's entry in their category already had.
 - `left_out`: everything printed that no entry holds.
+- `headings_only`: headings the plan marks "heading_only": no entry was written for them (see below).
+- `empty_entries`: entries that came out with no text, table, box or fields of their own. Mark one
+  "heading_only" in the plan to leave it out, or check why its text went elsewhere.
+
+An entry of the plan with "heading_only": true is a heading with nothing under it but other entries
+(a "Skills and Talents" heading over talents that are entries themselves). Its place in the plan
+still ends the entry before it; no entry is written, the heading's words count as left out, and the
+report lists it. The mark stays in the plan as the record: remove it and the entry comes back. A
+marked entry that has text or boxes of its own is an error.
 """
 import argparse
 import collections
@@ -1622,6 +1631,16 @@ def convert(layout, plan, taken=(), library=None):
     for e in entries:
         spec = e['spec']
         name = spec['name']
+        if spec.get('heading_only'):
+            # A heading over nothing but other entries (the talents under "New Talents"): no entry is
+            # written for it. The plan keeps the mark, so the decision can be undone by removing it.
+            if [x for x in e['lines'] if plain(x['text']).strip()] or e['boxes']:
+                report['errors'].append({'error': f'{name!r} is marked heading_only in the plan, but it has text '
+                                                  'or boxes of its own: remove the mark'})
+            else:
+                report['left_out'].append(spec.get('heading', name))
+                report.setdefault('headings_only', []).append({'name': name, 'page': spec['page']})
+                continue
         career = read_career(e, entries, lines, layout, plan, report) if spec.get('career') else None
         updates = None
         if spec.get('level_updates'):
@@ -1732,6 +1751,8 @@ def convert(layout, plan, taken=(), library=None):
         rel = plan.get('relations', {}).get(f'{cat}/{slug}') or plan.get('relations', {}).get(slug)
         if rel:
             entry['relations'] = rel
+        if not content and not {k for k in fields if k != 'kind'}:      # a creature's profile is its fields
+            report.setdefault('empty_entries', []).append({'category': cat, 'name': name, 'page': spec['page']})
         out.append((cat, entry))
         rec = {'slug': slug, 'name': name, 'source': plan['source'], 'chapter': plan['chapter'],
                'section': entry['section'], 'page': spec['page'], '_category': cat}
