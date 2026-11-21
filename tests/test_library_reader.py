@@ -159,7 +159,7 @@ class ReaderTest(unittest.TestCase):
     def test_find_entry_ranks_matches_and_explains_what_is_not_used(self):
         used, unused = find_entry.search(self.lib(), 'steady', ['talents'])
         self.assertEqual([h['ref'] for h in used], ['talents/steady-pier'])
-        self.assertEqual([(h['ref'], h['unused']) for h in unused], [('talents/steady', 'talents/steady-pier replaces it')])
+        self.assertEqual([(h['ref'], h['unused']) for h in unused], [('talents/steady', "talents/steady-pier is used instead: PIER comes before LAMP in the campaign's sources")])
         self.assertEqual(find_entry.search(self.lib(), 'far sight', ['talents'])[1][0]['unused'], "OUT isn't one of the sources in play")
         self.assertEqual(find_entry.search(self.lib(), 'hidden stair', ['rules'])[1][0]['unused'], 'for the GM only')
         used, _ = find_entry.search(self.lib(), 'watch', ['rules', 'skills'])
@@ -169,6 +169,27 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(used[0]['cite'], '(LAMP, Appendix I › Watching the Coast, p. 12)')
         self.assertIn('replaces talents/steady: use this one instead of that entry',
                       find_entry.show(find_entry.search(self.lib(), 'steady', ['talents'])[0][0], self.lib(), False))
+
+    def test_the_campaigns_source_order_decides_between_versions(self):
+        def campaign(slug, sources):
+            d = os.path.join(self.tmp.name, 'campaigns', slug)
+            os.makedirs(d)
+            with open(os.path.join(d, 'campaign.json'), 'w') as f:
+                json.dump({'slug': slug, 'sources': sources}, f)
+            return Library(self.tmp.name, slug)
+        newest = self.lib()                                      # PIER, LAMP: the supplement's version
+        self.assertEqual(newest.current('talents/steady'), 'talents/steady-pier')
+        core = campaign('core-first', ['LAMP', 'PIER'])          # the same books, the other way round
+        self.assertEqual(core.current('talents/steady-pier'), 'talents/steady')
+        self.assertEqual(core.current('talents/steady'), 'talents/steady')
+        rec = next(r for _, r in core.records('talents') if r['slug'] == 'steady-pier')
+        self.assertEqual(core.hidden('talents', rec),
+                         "talents/steady is used instead: LAMP comes before PIER in the campaign's sources")
+        self.assertEqual(campaign('core-only', ['LAMP']).current('talents/steady'), 'talents/steady')
+        none = Library(self.tmp.name)                            # no campaign: the one that replaces the other
+        self.assertEqual(none.current('talents/steady'), 'talents/steady-pier')
+        rec = next(r for _, r in none.records('talents') if r['slug'] == 'steady')
+        self.assertEqual(none.hidden('talents', rec), 'talents/steady-pier replaces it')
 
     def test_an_entry_is_shown_with_the_entries_in_play_that_add_to_it(self):
         lib = self.lib()
@@ -201,7 +222,7 @@ class ReaderTest(unittest.TestCase):
 
     def test_an_excerpt_the_campaign_does_not_use_is_refused_with_the_reason(self):
         lib = self.lib()
-        self.assertEqual(excerpt.excerpt(lib, 'talents/steady'), (None, 'not used in this campaign: talents/steady-pier replaces it'))
+        self.assertEqual(excerpt.excerpt(lib, 'talents/steady'), (None, "not used in this campaign: talents/steady-pier is used instead: PIER comes before LAMP in the campaign's sources"))
         self.assertEqual(excerpt.excerpt(lib, 'rules/the-hidden-stair'), (None, 'not used in this campaign: for the GM only'))
         self.assertEqual(excerpt.excerpt(lib, 'rules/tides'), (None, 'not in the library'))
         self.assertIsNotNone(excerpt.excerpt(self.lib(gm=True), 'rules/the-hidden-stair')[0])

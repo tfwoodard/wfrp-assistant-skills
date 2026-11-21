@@ -98,11 +98,13 @@ class Library:
         self.read = []          # library files read
         self.campaign = None
         self.sources = None
+        self.order = []
         self.roots = []
         if campaign:
             cdir = os.path.join(root, "campaigns", campaign)
             self.campaign = self._json(os.path.join(cdir, "campaign.json")) or {}
-            self.sources = set(self.campaign.get("sources") or []) or None
+            self.order = list(self.campaign.get("sources") or [])      # in play, highest precedence first
+            self.sources = set(self.order) or None
             if gm:
                 self.roots.append(os.path.join(cdir, "gm", "library-data"))
             self.roots.append(os.path.join(cdir, "library-data"))
@@ -166,10 +168,13 @@ class Library:
         return self._updated
 
     def replaced(self):
-        """{ref: the ref that replaces it}: entries another entry *replaces* (layout §4), when the
-        replacement is itself used here (its source in play, and not for the GM unless gm)."""
+        """{ref: the ref used instead of it}. Entries joined by *replaces* (layout §4) are versions of
+        one thing, and a campaign uses one of them: the version from the source that comes first in
+        its `sources` (layout §8), whichever way the relation points. Between versions the campaign
+        ranks the same (one source, or no campaign), the one that replaces the other is used.
+        Only versions that can be used here count (source in play, not the GM's unless gm)."""
         if self._replaced is None:
-            out = {}
+            src, edges = {}, []
             for r in self.roots:
                 for cat in (os.listdir(r) if os.path.isdir(r) else []):
                     p = os.path.join(r, cat, "_index.json")
@@ -179,10 +184,28 @@ class Library:
                         if (self.sources and rec.get("source") not in self.sources) or \
                                 (rec.get("audience") == "gm" and not self.gm):
                             continue
-                        for rel in rec.get("relations", []):
-                            if rel.get("role") == "replaces":
-                                out[rel["to"]] = f'{cat}/{rec["slug"]}'
-            self._replaced = out
+                        ref = f'{cat}/{rec["slug"]}'
+                        src[ref] = rec.get("source")
+                        edges += [(ref, rel["to"]) for rel in rec.get("relations", []) if rel.get("role") == "replaces"]
+            group = {}                                   # ref -> the set of versions it belongs to
+            for a, b in edges:
+                g = group.get(a, {a}) | group.get(b, {b})
+                for x in g: group[x] = g
+            newer = {a for a, b in edges}
+            older = {b for a, b in edges}
+            out, why, done = {}, {}, set()
+            for g in group.values():
+                if id(g) in done: continue
+                done.add(id(g))
+                usable = [x for x in g if x in src]      # what a version replaces may itself be out of play
+                if not usable: continue
+                rank = lambda x: self.order.index(src[x]) if src[x] in self.order else len(self.order)
+                best = min(usable, key=lambda x: (rank(x), x in older and x not in newer, x in older, x))
+                for x in g:
+                    if x != best:
+                        out[x] = best
+                        if x in src and rank(x) != rank(best): why[x] = src[best]
+            self._replaced, self._by_order = out, why
         return self._replaced
 
     def added_by(self, ref):
@@ -233,7 +256,9 @@ class Library:
             return "for the GM only"
         by = self.replaced().get(f'{category}/{rec["slug"]}')
         if by:
-            return f"{by} replaces it"
+            first = self._by_order.get(f'{category}/{rec["slug"]}')
+            return f"{by} is used instead: {first} comes before {rec.get('source')} in the campaign's sources" if first \
+                else f"{by} replaces it"
         if f'{category}/{rec["slug"]}' in self.updated():
             by = [x["to"] for x in rec.get("relations", []) if x.get("role") == "updated-by"]
             return f"the {self.edition} rules updated it" + (f' ({", ".join(by)})' if by else "")

@@ -101,7 +101,7 @@ counted twice; the sheet says the line can go.
 The build can't read a rule's text. So for each talent or other rule a
 character takes whose entry has no `effects`, read it: if it changes a number,
 propose the formula to the Librarian beside the sentence it encodes, and until
-it is confirmed and imported (the chapter's plan, `formulas`), write the effect
+it is confirmed and set on the entry (the import skill's `set_formulas.py`), write the effect
 in the record so the sheet is right meanwhile.
 
 ## What the build gives back

@@ -4,6 +4,7 @@ test draws itself: no book text.
 Run: python3 -m unittest discover tests
 """
 import json
+import shutil
 import os
 import subprocess
 import sys
@@ -199,45 +200,57 @@ class ConvertRulesTest(unittest.TestCase):
         r, out, layout, report = self.convert()
         self.assertTrue(any("'Smoked' is marked heading_only" in e['error'] for e in report['errors']), report['errors'])
 
-    def formulas(self, f):
+    def test_formulas_are_not_a_plans_business(self):
         with open(os.path.join(self.d, 'plan.json'), 'w') as fh:
-            json.dump(dict(PLAN, formulas=f), fh)
-        return self.convert()
+            json.dump(dict(PLAN, formulas={'rules/smoked': {'effects': [{'on': 'I', 'add': -10, 'at': 0}]}}), fh)
+        r, out, layout, report = self.convert()
+        self.assertEqual(r.returncode, 1)
+        self.assertTrue(any('they live on the library' in e['error'] for e in report['errors']), report['errors'])
 
-    def test_a_plans_formulas_go_on_the_entry_and_stay_out_of_the_index(self):
-        r, out, layout, report = self.formulas({'rules/smoked': {
-            'effects': [{'on': 'I', 'add': -10, 'at': 0}],
-            'checks': [{'id': 'fresh-air', 'read': 'Fresh air ends it.', 'at': 0}]}})
-        self.assertEqual(r.returncode, 0, report['errors'])
-        f = self.load(out, 'smoked.json')['fields']
-        self.assertEqual(f['effects'], [{'on': 'I', 'add': -10, 'at': 0}])
-        self.assertEqual(f['checks'][0]['id'], 'fresh-air')
-        rec = next(x for x in self.load(out, '_records.json') if x['slug'] == 'smoked')
-        self.assertNotIn('effects', rec)
-        self.assertNotIn('checks', rec)
-        self.assertEqual(report['formulas'], [{'entry': 'rules/smoked', 'effects': 1}, {'entry': 'rules/smoked', 'checks': 1}])
-
-    def test_a_tables_rows_take_formulas_by_a_cell_naming_one_row(self):
-        r, out, layout, report = self.formulas({'tables/wick-lengths': {'rows': {'short': {'effects': [{'on': 'I', 'add': -5}]}}}})
-        self.assertEqual(r.returncode, 0, report['errors'])
-        self.assertEqual(self.load(out, 'tables--wick-lengths.json')['fields']['rows'], {'short': {'effects': [{'on': 'I', 'add': -5}]}})
-        self.assertNotIn('rows', next(x for x in self.load(out, '_records.json') if x['slug'] == 'wick-lengths'))
-        for f, why in (({'rows': {'Tiny': {'effects': [{'on': 'I', 'add': 1}]}}}, '"Tiny" names 0 rows'),
-                       ({'rows': {'Short': {}}}, 'row "Short" needs'),
-                       ({'rows': {'Short': {'effects': [{'on': 'I'}]}}}, 'row "Short": an effect needs'),
-                       ({'rows': []}, '"rows" is an object')):
-            r, out, layout, report = self.formulas({'tables/wick-lengths': f})
-            self.assertTrue(any(why in e['error'] for e in report['errors']), (why, report['errors']))
-
-    def test_a_malformed_formula_is_an_error(self):
-        for f, why in (({'rules/smoke': {'effects': []}}, 'no entry rules/smoke'),
-                       ({'rules/smoked': {'effects': [{'on': 'I', 'add': 1, 'at': 99}]}}, '"at" must be the number'),
-                       ({'rules/smoked': {'effects': [{'on': 'I', 'at': 0}]}}, 'needs "on" and "add"'),
-                       ({'rules/smoked': {'checks': [{'id': 'x', 'at': 0}]}}, 'a "test" or a "read"'),
-                       ({'rules/smoked': {'limits': []}}, 'takes "effects" and "checks"')):
-            r, out, layout, report = self.formulas(f)
-            self.assertEqual(r.returncode, 1)
-            self.assertTrue(any(why in e['error'] for e in report['errors']), (why, report['errors']))
+    def test_set_formulas_writes_them_on_the_entry_and_a_reimport_carries_them_over(self):
+        r, out, layout, report = self.convert()
+        lib = os.path.join(self.d, 'library-data')
+        for cat, name, src in (('rules', 'smoked', 'smoked'), ('tables', 'wick-lengths', 'tables--wick-lengths'), ('rules', 'dread', 'dread')):
+            os.makedirs(os.path.join(lib, cat), exist_ok=True)
+            for ext in ('json', 'md'):
+                shutil.copy(os.path.join(out, f'{src}.{ext}'), os.path.join(lib, cat, f'{name}.{ext}'))
+        smoked, wicks, dread = (os.path.join(lib, c, n + '.json') for c, n in (('rules', 'smoked'), ('tables', 'wick-lengths'), ('rules', 'dread')))
+        self.assertEqual(run('set_formulas.py', smoked, '--effects', '[{"on": "I", "add": -10, "at": 0}]',
+                             '--checks', '[{"id": "fresh-air", "read": "Fresh air ends it.", "at": 0}]').returncode, 0)
+        self.assertEqual(run('set_formulas.py', wicks, '--row', 'short', '--effects', '[{"on": "I", "add": -5}]').returncode, 0)
+        with open(wicks) as f:
+            self.assertEqual(json.load(f)['fields']['rows'], {'Short': {'effects': [{'on': 'I', 'add': -5}]}})   # as printed
+        with open(os.path.splitext(smoked)[0] + '.md') as f:
+            self.assertIn('effects: [{"on": "I", "add": -10, "at": 0}]', f.read())
+        for args, why in ((('--effects', '[{"on": "I", "add": 1, "at": 99}]'), '"at" must be the number'),
+                          (('--effects', '[{"on": "I", "at": 0}]'), 'needs "on" and "add"'),
+                          (('--checks', '[{"id": "x", "at": 0}]'), 'a "test" or a "read"'),
+                          (('--row', 'Tiny', '--effects', '[{"on": "I", "add": 1}]'), '"Tiny" names 0 rows')):
+            bad = run('set_formulas.py', smoked if '--row' not in args else wicks, *args)
+            self.assertEqual(bad.returncode, 1)
+            self.assertIn(why, bad.stderr)
+        # a formula that pointed at a block the entry no longer has is left behind, and said
+        with open(dread) as f:
+            e = json.load(f)
+        e['fields']['effects'] = [{'on': 'WP', 'add': -5, 'at': 40}]
+        with open(dread, 'w') as f:
+            json.dump(e, f)
+        again = os.path.join(self.d, 'again')
+        r = run('convert_rules.py', layout, '--plan', os.path.join(self.d, 'plan.json'), '--out', again, '--formulas-from', lib)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        f = self.load(again, 'smoked.json')['fields']
+        self.assertEqual((f['effects'], f['checks'][0]['id']), ([{'on': 'I', 'add': -10, 'at': 0}], 'fresh-air'))
+        self.assertEqual(self.load(again, 'tables--wick-lengths.json')['fields']['rows'], {'Short': {'effects': [{'on': 'I', 'add': -5}]}})
+        self.assertNotIn('effects', self.load(again, 'dread.json')['fields'])
+        report = self.load(again, '_report.json')
+        self.assertEqual(sorted((c['entry'], c['kind']) for c in report['formulas_carried']),
+                         [('rules/smoked', 'checks'), ('rules/smoked', 'effects'), ('tables/wick-lengths', 'rows')])
+        self.assertEqual([(x['entry'], x['why'][:23]) for x in report['formulas_left_behind']], [('rules/dread', '"at" must be the number')])
+        self.assertTrue(any('were not carried over' in q.get('question', '') for q in report['questions']))
+        for rec in self.load(again, '_records.json'):                      # never in the index
+            self.assertFalse({'effects', 'checks', 'rows'} & set(rec))
+        with open(os.path.join(again, 'smoked.json'), 'rb') as a, open(smoked, 'rb') as b:
+            self.assertEqual(a.read(), b.read())                           # the re-import reproduces the library's entry
 
     def test_a_box_sent_to_several_entries_is_copied_into_each(self):
         plan = dict(PLAN, boxes={'1.1': {'to': ['Trimming Wicks', 'Smoked']}})

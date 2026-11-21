@@ -118,7 +118,7 @@ def library(root, house_rules=()):
     c = os.path.join(root, 'campaigns', 'rock')
     os.makedirs(c)
     with open(os.path.join(c, 'campaign.json'), 'w') as f:
-        json.dump({'slug': 'rock', 'sources': ['LAMP', 'PIER'], 'house_rules': list(house_rules)}, f)
+        json.dump({'slug': 'rock', 'sources': ['PIER', 'LAMP'], 'house_rules': list(house_rules)}, f)
 
 
 def record(**over):
@@ -417,7 +417,7 @@ class SpellsAndTrappings(Case):
             {'name': 'Lost thing', 'in': 'nowhere'}])
         m = self.build(r)
         hook = m['trappings'][0]
-        self.assertEqual(hook['ref'], 'trappings/boat-hook-pier')            # the one in play
+        self.assertEqual(hook['ref'], 'trappings/boat-hook-pier')            # PIER comes first in the campaign's sources
         self.assertEqual(hook['weapon'], {'group': 'Basic', 'qualities': [], 'reach': 'Long', 'damage': 6, 'damage_text': '+SB+3'})
         self.assertEqual([t['depth'] for t in m['trappings']], [0, 0, 0, 0, 1, 1, 2, 0, 0])
         self.assertEqual([t['counts'] for t in m['trappings']], [2, 0, 1, 1, 0, 0, 0, 0, 0])
