@@ -217,7 +217,7 @@ def main(argv=None):
         plan = json.load(f)
     taken = read_taken([t if '=' in t else f'spells={t}' for t in a.taken], plan['source'])
     entries, records, report = convert_chapter(layout, plan, taken, a.library_data)
-    return write_outputs(entries, records, report, a.out)
+    return write_outputs(entries, records, report, a.out, plan.get('formulas'))
 
 
 if __name__ == '__main__':

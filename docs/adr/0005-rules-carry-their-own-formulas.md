@@ -49,8 +49,9 @@ In the entry's `fields`, beside the text it encodes, in two lists:
   the formula: read the entry". A rule that fits the vocabulary only in part is
   written in part, and says so.
 
-They are written in the chapter's plan (an entry's `fields`), so a re-import
-keeps them. They stay in the entry file and are not copied into the index.
+They are written in the chapter's plan, under `formulas` by the entry's ref
+(`"talents/coolheaded": {"effects": [...]}`), so a re-import keeps them. They
+go into the entry's `fields` and are not copied into the index.
 
 ## Which formulas are used
 
