@@ -183,6 +183,20 @@ time they aren't empty:
 After the sheet, add a one-line summary of each talent in your own words with
 its citation, when the player asks for one.
 
+For a sheet to print or keep beside the table:
+
+```
+python3 scripts/character_pdf.py <record>.json --library <root> --campaign <slug> --out <dir> --pdf
+```
+
+It writes `<slug>.html` and `<slug>.pdf` (two Letter pages): characteristics,
+attributes, the career with what its earlier levels still need, skills and
+talents on the first; weapons, armour, trappings, money, spells, ambitions,
+psychology and the notes (differences, accepted ones and why, house rules,
+what rules add, what wasn't worked out) on the second. Upload both beside the
+record. Without a browser that prints (Playwright, Chrome, Edge or Chromium),
+it says so: send the HTML and the player prints it from a browser.
+
 ## A character kept on a sheet
 
 For a character someone has kept by hand in the group's spreadsheet, read it
