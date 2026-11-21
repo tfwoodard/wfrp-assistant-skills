@@ -82,8 +82,19 @@ on it, show the roll, and `buy --talent ... --how species` the result).
    grant not used up, a trapping not taken, an empty purse) and ends creation.
    Go through what it lists with the player before building the sheet.
 
-Use real dice for rolls the player makes; when asked to roll for them, say
-which table and show each roll. The bonus XP isn't written by hand: `--species-how`,
+Use real dice for rolls the player makes, and read the row for their roll
+with `--result`; when asked to roll for them, `roll.py` rolls and shows every
+die:
+
+```
+python3 scripts/roll.py --library <root> --campaign <slug> table "Random Species"
+python3 scripts/roll.py ... table "Random Class and Career" --column "High Elf" [--result 37]
+python3 scripts/roll.py ... table "Random Talents"
+python3 scripts/roll.py ... characteristics --species "High Elves"
+python3 scripts/roll.py ... dice 6d10
+```
+
+Say which table was rolled on (the output cites it) and show the roll. The bonus XP isn't written by hand: `--species-how`,
 `--career-how` and `initial --how` say how each step was settled, and the build
 works it out. Creation XP is spent with `buy` (`--how xp`) on the first career
 level's characteristics, skills and talents.
