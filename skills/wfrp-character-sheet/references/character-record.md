@@ -124,6 +124,12 @@ location, XP, and three lists:
 - **`notes`**: what the build could not work out, and why. Nothing is left out
   without a note.
 
+`career.to_complete` lists the career levels left behind unfinished and what
+each still lacks, whether or not a house rule accepts that; the sheet shows it
+under the career so it can be filled in over time. `house_rules` names the
+campaign house rules that changed how something was worked out (layout §8,
+`set`), and the sheet says so beside the XP.
+
 A difference is settled in one of three ways, and it is the player's and the
 GM's choice which: fix the record (it was a mistake), write an exception (this
 character, this once), or write a house rule in `campaign.json` (the group plays

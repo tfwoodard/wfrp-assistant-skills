@@ -44,6 +44,9 @@ RULE = {"non-career": "rules/advancing-through-your-career#Non-career Advances",
         "encumbrance": "rules/encumbrance", "worn": "rules/encumbrance#Worn Items",
         "corruption": "rules/corrupting", "attributes": "rules/step-3-attributes"}
 HOW = ("species", "career", "xp", "free", "imported")
+# What a campaign's house rule may set (campaign.json house_rules[].set, layout §8); the first is the books' way.
+SETTINGS = {"talent_cost": ("rising", "flat"),                       # 100, 200, 300 ... or 100 each time
+            "talents_from": ("current-level", "levels-reached")}     # which career levels sell their talents
 # the numbers a rule's effect can add to (ADR 0005)
 TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption"}
 ANY = re.compile(r"^any\b", re.I)
@@ -102,7 +105,7 @@ def dice_range(formula):
 class Builder:
     def __init__(self, record, lib):
         self.rec, self.lib = record, lib
-        self.diff, self.notes, self.applied = [], [], []
+        self.diff, self.notes, self.applied, self.gaps = [], [], [], []
         self.titles = None
 
     # ------------------------------------------------------------------ reporting
@@ -252,6 +255,9 @@ class Builder:
                       "resolve_spent": st.get("resolve_spent", 0), "conditions": st.get("conditions", []),
                       "critical_wounds": st.get("critical_wounds", []), "insanities": st.get("insanities", [])}
         m["effects"] = self.applied
+        m["career"]["to_complete"] = self.gaps        # levels left behind unfinished, whether or not that is accepted
+        for k in SETTINGS: self.setting(k)
+        m["house_rules"] = self.set_by
         m["differences"], m["accepted"] = self.settle()
         m["notes"] = self.notes
         m["incomplete"] = list(rec.get("incomplete", []))
@@ -719,10 +725,12 @@ class Builder:
                         self.note(f"Advance {i + 1} ({a[kind]}{' (' + a['specialisation'] + ')' if a.get('specialisation') else ''}) "
                                   f"isn't in the career, so it costs double ({self.cite(RULE['non-career'])}).")
             elif kind == "talent":
-                cost = sum(100 + 100 * (before + j) for j in range(n))      # Talent Advances
-                if not self.in_career("talents", key[1], key[2], self.current_level):
-                    self.note(f"Advance {i + 1}: {a['talent']} isn't a talent of the current career level; the "
-                              f"rules sell talents only from the level you are in.")
+                rising = self.setting("talent_cost") == "rising"
+                cost = sum(100 + (100 * (before + j) if rising else 0) for j in range(n))      # Talent Advances
+                level = self.current_level if self.setting("talents_from") == "current-level" else None
+                if not self.in_career("talents", key[1], key[2], level):
+                    self.note(f"Advance {i + 1}: {a['talent']} isn't a talent of " + ("the current career level; the "
+                              "rules sell talents only from the level you are in." if level else "any career level reached."))
             elif kind == "career":
                 cost = a.get("xp")
                 if cost is None: self.note(f"Advance {i + 1}: a career change needs its XP written in the record (100 or 200, +100 for a new class).")
@@ -773,10 +781,27 @@ class Builder:
                 if done < min(8, len(f.get("skills", []))): why.append(f"{done} of its skills at {want} advances (8 needed)")
                 if not tal: why.append("no talent from that level")
                 if why:
+                    self.gaps.append({"career": ce["name"], "level": n, "level_name": ce["fields"]["levels"][n - 1], "missing": why})
                     self.differ(f"level-complete:{cref.split('/')[-1]}/{n}",
                                 f"{ce['name']} level {n} ({ce['fields']['levels'][n - 1]}) isn't complete: {'; '.join(why)}. "
                                 f"Leaving a level early costs 200 XP instead of 100; write \"left_incomplete\": [{n}] on the career if that was done.",
                                 RULE["completing"])
+
+    # ------------------------------------------------------------------ house rules
+    def setting(self, key):
+        """How the campaign plays one of SETTINGS: the books' way unless a house rule sets another.
+        A key or value the build doesn't know is said and not used."""
+        if not hasattr(self, "_settings"):
+            self._settings, self.set_by = {k: v[0] for k, v in SETTINGS.items()}, {}
+            for h in (self.lib.campaign or {}).get("house_rules", []):
+                for k, v in (h.get("set", {}) if isinstance(h, dict) else {}).items():
+                    if k not in SETTINGS or v not in SETTINGS[k]:
+                        self.note(f"House rule '{h.get('id') or h.get('text')}' sets {k} to {v!r}, which the build doesn't know "
+                                  f"(it knows {', '.join(f'{a}: {' or '.join(b)}' for a, b in SETTINGS.items())}), so it isn't applied.")
+                    else:
+                        self._settings[k] = v
+                        if v != SETTINGS[k][0]: self.set_by[k] = {"value": v, "house_rule": h.get("id"), "text": h.get("text")}
+        return self._settings[key]
 
     # ------------------------------------------------------------------ settled differences
     def settle(self):
@@ -880,6 +905,8 @@ def markdown(m):
              f"Status {c.get('status') or '?'}")
     if c.get("path"):
         L.append("Career path: " + "; ".join(f"{p['class']}: {p['name']} ({', '.join(p['levels'])})" for p in c["path"]))
+    for g in c.get("to_complete", []):
+        L.append(f"Still to complete in {g['career']} {g['level']} ({g['level_name']}): {'; '.join(g['missing'])}")
     for title, key in (("To settle", "incomplete"),):
         if m.get(key):
             L += ["", f"## {title}"] + [f"- {x if isinstance(x, str) else x.get('what')}" for x in m[key]]
@@ -895,6 +922,8 @@ def markdown(m):
               f"Encumbrance {m['encumbrance']['carried']} of {m['encumbrance']['max']}"]
     x = m["xp"]
     L.append(f"XP: {x['current']} current, {x['spent']} spent, {x['total']} total")
+    for k, h in (m.get("house_rules") or {}).items():
+        L.append(f"House rule: {h.get('text') or h.get('house_rule')} ({k.replace('_', ' ')}: {h['value']})")
     if any(m["armour"].values()):
         L.append("Armour: " + ", ".join(f"{k} {v}" for k, v in m["armour"].items()))
     for title, rows in (("Basic skills", m["skills"]["basic"]), ("Advanced skills", m["skills"]["advanced"])):
