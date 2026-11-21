@@ -29,7 +29,13 @@ Google Drive library imported from the group's own PDFs.
   SHA-256 changed, plus that folder's `README.md` and `manifest.json`, to the
   library's `skills/` (players) and every campaign's `gm/skills/` (GM). Then
   tell the Librarian which skills changed, so the group can re-upload them.
-- Run the tests with `python3 -m unittest discover tests` before pushing.
+- Run the tests with `python3 -m unittest discover tests` before pushing. CI
+  (`.github/workflows/tests.yml`) runs them with ResourceWarning as an error,
+  `sync-shared.sh --check`, the packaging, and fails a pull request that changes
+  `skills/` or `shared/` without a version bump.
+- Before pushing to a pull request's branch, check the pull request is still
+  open (`gh api repos/tfwoodard/wfrp-assistant-skills/pulls/<n> --jq .state`):
+  a commit pushed after the merge never reaches main.
 
 ## Library operations
 
