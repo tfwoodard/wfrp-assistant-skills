@@ -8,9 +8,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install pdfplumber pypdf reportlab
-      - run: ./scripts/sync-shared.sh --check
-      - run: python3 -m unittest discover tests
+      - name: Shared references are in sync
+        run: ./scripts/sync-shared.sh --check
+      - name: Tests
+        run: python3 -W error::ResourceWarning -m unittest discover tests
+      - name: Skills package
+        run: ./scripts/package-skills.sh
+      - name: Version is bumped when skills change
+        if: github.event_name == 'pull_request'
+        run: |
+          base="origin/${{ github.base_ref }}"
+          if git diff --quiet "$base"...HEAD -- skills shared; then
+            echo "no skill changes"; exit 0
+          fi
+          old=$(git show "$base":.claude-plugin/plugin.json | python3 -c "import json,sys;print(json.load(sys.stdin)['version'])")
+          new=$(python3 -c "import json;print(json.load(open('.claude-plugin/plugin.json'))['version'])")
+          if [ "$old" = "$new" ]; then
+            echo "::error::skills changed but .claude-plugin/plugin.json is still $old"; exit 1
+          fi
+          echo "version $old -> $new"
