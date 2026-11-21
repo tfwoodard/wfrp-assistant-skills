@@ -113,6 +113,8 @@ def library(root, house_rules=()):
         {'slug': 'species-skills-and-talents', 'name': 'What a Folk Teaches', 'content': [para('One well, one a little.')]},
         {'slug': 'career-skills-and-talents', 'name': 'What a Calling Teaches', 'content': [para('Share out ten.')]},
         {'slug': 'advance-characteristics', 'name': 'Calling Numbers', 'content': [para('Share out three.')]},
+        {'slug': 'keepers-of-the-isles', 'name': 'Keepers of the Isles', 'content': [
+            {'type': 'heading', 'level': 2, 'text': 'North Isle'}, para('**Skills**: Rowing, Watch **Talents**: Quick, Far Sight')]},
         {'slug': 'advancing-through-your-career', 'name': 'Advancing', 'content': [
             table('Characteristic and Skill Improvement XP Costs', ['Advances', 'Characteristics', 'Skills'],
                   [['0 to 5', '20', '8'], ['6 to 10', '35', '12']]),
@@ -465,6 +467,15 @@ class CreationXP(Case):
         self.assertEqual(self.ids(self.build(r)), ['xp-creation'])
         r['species']['how'] = 'guessed'
         self.assertIn('creation-how:species', self.ids(self.build(r)))
+
+    def test_a_campaign_can_turn_the_bonus_off(self):
+        p = os.path.join(self.root, 'campaigns', 'rock', 'campaign.json')
+        with open(p) as f: c = json.load(f)
+        c['creation'] = {'starting_xp_bonus': False}
+        with open(p, 'w') as f: json.dump(c, f)
+        m = self.build(record(species={'ref': 'species/keepers', 'how': 'rolled'}, characteristics=dict(record()['characteristics'], how='rearranged')))
+        self.assertEqual(m['xp']['at_creation']['xp'], 0)
+        self.assertTrue(any('starting_xp_bonus is false' in n for n in m['notes']))
 
     def test_a_step_not_said_is_not_worked_out_and_says_so(self):
         m = self.build(record(species={'ref': 'species/keepers', 'how': 'imported'}))

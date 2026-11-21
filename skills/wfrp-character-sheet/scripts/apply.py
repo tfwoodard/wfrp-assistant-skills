@@ -4,14 +4,25 @@
     apply.py RECORD --library ROOT --campaign SLUG [--out NEW] [--dry-run] <command> ...
 
 Commands:
+  start --name NAME --species NAME [--origin HEADING] --species-how rolled|chosen
+        --career NAME --career-how rolled|one-of-three|chosen [--player NAME]
+                                              a new record (RECORD must not exist yet): the species,
+                                              its origin (a homeland heading such as "Saphery", or
+                                              "rules/<entry>#<heading>"), and the first career at
+                                              level 1
+  initial WS=31 BS=28 ... --how rolled|rearranged|rerolled|allocated
+                                              the starting characteristics, all ten, as rolled or
+                                              allocated (before anything a talent adds)
+  points --fate N --resilience N              the extra points the species gives to share out
   buy --characteristic CODE [--count N]       advances in a characteristic (WS, Int ...)
   buy --skill "NAME" [--count N]              advances in a skill, named as the books print it:
                                               "Charm", "Lore (Reikland)"
   buy --talent "NAME"                         a talent, once: "Hardy", "Arcane Magic (Hysh)"
   buy --spell "NAME" [--lore LORE]            a spell; --lore for an Arcane spell when the
                                               character has more than one lore
-        with --session N, --date YYYY-MM-DD, --notes TEXT, and --how xp|free|talent (free: given
-        in play, no XP; talent: one of the spells Petty Magic gives when it is taken)
+        with --session N, --date YYYY-MM-DD, --notes TEXT, and --how xp|free|talent|species|career
+        (free: given in play, no XP; talent: one of the spells Petty Magic gives when it is taken;
+        species, career: given at creation, checked against what the creation rules grant)
   log TEXT [--session N] [--date YYYY-MM-DD]   appends a changelog entry
 
 A purchase is added to the record's `advances` (the build prices it: never write the price), the
@@ -21,7 +32,9 @@ every difference or note the purchase brought with it (a talent past its Max, XP
 doesn't have, a skill outside the career at double price). The purchase is written all the same:
 the group decides what a difference means. --dry-run prints the same and writes nothing.
 
-An imported record keeps `xp.spent` by hand (its history isn't known), so the price is added to
+While a character is being created, start and initial set `xp.total` to the XP the creation steps
+gave (the build works it out from the creation rules), and options.py lists what creation still has
+to give. An imported record keeps `xp.spent` by hand (its history isn't known), so the price is added to
 it. The record is rewritten in place unless --out is given; nothing else in it changes.
 """
 import argparse, copy, datetime, json, os, sys
@@ -84,6 +97,77 @@ def moved(before, after):
     return out
 
 
+def slug(name):
+    return bc.slug(name) or "character"
+
+
+def find_origin(lib, name):
+    """'rules/x#Heading' as given, or the rules entries with a heading of that name that print a
+    Skills and Talents list under it."""
+    if "#" in name:
+        return name
+    hits = []
+    for _, r in lib.index("rules"):
+        ref = f"rules/{r['slug']}"
+        try: e = lib.entry(ref)
+        except Exception: continue
+        if any(b.get("type") == "heading" and bc.norm(b.get("text")) == bc.norm(name) for b in e.get("content", [])):
+            try: text = lib.text(lib.section(f"{ref}#{name}"))
+            except Exception: continue
+            if "**Skills**" in text and "**Talents**" in text: hits.append(f"{ref}#{name}")
+    if len(hits) != 1:
+        sys.exit(f"'{name}' is the heading of {len(hits)} origins with their own skills and talents" +
+                 (f": {', '.join(hits)}. Give one in full." if hits else ". Give it in full: rules/<entry>#<heading>."))
+    return hits[0]
+
+
+def start(lib, a):
+    ref = {}
+    for what, cat, name in (("species", "species", a.species), ("career", "careers", a.career)):
+        r = lib.find(cat, name)
+        if not r: sys.exit(f"'{name}' isn't one entry among the {cat} in play.")
+        ref[what] = lib.current(r)
+    new = {"schema": 2, "slug": slug(a.name), "name": a.name, **({"player": a.player} if a.player else {}),
+           "species": {"ref": ref["species"], **({"origin": find_origin(lib, a.origin)} if a.origin else {}), "how": a.species_how},
+           "careers": [{"ref": ref["career"], "level": 1, "how": a.career_how}],
+           "characteristics": {"initial": {}}, "extra_points": {}, "advances": [], "spells": [], "trappings": [],
+           "xp": {"total": 0}, "state": {}, "changelog": []}
+    return new, [f"Started {a.name}: {lib.entry(ref['species'])['name']}" +
+                 (f" ({new['species']['origin'].split('#')[-1]})" if a.origin else "") + f", {lib.entry(ref['career'])['name']} 1"]
+
+
+def initial(record, a):
+    vals = {}
+    for kv in a.values:
+        k, _, v = kv.partition("=")
+        code = next((c for c in bc.CHARS if c.lower() == k.strip().lower()), None) or bc.NAME_CHAR.get(bc.norm(k))
+        if not code or not v.strip().isdigit(): sys.exit(f"'{kv}': write CODE=NUMBER, with a code from {', '.join(bc.CHARS)}")
+        vals[code] = int(v)
+    missing = [c for c in bc.CHARS if c not in vals]
+    if missing: sys.exit(f"all ten are needed; missing {', '.join(missing)}")
+    new = copy.deepcopy(record)
+    new.setdefault("characteristics", {})["initial"] = vals
+    new["characteristics"]["how"] = a.how
+    return new, ["Starting characteristics " + ", ".join(f"{c} {vals[c]}" for c in bc.CHARS) + f" ({a.how})"]
+
+
+def settle_creation_xp(new, lib, said, started=False):
+    """At creation the XP total is what the creation steps gave."""
+    m = bc.build(copy.deepcopy(new), lib)
+    if started:
+        said.append("Next: initial (the starting characteristics), points (Fate and Resilience), then buy --how species "
+                    "and --how career for what creation gives; options.py lists it.")
+        return
+    got = (m["xp"].get("at_creation") or {}).get("xp")
+    if got is not None:
+        new.setdefault("xp", {})["total"] = got
+        said.append(f"XP from creation: {got}")
+    else:
+        said.append("XP from creation: not worked out yet (" + "; ".join(
+            f"{s['step']} {s['how'] or 'not said'}" for s in m["xp"]["at_creation"]["steps"] if s["xp"] is None) + ")")
+    said += [f"Differs from the rules: {d['text']} `{d['id']}`" for d in m["differences"]]
+
+
 def buy(record, lib, a):
     line, name = line_for(a, lib)
     line["how"] = a.how
@@ -94,15 +178,21 @@ def buy(record, lib, a):
     new.setdefault("spells" if a.spell else "advances", []).append(line)
     trial = bc.build(copy.deepcopy(new), lib)
     if a.how == "talent" and not a.spell: sys.exit("--how talent is for a spell that comes with Petty Magic")
+    if a.how in ("species", "career") and a.spell: sys.exit(f"a spell isn't given by the {a.how} at creation")
     paid = trial["xp"]["purchases"][-1] if a.how == "xp" and trial["xp"]["purchases"] else {}
     price = paid.get("xp") if a.how == "xp" else 0
     said = [f"{name}" + (f" x{a.count}" if "count" in line and a.count != 1 else "") +
             (": " + ("given in play, no XP" if a.how == "free" else "comes with the talent, no XP" if a.how == "talent" else
+                    f"from the {a.how} at creation" if a.how in ("species", "career") else
                     f"{price} XP" if price is not None else "price not worked out"))]
     if a.how == "xp" and price is not None and (new.get("xp") or {}).get("spent") is not None:
         new["xp"]["spent"] += price                    # an imported record keeps its total by hand
     after = bc.build(copy.deepcopy(new), lib)
     said.append(f"XP to spend: {before['xp']['current']} -> {after['xp']['current']}")
+    for g in after.get("creation", []):
+        if g["how"] == a.how and g["kind"] == next(k for k in ("characteristic", "skill", "talent") if k in line) and g["left"]:
+            left = g["left"] if not isinstance(g["left"], dict) else ", ".join(f"{n} at {v}" for v, n in g["left"].items())
+            said.append(f"Still to give from {g['rule'].split('/')[-1]} ({g['id']}): {left}")
     said += ["  " + x for x in moved(before, after)]
     had = {d["id"] for d in before["differences"] + before["accepted"]}
     for d in after["differences"]:
@@ -151,16 +241,41 @@ def main():
     g.add_argument("--characteristic"); g.add_argument("--skill"); g.add_argument("--talent"); g.add_argument("--spell")
     b.add_argument("--lore")
     b.add_argument("--count", type=int, default=1)
-    b.add_argument("--how", choices=("xp", "free", "talent"), default="xp")
+    b.add_argument("--how", choices=("xp", "free", "talent", "species", "career"), default="xp")
+    st = sub.add_parser("start")
+    for k in ("--name", "--species", "--career"): st.add_argument(k, required=True)
+    st.add_argument("--origin"); st.add_argument("--player")
+    st.add_argument("--species-how", required=True, choices=("rolled", "chosen"))
+    st.add_argument("--career-how", required=True, choices=("rolled", "one-of-three", "chosen"))
+    ini = sub.add_parser("initial")
+    ini.add_argument("values", nargs="+")
+    ini.add_argument("--how", required=True, choices=("rolled", "rearranged", "rerolled", "allocated"))
+    pt = sub.add_parser("points")
+    pt.add_argument("--fate", type=int, required=True); pt.add_argument("--resilience", type=int, required=True)
     for p in (b, sub.add_parser("log")):
         p.add_argument("--session", type=int)
         p.add_argument("--date")
     b.add_argument("--notes")
     sub.choices["log"].add_argument("text")
     a = ap.parse_args()
-    with open(a.record, encoding="utf-8") as f:
-        record = json.load(f)
-    if a.cmd == "log":
+    lib = Library(a.library, a.campaign)
+    if a.cmd == "start":
+        if os.path.exists(a.out or a.record): sys.exit(f"{a.out or a.record} exists already: start makes a new record")
+        record = None
+    else:
+        with open(a.record, encoding="utf-8") as f:
+            record = json.load(f)
+    date = getattr(a, "date", None) or datetime.date.today().isoformat()
+    if a.cmd in ("start", "initial", "points"):
+        if a.cmd == "start": new, said = start(lib, a)
+        elif a.cmd == "initial": new, said = initial(record, a)
+        else:
+            new = copy.deepcopy(record)
+            new["extra_points"] = {"fate": a.fate, "resilience": a.resilience}
+            said = [f"Extra points: Fate {a.fate}, Resilience {a.resilience}"]
+        new.setdefault("changelog", []).append({"date": date, "text": said[0]})
+        settle_creation_xp(new, lib, said, a.cmd == "start")
+    elif a.cmd == "log":
         new = copy.deepcopy(record)
         new.setdefault("changelog", []).append({"date": a.date or datetime.date.today().isoformat(),
                                                 **({"session": a.session} if a.session is not None else {}), "text": a.text})
@@ -168,7 +283,7 @@ def main():
     else:
         if a.count < 1: sys.exit("--count must be 1 or more")
         if (a.talent or a.spell) and a.count != 1: sys.exit("a talent or a spell is bought once at a time")
-        new, said = buy(record, Library(a.library, a.campaign), a)
+        new, said = buy(record, lib, a)
     print("\n".join(said))
     if a.dry_run:
         print("(dry run: nothing written)")
