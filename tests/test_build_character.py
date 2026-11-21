@@ -279,6 +279,33 @@ class SkillsAndTalents(Case):
         self.assertEqual([p['xp'] for p in m['xp']['purchases']], [8, 16])     # outside the career: double
         self.assertTrue(any('costs double' in n for n in m['notes']))
 
+    def test_a_single_choice_is_one_specialisation_recorded_or_else_worked_out_and_said(self):
+        def sig(**career):
+            r = record(careers=[dict({'ref': 'careers/warden', 'level': 2, 'left_incomplete': [1]}, **career)], xp={'total': 500})
+            r['advances'] += [{'skill': 'skills/signals', 'specialisation': 'Flag', 'count': 2, 'how': 'xp'},
+                              {'skill': 'skills/signals', 'specialisation': 'Horn', 'count': 1, 'how': 'xp'}]
+            m = self.build(r)
+            return m, {x['name']: x['career'] for x in m['skills']['advanced']}, [p['xp'] for p in m['xp']['purchases']]
+        m, career, paid = sig()                                   # nothing recorded: the more advanced one
+        self.assertEqual(career, {'Signals (Flag)': True, 'Signals (Horn)': False})
+        self.assertEqual(paid, [16, 16])                          # Horn is outside the career: double
+        self.assertTrue(any('Signals (Flag or Horn) = Signals (Flag)' in n and '`choices`' in n for n in m['notes']))
+        m, career, paid = sig(choices={'Signals (Flag or Horn)': 'horn'})
+        self.assertEqual(career, {'Signals (Flag)': False, 'Signals (Horn)': True})
+        self.assertEqual(paid, [32, 8])
+        self.assertFalse(any('Taken as the career' in n for n in m['notes']))
+        m, career, paid = sig(choices={'Signals (Flag or Horn)': 'Smoke'})
+        self.assertIn('career-choice:signals-flag-or-horn', self.ids(m))
+        self.assertEqual(career, {'Signals (Flag)': False, 'Signals (Horn)': False})
+
+    def test_an_open_name_covers_every_specialisation_and_an_exact_one_is_not_a_choice(self):
+        r = record()
+        r['advances'] += [{'skill': 'skills/tending', 'specialisation': 'Nets', 'count': 1, 'how': 'xp'}]
+        m = self.build(r)
+        self.assertEqual({x['name']: x['career'] for x in m['skills']['basic'] if x['name'].startswith('Tending (')},
+                         {'Tending (Nets)': True, 'Tending (Wicks)': True})          # "Tending (Any)"
+        self.assertFalse(any('Taken as the career' in n for n in m['notes']))
+
     def test_a_grouped_skill_needs_its_specialisation_and_an_unmarked_one_is_said(self):
         r = record()
         r['advances'] += [{'skill': 'skills/signals', 'count': 1, 'how': 'free'},

@@ -56,24 +56,24 @@ def report(record, lib):
             out["characteristics"].append({"code": c, "name": bc.CHAR_NAME.get(c, c), "level": n, "advances": adv,
                                            "next": price("characteristic", adv)})
     have = m["skills"]["basic"] + m["skills"]["advanced"]
-    for _, n, f in levels:
-        for listed in f.get("skills", []):
-            lref, lspec = lib.named("skills", listed)
-            if not lref:
-                out["notes"].append(f"{listed}: not found among the library's skills, so it isn't priced. Look it up.")
-                continue
-            lref = lib.current(lref)
-            choice = bool(lspec and (bc.ANY.match(lspec) or re.search(r"\s+or\s+|/", lspec)))
-            mine = [r for r in have if r["ref"] == lref and b.offered("skills", listed, r["ref"], spec_of(r["name"]))
-                    and (r["advances"] or not choice) and (spec_of(r["name"]) or not lspec)]
-            for r in mine:
-                if not any(x["name"] == r["name"] for x in out["skills"]):
-                    out["skills"].append({"name": r["name"], "listed": listed, "level": n, "advances": r["advances"],
-                                          "total": r["total"], "next": price("skill", r["advances"])})
-            if choice or not mine:
-                if not any(x["name"] == listed for x in out["skills"]):
-                    out["skills"].append({"name": listed, "listed": listed, "level": n, "advances": 0, "total": None,
-                                          "next": price("skill", 0), **({"choose": True} if choice else {})})
+    slots = [sl for sl in b.skill_slots() if sl["career"] == cref]
+    for sl in slots:
+        if not sl["ref"]:
+            out["notes"].append(f"{sl['listed']}: not found among the library's skills, so it isn't priced. Look it up.")
+            continue
+        mine = [r for r in have if b.slot_covers(sl, r["ref"], spec_of(r["name"])) and (r["advances"] or sl["kind"] != "open")]
+        for r in mine:
+            if not any(x["name"] == r["name"] for x in out["skills"]):
+                out["skills"].append({"name": r["name"], "listed": sl["listed"], "level": sl["level"], "advances": r["advances"],
+                                      "total": r["total"], "next": price("skill", r["advances"]),
+                                      **({"chosen_for": sl["listed"]} if sl["kind"] == "one" else {}),
+                                      **({"assumed": True} if sl["assumed"] else {})})
+        # a name still to be chosen: an open one always (another specialisation can be started), a
+        # single choice until it is made, an exact one until it is taken
+        if sl["kind"] == "open" or not mine:
+            if not any(x["name"] == sl["listed"] for x in out["skills"]):
+                out["skills"].append({"name": sl["listed"], "listed": sl["listed"], "level": sl["level"], "advances": 0, "total": None,
+                                      "next": price("skill", 0), **({"choose": True} if sl["kind"] != "exact" else {})})
     open_levels = [n for _, n, _ in levels] if b.setting("talents_from") == "levels-reached" else [now]
     taken = {(t["ref"], spec_of(t["name"])): t for t in m["talents"]}
     rising = b.setting("talent_cost") == "rising"
@@ -117,7 +117,6 @@ def completing(b, m, lib, levels, now, price):
         return {"level": now, "note": "The Level Advances table has no row for this level, so what completes it isn't worked out."}
     f = levels[-1][2]                                   # the talent must be one of this level's own
     chars = list(dict.fromkeys(c for _, _, lv in levels for c in lv.get("characteristics", [])))
-    listed = list(dict.fromkeys(x for _, _, lv in levels for x in lv.get("skills", [])))
     need, total = [], 0
     for c in chars:
         adv = m["characteristics"].get(c, {}).get("advances", 0)
@@ -126,12 +125,13 @@ def completing(b, m, lib, levels, now, price):
             need.append({"what": f"{bc.CHAR_NAME.get(c, c)}: {want - adv} more advances", "xp": p})
             total = None if p is None or total is None else total + p
     have = m["skills"]["basic"] + m["skills"]["advanced"]
-    # each skill the character has counts once, under whichever listed name covers it; a listed
-    # name not yet taken (or a choice, which can always be taken again as another skill) starts at 0
-    mine = [(r["name"], r["advances"]) for r in have
-            if any(b.offered("skills", name, r["ref"], spec_of(r["name"])) for name in listed)]
-    fresh = [(name, 0) for name in listed if not any(n == name for n, _ in mine) and
-             (re.search(r"\((?:any\b|.*\bor\b)", name, re.I) or not any(b.offered("skills", name, r["ref"], spec_of(r["name"])) for r in have))]
+    # each skill the character has counts once, under whichever listed name covers it; a name not
+    # yet taken, a single choice not yet made, or an open name (another specialisation) starts at 0
+    slots = [sl for sl in b.skill_slots() if sl["career"] == lib.current((b.rec.get("careers") or [{}])[-1].get("ref") or "")]
+    mine = [(r["name"], r["advances"]) for r in have if any(b.slot_covers(sl, r["ref"], spec_of(r["name"])) for sl in slots)
+            and (r["advances"] or spec_of(r["name"]) is None)]
+    fresh = [(sl["listed"], 0) for sl in slots if sl["kind"] == "open" or
+             not any(b.slot_covers(sl, r["ref"], spec_of(r["name"])) and (r["advances"] or spec_of(r["name"]) is None) for r in have)]
     done = sum(1 for _, g in mine if g >= want)
     short = sorted([(want - g, name, g) for name, g in mine + fresh if g < want])
     for lack, name, g in short[:max(0, min(8, len(mine) + len(fresh)) - done)]:
@@ -154,7 +154,8 @@ def text(o):
     L += ["", "Characteristics (advances; next advance)"]
     L += [f"  {c['name']}: {c['advances']}; {cost(c['next'])}" for c in o["characteristics"]]
     L += ["", "Skills (advances; next advance)"]
-    L += [f"  {s['name']}: {s['advances']}; {cost(s['next'])}" + (" (choose which)" if s.get("choose") else "") for s in o["skills"]]
+    L += [f"  {s['name']}: {s['advances']}; {cost(s['next'])}" + (" (choose which)" if s.get("choose") else "") +
+          (f" (the career's {s['chosen_for']}" + (", assumed)" if s.get("assumed") else ")") if s.get("chosen_for") else "") for s in o["skills"]]
     L += ["", "Talents (times taken of Max; price)"]
     L += [f"  {t['name']}: {t['times']} of {t['max'] if t['max'] is not None else '?'}; " +
           ("at its Max" if t.get("at_max") else cost(t["next"])) + (" (choose which)" if t.get("choose") else "") for t in o["talents"]]
