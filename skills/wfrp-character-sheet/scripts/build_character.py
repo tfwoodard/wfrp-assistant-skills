@@ -349,6 +349,7 @@ class Builder:
         m["advantage"] = {"style": self.setting("advantage"), "cite": adv_cite or None,
                           **({"house_rule": self.set_by["advantage"]["text"]} if "advantage" in self.set_by else {})}
         m["differences"], m["accepted"] = self.settle()
+        m["to_complete"] = self.owed
         m["notes"] = self.notes
         m["incomplete"] = list(rec.get("incomplete", []))
         return m
@@ -1413,7 +1414,18 @@ class Builder:
             if isinstance(h, dict):
                 for pat in h.get("accepts", []): accept.append((pat, h.get("text", ""), h.get("id")))
         opened, accepted, used = [], [], set()
+        owed = {x.get("id"): x for x in self.rec.get("to_complete", []) if isinstance(x, dict)}
+        self.owed, owed_used = [], set()
+        def still(item, kind):
+            """A difference or a rule to read that the group has looked at and knows is still to be
+            met (the record's to_complete): listed with what is owed, not as open."""
+            hit = next((k for k in owed if fnmatch.fnmatchcase(item["id"], k)), None)
+            if hit is None: return False
+            owed_used.add(hit)
+            self.owed.append({"id": item["id"], "what": owed[hit].get("what") or "", "text": item["text"], "rule": item.get("rule"), "kind": kind})
+            return True
         for d in self.diff:
+            if still(d, "difference"): continue
             hit = next((a for a in accept if fnmatch.fnmatchcase(d["id"], a[0])), None)
             if hit:
                 used.add(hit[0])
@@ -1421,6 +1433,7 @@ class Builder:
             else:
                 opened.append(d)
         for r in getattr(self, "reads", []):                 # rules to read: settled once an exception names them
+            if still(r, "read"): continue
             hit = next((a for a in accept if fnmatch.fnmatchcase(r["id"], a[0])), None)
             if hit:
                 used.add(hit[0])
@@ -1431,6 +1444,9 @@ class Builder:
         for x in self.rec.get("exceptions", []):
             if x.get("id") not in used:
                 self.note(f"The exception '{x.get('id')}' matches no difference in this build: it may no longer be needed.")
+        for k in owed:
+            if k not in owed_used:
+                self.note(f"To complete '{k}' matches nothing in this build: it may be met now. Take it off the record's to_complete.")
         return opened, accepted
 
 
@@ -1513,6 +1529,8 @@ def markdown(m):
              f"Status {c.get('status') or '?'}")
     if c.get("path"):
         L.append("Career path: " + "; ".join(f"{p['class']}: {p['name']} ({', '.join(p['levels'])})" for p in c["path"]))
+    for o in m.get("to_complete", []):
+        L.append(f"Still to complete: {o['what'] or o['text']} `{o['id']}`")
     for g in c.get("to_complete", []):
         L.append(f"Still to complete in {g['career']} {g['level']} ({g['level_name']}): {'; '.join(g['missing'])}")
     for title, key in (("To settle", "incomplete"),):
