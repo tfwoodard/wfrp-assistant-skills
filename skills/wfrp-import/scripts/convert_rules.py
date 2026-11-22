@@ -1945,6 +1945,9 @@ def carry_formulas(entries, library_data, report):
         if isinstance(old.get('summary'), str) and old['summary'].strip():          # written on the entry, like formulas
             e['fields']['summary'] = old['summary']
             report.setdefault('formulas_carried', []).append({'entry': f'{cat}/{e["slug"]}', 'kind': 'summary'})
+        if isinstance(old.get('summaries'), dict) and old['summaries']:            # one per specialisation
+            e['fields']['summaries'] = old['summaries']
+            report.setdefault('formulas_carried', []).append({'entry': f'{cat}/{e["slug"]}', 'kind': 'summaries'})
 
 
 def assume_max_one(entries, records, report):

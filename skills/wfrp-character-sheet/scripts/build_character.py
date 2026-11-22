@@ -646,11 +646,14 @@ class Builder:
                 self.differ(f"talent-source:{ref.split('/')[-1]}" + (f"/{slug(spec)}" if spec else ""),
                             f"{name} isn't among the species' talents or those of a career level reached.",
                             RULE["non-career"])
+            # the summary every character gets, then the one for the specialisation this one took
+            own = next((v for k, v in (f.get("summaries") or {}).items() if spec and norm(k) == norm(spec)), None)
+            summary = " ".join(x for x in (f.get("summary"), own) if x) or None
             out.append({"name": name, "ref": ref, "times": g["times"], "max": mx, "max_text": f.get("max"),
                         "tests": f.get("tests"), "cite": self.cite(ref) if e else "",
-                        "summary": self.resolve(f.get("summary"), bonuses_only=True),
+                        "summary": self.resolve(summary, bonuses_only=True),
                         **({"added_by": self.lib.added_by(ref)} if self.lib.added_by(ref) else {})})
-            if e and not f.get("summary") and ref not in {o["ref"] for o in out[:-1]}:
+            if e and not summary and ref not in {o["ref"] for o in out[:-1]}:
                 self.note(f"{e['name']} has no summary yet for the printed sheet: write one in your own words on its entry "
                           f"(set_formulas.py --summary) {self.cite(ref)}.")
         self.choose_one(got)

@@ -85,6 +85,25 @@ class Sheet(unittest.TestCase):
         self.assertIn('1 of 4 · Tests: Watch at night · (LAMP p. 12)', html)
         self.assertEqual(character_pdf.short('(CRB, ch. 4 › Master Talent List, p. 132)'), '(CRB p. 132)')
 
+    def test_a_specialisation_adds_its_own_summary_to_the_entrys(self):
+        p = os.path.join(self.root, 'library-data', 'talents', 'far-sight.json')
+        r = subprocess.run([sys.executable, os.path.join(SCRIPTS, '..', '..', 'wfrp-import', 'scripts', 'set_formulas.py'), p,
+                            '--summary', 'Sees far.'], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        for spec, text in (('Gulls', 'Counts gulls.'), ('Ships', 'Names ships.')):
+            subprocess.run([sys.executable, os.path.join(SCRIPTS, '..', '..', 'wfrp-import', 'scripts', 'set_formulas.py'), p,
+                            '--specialisation', spec, '--summary', text], check=True, capture_output=True)
+        rec = record()
+        rec['advances'] = [a for a in rec['advances'] if a.get('talent') != 'talents/far-sight']
+        rec['advances'] += [{'talent': 'talents/far-sight', 'specialisation': 'Ships', 'how': 'species'},
+                            {'talent': 'talents/far-sight', 'how': 'xp'}]
+        m = bc.build(rec, Library(self.root, 'rock'))
+        got = {t['name']: t['summary'] for t in m['talents'] if t['ref'] == 'talents/far-sight'}
+        self.assertEqual(got, {'Far Sight (Ships)': 'Sees far. Names ships.', 'Far Sight': 'Sees far.'})
+        html = character_pdf.document(m)
+        self.assertNotIn('Counts gulls', html)
+        self.assertNotIn('As above', html)                                   # different words: both printed
+
     def test_the_play_page_marks_what_is_taken_and_lists_the_conditions(self):
         m = self.model(state={'wounds_taken': 2, 'fortune_spent': 1, 'corruption': 1, 'conditions': [{'name': 'Soaked', 'count': 2}]})
         html = character_pdf.document(m, [{'name': 'Soaked', 'cite': '(LAMP, p. 1)'}, {'name': 'Dazzled'}])

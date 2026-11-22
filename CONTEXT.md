@@ -107,7 +107,7 @@ What a creation rule gives a new character to share out (so many skills at so ma
 _Avoid_: Allowance, budget
 
 **Summary**:
-One line in Claude's own words of what an entry does, written on the entry (`fields.summary`) for the printed sheet, so a spell's effect is at hand without the book. Never the book's sentences. Kept on re-import like a formula.
+One line in Claude's own words of what an entry does, written on the entry (`fields.summary`) for the printed sheet, so a spell's or talent's effect is at hand without the book. Never the book's sentences. A talent whose specialisations are different benefits has one more line per specialisation (`fields.summaries`), printed after the shared one for the specialisation taken. Kept on re-import like a formula.
 _Avoid_: Description, blurb, abstract
 
 **Difference**:
