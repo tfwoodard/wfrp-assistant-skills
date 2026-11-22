@@ -202,10 +202,13 @@ It writes `<slug>.html`, `<slug>.md` (the markdown sheet, the same as
 `build_character.py --md`) and `<slug>.pdf` (three Letter pages) from one build: characteristics,
 attributes, the career, a **To do** box (earlier levels still to complete,
 differences, what is to settle, what wasn't worked out), skills and talents on
-the first; weapons, armour, trappings, money, spells, ambitions and psychology
-on the second; and a page to mark in play: Wounds, Fortune and Resolve as
-boxes, and every condition in play with boxes to count it. Upload all three
-beside the record.
+the first; weapons, armour, trappings, money, spells, ambitions (the
+character's, then the party's from `campaign.json`) and psychology on the
+second; and a page to mark in play: Wounds, Fortune and Resolve as boxes,
+Advantage, what the campaign notebook says to **Remember** now (the party's
+notes and this character's own: layout §10), and every condition in play with
+boxes to count it. Upload all three beside the record. When a note is added to
+or retired from the notebook, print the party's sheets again.
 
 Each spell and talent prints with a one-line summary of what it does, from its entry's
 `summary`, with any bonus it names in the character's own numbers ("heals 12

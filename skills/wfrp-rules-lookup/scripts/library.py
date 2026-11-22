@@ -102,11 +102,13 @@ class Library:
         self.missing = []       # library files asked for that aren't here
         self.read = []          # library files read
         self.campaign = None
+        self.campaign_dir = None  # the campaign's folder, for its notebook and sessions
         self.sources = None
         self.order = []
         self.roots = []
         if campaign:
             cdir = os.path.join(root, "campaigns", campaign)
+            self.campaign_dir = cdir
             self.campaign = self._json(os.path.join(cdir, "campaign.json")) or {}
             self.order = list(self.campaign.get("sources") or [])      # in play, highest precedence first
             self.sources = set(self.order) or None

@@ -92,6 +92,7 @@ ul{margin:2px 0 2px 16px;padding:0} li{margin:1px 0}
 .trk .track{width:16px;height:16px;margin:0}
 .trk .lab{width:120px;font-size:11px}
 .cond{border-bottom:1px solid #ece6da;padding:3px 0;break-inside:avoid}
+.note{padding:2px 0;break-inside:avoid;font-size:9pt}
 .cond .ch2{display:flex;align-items:center;gap:4px}
 .cond .cn{width:90px;font-weight:bold} .cond .track{width:13px;height:13px}
 .cond .sum{font-size:9.5px;margin:1px 0 0 0}
@@ -206,8 +207,8 @@ def page_two(m):
     party = list(bc.party_lines(m.get("party") or {}).items())
     if mine or party:                       # the character's own, then the party's, in one section
         side.append("<h2>Ambitions</h2><ul>" + "".join(f"<li>{e(k)}: {e(v)}</li>" for k, v in mine) + "</ul>"
-                    + (f'<div class="small"><b>Party{": " + e(m["party"]["name"]) if m["party"].get("name") else ""}</b></div><ul>'
-                       + "".join(f"<li>{e(k)}: {e(v)}</li>" for k, v in party if k != "Name") + "</ul>" if party else ""))
+                    + ('<div class="small"><b>Party</b></div><ul>' + "".join(f"<li>{e(k)}: {e(v)}</li>" for k, v in party)
+                       + "</ul>" if party else ""))
     for title, key in (("Psychology", "psychology"), ("Mutations", "mutations")):
         if m.get(key):
             side.append(f"<h2>{title}</h2><ul>" + "".join(
@@ -253,6 +254,10 @@ def page_play(m, conditions=()):
     else:
         out.append("<h2>Advantage</h2>" + f'<div class="trk"><span class="lab">Advantage <span class="cite">+10 each</span></span>{boxes(10)}'
                    f'<span class="cite">&nbsp;{e(adv.get("cite") or "")}</span></div>')
+    if m.get("remember"):                   # the campaign notebook's current notes: the party's, then this character's
+        out.append("<h2>Remember</h2><div class='flow'>" + "".join(
+            f'<div class="note"><b>{e(n["name"])}</b> <span class="cite">{e(n["kind"])}</span> {e(n["text"])}</div>'
+            for n in sorted(m["remember"], key=lambda n: bool(n.get("for")))) + "</div>")
     have = {}
     for x in st.get("conditions") or []:
         n = x if isinstance(x, str) else x.get("name")

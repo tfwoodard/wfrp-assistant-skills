@@ -106,6 +106,14 @@ _Avoid_: Script, code, automation
 What a creation rule gives a new character to share out (so many skills at so many advances, so many advances in all, one talent), and from which list: the species' or the first career level's. Advances recorded as gained from the species or the career at creation are checked against the grants (ADR 0007).
 _Avoid_: Allowance, budget
 
+**Note**:
+One thing the group needs to remember now (an NPC's name, a place, an item, a faction, a thread, a fact), in the campaign notebook (`notes.json`). While it matters it prints on the sheets, the party's on every one and a character's own on theirs; once it doesn't it is *retired*: kept in the notebook and in searches, gone from the sheets.
+_Avoid_: Reminder, memo
+
+**History** (of a campaign):
+The scraps remembered from sessions nobody wrote up, in `sessions/history.md`: only what someone remembers, each scrap with its session when known.
+_Avoid_: Backfill, reconstructed sessions
+
 **Elder**:
 A character older than its species' usual age, born in an earlier *Time* of the rule's table. Each Time lived through gives an earlier career (advances on its first level's skills) and a burden. The record says when the Elder was born and which careers they followed; the rule's entry says the rest (ADR 0008).
 _Avoid_: Veteran, old character
