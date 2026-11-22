@@ -55,6 +55,13 @@ def creation(b, m):
                      if not (isinstance(x, dict) and "random" in x)]
         if not (g["left"] or g["to_take"]): continue
         out.append({k: g[k] for k in ("rule", "id", "cite", "how", "kind", "left", "to_take", "taken")} | {"from": offer})
+    for c in (m.get("elder") or {}).get("careers", []):              # an Elder's earlier careers
+        if not c.get("left"): continue
+        try: f = b.lib.entry(c["ref"]).get("fields", {})
+        except Exception: f = {}
+        offer = (f.get("advances") or {}).get("1", {}).get("skills", [])
+        out.append({"rule": m["elder"]["rule"], "id": c["time"], "cite": c["cite"], "how": f"Elder's {c['time']} career ({c['name']})",
+                    "kind": "skill", "left": c["left"], "to_take": [], "taken": [], "from": offer})
     return out
 
 

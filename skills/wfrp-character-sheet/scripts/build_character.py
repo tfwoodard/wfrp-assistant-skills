@@ -22,7 +22,7 @@ out are in "notes": nothing is left out without saying so.
 import argparse, ast, fnmatch, json, operator, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from library import Library, RefError, cite, chapter_titles, cli, norm  # noqa: E402
+from library import Library, RefError, _walk, cite, chapter_titles, cli, norm  # noqa: E402
 
 CHARS = ("WS", "BS", "S", "T", "I", "Ag", "Dex", "Int", "WP", "Fel")
 CHAR_NAME = {"WS": "Weapon Skill", "BS": "Ballistic Skill", "S": "Strength", "T": "Toughness",
@@ -43,14 +43,14 @@ RULE = {"non-career": "rules/advancing-through-your-career#Non-career Advances",
         "completing": "rules/changing-career#Completing a Career",
         "encumbrance": "rules/encumbrance", "worn": "rules/encumbrance#Worn Items",
         "corruption": "rules/corrupting", "attributes": "rules/step-3-attributes"}
-HOW = ("species", "career", "xp", "free", "imported")
+HOW = ("species", "career", "elder", "xp", "free", "imported")
 # What a campaign's house rule may set (campaign.json house_rules[].set, layout §8); the first is the books' way.
 SETTINGS = {"talent_cost": ("rising", "flat"),                       # 100, 200, 300 ... or 100 each time
             "talents_from": ("current-level", "levels-reached"),     # which career levels sell their talents
             "advantage": ("count", "on-off")}                        # counted up and down, or had or not
 ADVANTAGE = "rules/advantage"
 # the numbers a rule's effect can add to (ADR 0005)
-TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "encumbrance", "corruption", "spell_cost", "xp"}
+TARGETS = set(CHARS) | {"wounds", "movement", "fate", "resilience", "extra_points", "encumbrance", "corruption", "spell_cost", "xp"}
 SCALED = {"spell_cost"}            # targets an effect multiplies ("multiply": 0.5) rather than adds to
 # where the price of a new spell is printed: (talent, table title), by the spell's kind
 SPELL_COSTS = {"petty": ("Petty Magic", "Petty Magic Spell Costs"), "lore": ("Arcane Magic", "Arcane Magic Spell Costs"),
@@ -59,7 +59,7 @@ SPELL_HOW = ("talent", "xp", "free", "imported")
 # the rules that say what creation gives (their "grants", ADR 0007): what a record's `species` and
 # `career` advance lines are checked against, with any entry in play that adds to them
 CREATION_RULES = ("rules/species-skills-and-talents", "rules/career-skills-and-talents", "rules/advance-characteristics")
-GRANT_FROM = ("species", "first-career-level", "table")
+GRANT_FROM = ("species", "first-career-level", "table", "elder-career")
 # where a new character's trappings and money are printed: each class's list ("**Academics**: ...")
 # and the starting wealth by status tier ("2d10 brass pennies per Status Level"); the first career
 # level's own trappings are on the career
@@ -321,6 +321,8 @@ class Builder:
         m["trappings"], m["armour"], m["encumbrance"] = self.trappings()
         m["xp"] = self.xp()
         m["creation"] = self.creation()
+        elder = self.elder()
+        if elder: m["elder"] = elder
         self.levels_complete(m)
         self.run_checks(m)
         for k in ("money", "ambitions", "details"):
@@ -465,13 +467,16 @@ class Builder:
                               ", so it isn't applied. Read the entry.")
                 elif self.applies(f.get("applies"), ref):
                     out.append({"on": f["on"], "add": f.get("add", 0), "from": ref, "times": times, "at": f.get("at"),
-                                **({"multiply": f["multiply"]} if "multiply" in f else {})})
-        for row in self.rows():
-            for f in row["formulas"].get("effects", []):
+                                **({"multiply": f["multiply"]} if "multiply" in f else {}), **({"set": f["set"]} if "set" in f else {})})
+        rows = [(row["from"], row["formulas"]) for row in self.rows()]
+        rule = self.elder_rule()
+        rows += [(f"{rule[0]}#{n}", f) for n, f in self.lived()] if rule else []      # an Elder's burdens
+        for src, formulas in rows:
+            for f in formulas.get("effects", []):
                 if f.get("on") not in TARGETS:
-                    self.note(f"{row['from']}: an effect on '{f.get('on')}', which isn't a number the sheet has, so it isn't applied. Read the row.")
-                elif self.applies(f.get("applies"), row["from"]):
-                    out.append({"on": f["on"], "add": f.get("add", 0), "from": row["from"], "times": 1})
+                    self.note(f"{src}: an effect on '{f.get('on')}', which isn't a number the sheet has, so it isn't applied. Read the row.")
+                elif self.applies(f.get("applies"), src):
+                    out.append({"on": f["on"], "add": f.get("add", 0), "from": src, "times": 1, **({"set": f["set"]} if "set" in f else {})})
         self._effects = out
         return out
 
@@ -531,8 +536,16 @@ class Builder:
         return by, parts
 
     def add_effects(self, on, base):
+        """The number with every effect on it: each "add" added, then a "set" (a burden's "starts at 0")
+        replaces the result, the last one read if there are several."""
         total, parts = base, []
-        for e in self.effects(on):
+        for e in [x for x in self.effects(on) if "set" not in x] + [x for x in self.effects(on) if "set" in x]:
+            if "set" in e:
+                total = e["set"]
+                part = {"on": on, "set": e["set"], "from": e.get("from")}
+                parts.append(part)
+                if part not in self.applied: self.applied.append(part)
+                continue
             names = dict(getattr(self, "names", {}))
             names["times"] = e.get("times", 1)
             try:
@@ -591,7 +604,7 @@ class Builder:
         st = self.rec.get("state", {})
         out["wounds"] = {"max": w, "formula": formula, "taken": st.get("wounds_taken", 0)}
         extra = self.rec.get("extra_points") or {}
-        allowed = int(f.get("extra_points", 0) or 0)
+        allowed, _ = self.add_effects("extra_points", int(f.get("extra_points", 0) or 0))
         if sum(int(v) for v in extra.values()) != allowed:
             self.differ("extra-points", f"The species gives {allowed} extra points to share between Fate and "
                         f"Resilience; the record shares out {sum(int(v) for v in extra.values())}.",
@@ -1002,6 +1015,118 @@ class Builder:
                        self.slot_covers(sl, self.lib.current(line["skill"]), line.get("specialisation")) for sl in self.skill_slots())
         return any(self.offered("talents", x, self.lib.current(line["talent"]), line.get("specialisation")) for x in f.get("talents", []))
 
+    # ------------------------------------------------------------------ an Elder's earlier life
+    def elder_rule(self):
+        """(ref, entry, grant) of the creation rule in play that gives an Elder's earlier careers (a
+        grant from "elder-career"), or None."""
+        if not hasattr(self, "_elder_rule"):
+            self._elder_rule = next(((r, e, g) for r, e, g in self.grants() if g.get("from") == "elder-career"), None)
+        return self._elder_rule
+
+    def lived(self):
+        """The Times an Elder lived through, newest first: [[name, the row's formulas]]. They are the
+        row of the record's `species.elder.born` and every row before it in the table the rule names
+        (its `lived_through`: {"table": title, "column": the column naming each Time})."""
+        if hasattr(self, "_lived"): return self._lived
+        self._lived = []
+        el = (self.rec.get("species") or {}).get("elder")
+        rule = self.elder_rule() if el else None
+        if not el: return self._lived
+        if not rule:
+            self.note("The record makes the character an Elder, but no creation rule in play gives an Elder's earlier "
+                      "careers (a grant from elder-career), so none of it is checked or applied.")
+            return self._lived
+        ref, e, g = rule
+        lt = e.get("fields", {}).get("lived_through") or {}
+        tab = next((b for b in _walk(e.get("content")) if b.get("type") == "table" and norm(b.get("title") or "") == norm(lt.get("table") or "")), None)
+        cols = [norm(c) for c in (tab or {}).get("columns", [])]
+        if not tab or norm(lt.get("column") or "") not in cols:
+            self.note(f"{e['name']}: its lived_through doesn't name a table and column in the entry, so the Times an Elder "
+                      f"lived through aren't worked out. Read the entry.")
+            return self._lived
+        ci = cols.index(norm(lt["column"]))
+        names = [str(r[ci]) for r in tab["rows"] if len(r) > ci]
+        i = next((k for k, n in enumerate(names) if norm(n) == norm(el.get("born") or "")), None)
+        if i is None:
+            self.differ("elder:born", f"The record says the Elder was born in '{el.get('born')}'; {e['name']} lists "
+                        + ", ".join(names) + ".", ref)
+            return self._lived
+        rows = e.get("fields", {}).get("rows") or {}
+        self._lived = [[n, next((v for k, v in rows.items() if norm(k) == norm(n)), {})] for n in names[:i + 1]]
+        return self._lived
+
+    def elder(self):
+        """An Elder's earlier careers and burdens, checked against the rule's grant ({"from":
+        "elder-career", "how": "elder", "kind": "skill", "total": a number or {"rolled": n, "chosen":
+        n}, "most": n}, once per Time) and the rows of the Times lived through: "careers" (how many
+        earlier careers the Time gives), "psychology" (traits the record must list), "burdens"
+        ([{"text", "only_earliest"}]: lines for the sheet; an only_earliest line counts only from the
+        Time of birth). None for a character who isn't an Elder."""
+        el = (self.rec.get("species") or {}).get("elder")
+        lines = [a for a in self.ledger if a.get("how") == "elder"]
+        if not el:
+            if lines:
+                self.differ("elder:not-elder", f"{len(lines)} advance(s) are recorded as from an Elder's earlier careers; "
+                            f"the record's species has no elder.")
+            return None
+        lived, rule = self.lived(), self.elder_rule()
+        if not lived or not rule: return None
+        ref, e, g = rule
+        gid = f"creation:{ref.split('/')[-1]}/{g.get('id')}"
+        owed = [n for n, f in lived if int(f.get("careers", 0) or 0) > 0]
+        careers = el.get("careers") or []
+        times = [str(c.get("time")) for c in careers]
+        if sorted(norm(t) for t in times) != sorted(norm(t) for t in owed):
+            self.differ(f"{gid}:times", f"Born in the {el['born']}, an Elder has an earlier career for each of: "
+                        f"{', '.join(owed) or 'none'}; the record has {', '.join(times) or 'none'}.", ref)
+        out = {"born": el["born"], "rule": ref, "cite": self.cite(ref), "careers": [], "burdens": []}
+        most = g.get("most")
+        for c in careers:
+            t = str(c.get("time"))
+            cref, ce = self.entry(c.get("ref"), "Career")
+            tot = g.get("total")
+            total = tot.get(c.get("how")) if isinstance(tot, dict) else tot
+            if total is None:
+                self.differ(f"{gid}:{slug(t)}-how", f"The {t} career must say how it was settled: "
+                            + (" or ".join(tot) if isinstance(tot, dict) else "") + ".", ref)
+            level1 = ((ce or {}).get("fields", {}).get("advances") or {}).get("1", {}).get("skills", [])
+            per = {}
+            for a in (a for a in lines if norm(a.get("time") or "") == norm(t)):
+                name = (a.get("skill") or a.get("talent") or a.get("characteristic") or "?").split("/")[-1]
+                if not a.get("skill"):
+                    self.differ(f"{gid}:{slug(t)}:{slug(name)}", f"{name}: an Elder's earlier career gives skill advances only.", ref)
+                    continue
+                sref = self.lib.current(a["skill"])
+                try: name = self.lib.entry(sref)["name"] + (f" ({a['specialisation']})" if a.get("specialisation") else "")
+                except RefError: pass
+                if ce and not any(self.offered("skills", x, sref, a.get("specialisation")) for x in level1):
+                    self.differ(f"{gid}:{slug(t)}:{slug(name)}", f"{name} isn't among the first-level skills of {ce['name']}, "
+                                f"the career for the {t}.", ref)
+                k = (sref, norm(a.get("specialisation") or ""))
+                per[k] = per.get(k, 0) + int(a.get("count", 1))
+            spent, over = sum(per.values()), [k for k, v in per.items() if most is not None and v > int(most)]
+            if (total is not None and spent > int(total)) or over:
+                self.differ(f"{gid}:{slug(t)}", f"The {t} career ({(ce or {}).get('name') or c.get('ref')}, {c.get('how')}) gives "
+                            f"{total} advances, at most {most} in one skill; the record has {spent}"
+                            + (f", with more than {most} in {len(over)}" if over else "") + ".", ref)
+            out["careers"].append({"time": t, "name": (ce or {}).get("name"), "ref": cref, "how": c.get("how"), "given": spent,
+                                   "left": max(0, int(total) - spent) if total is not None else None,
+                                   "cite": self.cite(cref) if ce else ""})
+        for a in lines:
+            if norm(a.get("time") or "") not in {norm(t) for t in times}:
+                self.differ(f"{gid}:time-{slug(a.get('time') or 'none')}", f"An advance is recorded as from the Elder's career "
+                            f"in '{a.get('time')}', which the record's elder doesn't list.", ref)
+        have = [norm(x if isinstance(x, str) else x.get("row") or "") for x in self.rec.get("psychology") or []]
+        oldest = lived[-1][0]
+        for n, f in lived:
+            for p in f.get("psychology", []):
+                if not any(norm(p) in h for h in have):
+                    self.differ(f"elder:psychology/{slug(p)}", f"Born in the {el['born']}, the Elder has {p} from the {n}; "
+                                f"the record's psychology doesn't list it.", ref)
+            text = [b["text"] for b in f.get("burdens", []) if b.get("text") and (not b.get("only_earliest") or n == oldest)]
+            if text: out["burdens"].append({"time": n, "text": text})
+        return out
+
     def species_items(self):
         """The species' (or origin's) talents as items to take once each: a name, or one of an "or"."""
         return [x.get("choose_one") if isinstance(x, dict) else [x]
@@ -1025,7 +1150,7 @@ class Builder:
         [{rule, id, cite, kind, how, from, given, left, taken, to_take}] for the options report: "to_take"
         is the species' listed talents not yet taken."""
         lines = [a for a in self.ledger if a.get("how") in ("species", "career")]
-        grants = self.grants()
+        grants = [x for x in self.grants() if x[2].get("from") != "elder-career"]      # an Elder's: elder()
         out = []
         if lines and not grants:
             self.note("The creation rules carry no grants yet, so what the species and career gave at creation isn't checked. Read them.")
@@ -1538,6 +1663,15 @@ def _short(v):
 
 
 # ---------------------------------------------------------------------------- the readable sheet
+def elder_lines(el):
+    """An Elder's Time of birth, earlier careers and burdens, as lines for both sheets."""
+    L = [f"- Born in the {el['born']} {el.get('cite', '')}".rstrip()]
+    L += [f"- {c['time']}: {c['name'] or c['ref']} ({c['how']}), {c['given']} advances"
+          + (f", {c['left']} left" if c.get("left") else "") for c in el["careers"]]
+    L += [f"- Burden: {t}" for b in el["burdens"] for t in b["text"]]
+    return L
+
+
 def party_lines(p):
     """The party's name, members and ambitions as {label: text}, in the sheet's order."""
     out = {}
@@ -1621,10 +1755,13 @@ def markdown(m):
                 f"- {x}" if isinstance(x, str) else
                 f"- {x['name']}" + (f" ({'; '.join(x['cells'])})" if x.get("cells") else "") +
                 (f", from `{x['why']}`" if x.get("why") else "") + f" {x.get('cite', '')}".rstrip() for x in v])
+    if m.get("elder"):
+        L += ["", "## Elder"] + elder_lines(m["elder"])
     if m.get("effects"):
         L += ["", "## What rules add", "Already in the numbers above."]
         L += [f"- {CHAR_NAME.get(e['on'], e['on'].replace('_', ' ').capitalize())} " +
-              (f"× {e['multiply']}" if "multiply" in e else f"{'+' if e['add'] >= 0 else ''}{e['add']}") + f": `{e['from']}`" for e in m["effects"]]
+              (f"× {e['multiply']}" if "multiply" in e else f"set to {e['set']}" if "set" in e else f"{'+' if e['add'] >= 0 else ''}{e['add']}")
+              + f": `{e['from']}`" for e in m["effects"]]
     more = [(t["name"], t["added_by"]) for t in m["talents"] if t.get("added_by")]
     if more:
         L += ["", "## Rules that add to these talents", "The build doesn't apply these: read them when checking the character."]

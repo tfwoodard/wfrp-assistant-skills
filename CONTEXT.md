@@ -106,6 +106,10 @@ _Avoid_: Script, code, automation
 What a creation rule gives a new character to share out (so many skills at so many advances, so many advances in all, one talent), and from which list: the species' or the first career level's. Advances recorded as gained from the species or the career at creation are checked against the grants (ADR 0007).
 _Avoid_: Allowance, budget
 
+**Elder**:
+A character older than its species' usual age, born in an earlier *Time* of the rule's table. Each Time lived through gives an earlier career (advances on its first level's skills) and a burden. The record says when the Elder was born and which careers they followed; the rule's entry says the rest (ADR 0008).
+_Avoid_: Veteran, old character
+
 **Summary**:
 One line in Claude's own words of what an entry does, written on the entry (`fields.summary`) for the printed sheet, so a spell's or talent's effect is at hand without the book. Never the book's sentences. A talent whose specialisations are different benefits has one more line per specialisation (`fields.summaries`), printed after the shared one for the specialisation taken. Kept on re-import like a formula.
 _Avoid_: Description, blurb, abstract

@@ -60,6 +60,15 @@ has been taken and the list it comes from, and the species' talents not yet
 taken, and how many random talents are left to roll on their table (roll d100
 on it, show the roll, and `buy --talent ... --how species` the result).
 
+An **Elder** (a book's rule such as HEPG's Elders of the Asur, carrying a
+grant from `elder-career`: ADR 0008) is written with `apply.py ... elder --born
+"<Time>" --career "<Time>=<Career>:rolled"` (one `--career` per Time that gives
+one), then each Time's skills with `buy --skill ... --how elder --time "<Time>"`.
+options.py lists what each earlier career still gives. The sheet's Elder
+section shows the Time of birth, the careers and the burdens; a trait a burden
+gives is added to the record's psychology like any other, and the build says
+when one is missing.
+
 1. **Species**: roll on the library's species table or choose, as `creation`
    allows, and record which, since keeping a roll earns bonus XP.
 2. **Class and career**: roll on the species' column of the career table or

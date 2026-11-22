@@ -209,7 +209,13 @@ python3 scripts/set_formulas.py <entry>.json --show        # its formulas and it
 ```
 
 `at` is the number (from 0) of the block that says so; a table's row is named
-by the whole text of one of its cells and needs no `at`. On every re-import,
+by the whole text of one of its cells and needs no `at`, and the table may be in
+a sidebar. A rule for Elders (ADR 0008) also takes `--lived-through '{"table":
+"<title>", "column": "<the column naming each Time>"}'`, a grant `"from":
+"elder-career"`, and for each Time's row `--row-fields '{"careers": 1,
+"psychology": [...], "burdens": [{"text": "...", "only_earliest": true}]}'`
+beside its `--effects` (which may `set` a value, or change `extra_points`); give
+the entry `adds-to` a creation rule with `edit_entry.py` so the builder reads it. On every re-import,
 pass the converter `--formulas-from <library-data>`: it copies each entry's
 formulas from the entry it replaces, and lists as questions any that no longer
 fit, to be written again. Never write a formula unasked or in bulk: propose it
