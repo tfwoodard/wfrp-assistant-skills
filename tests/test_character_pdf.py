@@ -46,7 +46,7 @@ class Sheet(unittest.TestCase):
         self.assertNotIn('background:', html)                                          # no fills: they waste ink
         self.assertNotIn('Watchers: Warden (', html)                                    # the header names the career
         self.assertNotIn('<b>Encumbrance</b>', html)                                    # it is in the attributes
-        self.assertNotIn('<td class="">Tending</td>', html)                             # Tending (Wicks) is listed
+        self.assertIn('<td class="">Tending</td>', html)                                # rolled by itself too, so it stays
         for s in ('Still to complete', 'Differs from the rules', 'To settle', 'Not worked out'):
             self.assertIn(s, todo, s)
         m = bc.build(dict(r, to_complete=[{'id': 'xp-cost:*', 'what': 'Pay back the 87 XP'}]), Library(self.root, 'rock'))
@@ -115,6 +115,7 @@ class Sheet(unittest.TestCase):
         play = html[html.index('class="page new play"'):]
         self.assertEqual(play.count('track on">✕'), 2 + 1 + 1 + 2)        # wounds, fortune, corruption, Soaked: marked, not filled
         self.assertIn('Dazzled', play)
+        self.assertNotIn('Toughness Bonus', play[:play.index('Wounds')])               # the first page has the bonuses
         self.assertIn('Corruption', play)
         self.assertIn('+10 each', play)
         self.assertEqual(play[play.index('Advantage'):].count('class="track'), 10 + 12)   # a tally, then two conditions

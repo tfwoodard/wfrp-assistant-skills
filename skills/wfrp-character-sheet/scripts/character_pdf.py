@@ -162,9 +162,6 @@ def page_one(m):
     out.append('<div class="attrs">' + "".join(f'<div class="at"><span>{e(a)}</span><b>{e(b)}</b><i>{e(i)}</i></div>' for a, b, i in attrs) + "</div>")
     callouts = todo(m)
     def skills(rows):
-        # a grouped skill's bare line ("Art") adds nothing once a specialisation of it is listed ("Art (Calligraphy)")
-        specialised = {s["ref"] for s in rows if "(" in s["name"]}
-        rows = [s for s in rows if "(" in s["name"] or s["ref"] not in specialised or s["advances"]]
         return table(["Skill", "", "Char", "Adv", "Total"],
                      [[e(s["name"]), '<span class="car">career</span>' if s["career"] else "", e(s["characteristic"]),
                        e(s["advances"]), f"<b>{e(s['total'])}</b>"] for s in rows], num=(3, 4))
@@ -231,9 +228,7 @@ def page_play(m, conditions=()):
     """A page to mark during a session: Wounds, Fortune and Resolve as boxes (those already taken or
     spent filled in), and each condition in play with boxes to count it."""
     w, f, r, st = m["wounds"], m["fate"], m["resilience"], m.get("state") or {}
-    out = [f'<div class="head"><div><h1>{e(m.get("name") or m.get("slug"))}</h1><div class="what">In play</div></div>'
-           f'<div class="who">Toughness Bonus {e(m["characteristics"]["T"]["bonus"])} · Movement {e(m["movement"]["base"])} '
-           f'(Walk {e(m["movement"]["walk"])}, Run {e(m["movement"]["run"])})</div></div>']
+    out = [f'<div class="head"><div><h1>{e(m.get("name") or m.get("slug"))}</h1><div class="what">In play</div></div></div>']
     def row(label, n, filled, note=""):
         return f'<div class="trk"><span class="lab">{e(label)} <span class="cite">{e(note)}</span></span>{boxes(n, filled)}</div>'
     out.append("<h2>Wounds</h2>" + row(f"Wounds ({w['max']})", w["max"], w["taken"]))
