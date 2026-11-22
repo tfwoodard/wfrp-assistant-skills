@@ -217,6 +217,15 @@ beside its sentence when a rule is first applied to a character, and set it
 once the Librarian confirms. The text stays the authority; a formula is a
 reading of it, and one that is lost is simply written again.
 
+To correct an entry's fields or relations after an import (a skill's
+characteristic the converter missed, an `adds-to` the plan lacked), use
+`scripts/edit_entry.py --library <root> <category>/<slug> --set FIELD=VALUE
+--relation ROLE:TARGET --plan sources/<SRC>/plans/<chapter>.json`. It rewrites
+the `.json`, renders the `.md` again, changes only that entry's line in
+`_index.json`, and gives the plan the same fields and relations in its own
+layout, so a re-import keeps them. Upload the files it lists. Formulas and
+summaries go through `set_formulas.py` instead.
+
 A **summary** (`--summary "..."`) is one line in your own words of what an
 entry does, printed under a spell on the character sheet. The same rules
 apply: on the entry only, carried over on re-import, written when a character
