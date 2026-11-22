@@ -50,6 +50,12 @@ Google Drive library imported from the group's own PDFs.
   The connection is unmetered and fast. When a library file needs checking or
   correcting, download it and fix it; don't weigh whether the transfer is worth it.
   Bulk reads that would crowd the conversation can go to a background agent.
+- In claude.ai, files go to and from the library's local folder through the
+  device bridge. Use `scripts/drive_bridge.py`: `record` each
+  `device_stage_files` result, `push --batch NAME FILE...` to get the
+  `device_commit_files` list with every file's `expectedMtimeMs` (it waits until
+  the bridge can read the copies), then download the batch again and `verify`.
+  Never commit from memory of a file's time.
 - Prefer the library's local folder (layout §1) over the connector whenever it
   can be reached: PDFs need it, and a chapter's hundreds of files go through it
   in seconds.
