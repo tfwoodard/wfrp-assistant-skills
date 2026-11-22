@@ -79,6 +79,7 @@ ul{margin:2px 0 2px 16px;padding:0} li{margin:1px 0}
 .todo ul{margin:1px 0 3px 16px}
 .spell{border-bottom:1px solid #ece6da;padding:3px 0;break-inside:avoid}
 .flow{column-count:2;column-gap:16px}
+.keep{break-inside:avoid}
 .flow h2:first-child,.flow .box:first-child{margin-top:0}
 .flow table{break-inside:auto}
 .spell .nm{font-size:11px;font-weight:bold}
@@ -88,9 +89,10 @@ ul{margin:2px 0 2px 16px;padding:0} li{margin:1px 0}
 .trk{display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin:3px 0}
 .trk .track{width:16px;height:16px;margin:0}
 .trk .lab{width:120px;font-size:11px}
-.conds{display:grid;grid-template-columns:1fr 1fr;gap:2px 18px}
-.cond{display:flex;align-items:center;gap:4px;border-bottom:1px solid #ece6da;padding:2px 0}
-.cond .cn{width:110px} .cond .track{width:13px;height:13px}
+.cond{border-bottom:1px solid #ece6da;padding:3px 0;break-inside:avoid}
+.cond .ch2{display:flex;align-items:center;gap:4px}
+.cond .cn{width:90px;font-weight:bold} .cond .track{width:13px;height:13px}
+.cond .sum{font-size:9.5px;margin:1px 0 0 0}
 """
 
 
@@ -152,15 +154,13 @@ def page_one(m):
     st = m.get("state") or {}
     attrs = [("Wounds", f'{w["max"] - w["taken"]} / {w["max"]}', w["formula"]),
              ("Movement", mv["base"], f'Walk {mv["walk"]} · Run {mv["run"]}'),
-             ("Fate · Fortune", f'{f["fate"]} · {f["fortune"] - st.get("fortune_spent", 0)}', f"Fortune {f['fortune']} a session"),
+             ("Fate · Fortune", f'{f["fate"]} · {f["fortune"] - st.get("fortune_spent", 0)}', ""),
              ("Resilience · Resolve", f'{r["resilience"]} · {r["resolve"] - st.get("resolve_spent", 0)}', r.get("motivation") or ""),
              ("Corruption", f'{co["points"]} / {co["threshold"]}', ""),
              ("Encumbrance", f'{en["carried"]} / {en["max"]}', ""),
              ("XP", x["current"], f'{x["spent"]} spent of {x["total"]}')]
     out.append('<div class="attrs">' + "".join(f'<div class="at"><span>{e(a)}</span><b>{e(b)}</b><i>{e(i)}</i></div>' for a, b, i in attrs) + "</div>")
-    path = c.get("path") or []
-    callouts = ('<div class="box small">' + "<br>".join(f"{e(p['class'])}: {e(p['name'])} ({e(', '.join(p['levels']))})" for p in path)
-                + "</div>" if path else "") + todo(m)
+    callouts = todo(m)
     def skills(rows):
         return table(["Skill", "", "Char", "Adv", "Total"],
                      [[e(s["name"]), '<span class="car">career</span>' if s["career"] else "", e(s["characteristic"]),
@@ -183,12 +183,12 @@ def page_two(m):
     out = []
     weapons = [t for t in m["trappings"] if t.get("weapon")]
     if weapons:
-        out.append("<h2>Weapons</h2>" + table(["Weapon", "Group", "Reach / range", "Damage", "Qualities and flaws"], [
+        out.append('<div class="keep"><h2>Weapons</h2>' + table(["Weapon", "Group", "Reach / range", "Damage", "Qualities and flaws"], [
             [e(t["name"]), e(t["weapon"].get("group")), e(t["weapon"].get("reach") or t["weapon"].get("range")),
              f"<b>{e(t['weapon'].get('damage'))}</b> <span class='cite'>{e(t['weapon'].get('damage_text'))}</span>",
-             e(", ".join(t["weapon"].get("qualities") or []))] for t in weapons]))
-    out.append('<h2>Armour</h2><div class="armour">' + "".join(
-        f"<div><span>{e(k)}</span><b>{e(v)}</b></div>" for k, v in m["armour"].items()) + "</div>")
+             e(", ".join(t["weapon"].get("qualities") or []))] for t in weapons]) + "</div>")
+    out.append('<div class="keep"><h2>Armour</h2><div class="armour">' + "".join(
+        f"<div><span>{e(k)}</span><b>{e(v)}</b></div>" for k, v in m["armour"].items()) + "</div></div>")
     if m["trappings"]:
         rows = []
         for t in m["trappings"]:
@@ -198,8 +198,7 @@ def page_two(m):
                          e(t["counts"]), e("; ".join(notes))])
         out.append("<h2>Trappings</h2>" + table(["Trapping", "Qty", "Enc", "Counts", ""], rows, num=(1, 2, 3)))
     money = m.get("money") or {}
-    out.append(f'<div class="box small"><b>Money</b>: {e(money.get("gc", 0))} gc · {e(money.get("ss", 0))} ss · {e(money.get("d", 0))} d'
-               f' &nbsp; <b>Encumbrance</b>: {e(m["encumbrance"]["carried"])} of {e(m["encumbrance"]["max"])}</div>')
+    out.append(f'<div class="box small"><b>Money</b>: {e(money.get("gc", 0))} gc · {e(money.get("ss", 0))} ss · {e(money.get("d", 0))} d</div>')
     side = []
     if m.get("ambitions"):
         side.append("<h2>Ambitions</h2><ul>" + "".join(f"<li>{e(k.title())}: {e(v)}</li>" for k, v in m["ambitions"].items() if v) + "</ul>")
@@ -229,9 +228,7 @@ def page_play(m, conditions=()):
     """A page to mark during a session: Wounds, Fortune and Resolve as boxes (those already taken or
     spent filled in), and each condition in play with boxes to count it."""
     w, f, r, st = m["wounds"], m["fate"], m["resilience"], m.get("state") or {}
-    out = [f'<div class="head"><div><h1>{e(m.get("name") or m.get("slug"))}</h1><div class="what">In play</div></div>'
-           f'<div class="who">Toughness Bonus {e(m["characteristics"]["T"]["bonus"])} · Movement {e(m["movement"]["base"])} '
-           f'(Walk {e(m["movement"]["walk"])}, Run {e(m["movement"]["run"])})</div></div>']
+    out = [f'<div class="head"><div><h1>{e(m.get("name") or m.get("slug"))}</h1><div class="what">In play</div></div></div>']
     def row(label, n, filled, note=""):
         return f'<div class="trk"><span class="lab">{e(label)} <span class="cite">{e(note)}</span></span>{boxes(n, filled)}</div>'
     out.append("<h2>Wounds</h2>" + row(f"Wounds ({w['max']})", w["max"], w["taken"]))
@@ -253,9 +250,13 @@ def page_play(m, conditions=()):
         n = x if isinstance(x, str) else x.get("name")
         have[bc.norm(n)] = 1 if isinstance(x, str) else int(x.get("count", 1))
     if conditions:
-        out.append("<h2>Conditions</h2><div class='conds'>" + "".join(
-            f'<div class="cond"><span class="cn">{e(c["name"])}</span>{boxes(6, have.get(bc.norm(c["name"]), 0))}'
-            f'<span class="cite">{e(c.get("cite", ""))}</span></div>' for c in conditions) + "</div>")
+        def bonuses(text):          # "Toughness Bonus Rounds" -> "3 Rounds", in this character's numbers
+            return re.sub(r"\b(%s) Bonus\b" % "|".join(bc.CHAR_NAME.values()),
+                          lambda x: str(m["characteristics"][bc.NAME_CHAR[bc.norm(x.group(1))]]["bonus"]), text or "")
+        out.append("<h2>Conditions</h2><div class='flow'>" + "".join(
+            f'<div class="cond"><div class="ch2"><span class="cn">{e(c["name"])}</span>{boxes(6, have.get(bc.norm(c["name"]), 0))}'
+            f'<span class="cite">{e(short(c.get("cite", "")))}</span></div>'
+            + (f'<div class="sum">{e(bonuses(c["summary"]))}</div>' if c.get("summary") else "") + "</div>" for c in conditions) + "</div>")
     elif st.get("conditions"):
         out.append("<h2>Conditions</h2><ul>" + "".join(f"<li>{e(k)}: {v}</li>" for k, v in have.items()) + "</ul>")
     return '<div class="page new play">' + "".join(out) + "</div>"
@@ -267,7 +268,10 @@ def conditions_in_play(lib):
     for _, r in lib.index("rules"):
         if r.get("kind") == "condition":
             ref = f"rules/{r['slug']}"
-            try: out.append({"name": r["name"], "ref": ref, "cite": bc.cite(lib.entry(ref), bc.chapter_titles(lib))})
+            try:
+                ce = lib.entry(ref)
+                out.append({"name": r["name"], "ref": ref, "cite": bc.cite(ce, bc.chapter_titles(lib)),
+                            "summary": ce.get("fields", {}).get("summary")})
             except Exception: out.append({"name": r["name"], "ref": ref})
     return sorted(out, key=lambda c: c["name"])
 

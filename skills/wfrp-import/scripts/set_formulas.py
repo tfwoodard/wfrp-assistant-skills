@@ -92,7 +92,7 @@ def main():
         ap.error('--specialisation goes with --summary')
     if a.summary is not None:
         if a.row: ap.error('a summary is for the whole entry, not a row')
-        if '\n' in a.summary or len(a.summary) > 240: ap.error('a summary is one line, at most 240 characters')
+        if '\n' in a.summary or len(a.summary) > 320: ap.error('a summary is one line, at most 320 characters')
         f = entry.setdefault('fields', {})
         if a.specialisation:
             per = dict(f.get('summaries') or {})
