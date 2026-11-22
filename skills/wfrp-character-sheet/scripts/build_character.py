@@ -799,6 +799,8 @@ class Builder:
             if kind == "arcane" and not s.get("lore") and len({WINDS.get(w, w) for w in mine}) > 1:
                 self.note(f"{e['name']} is an Arcane spell and the character has more than one lore: write the lore it was "
                           f"learned under on its line in the record. Counted under the first.")
+            if kind in ("lore", "arcane") and group:      # the lore it was learned under, for checks that count by it
+                out[-1]["learned_under"] = WINDS.get(group, group)
             before = known.get(group, 0)
             if group is not None: known[group] = before + 1
             if how == "imported":
@@ -1199,7 +1201,9 @@ class Builder:
         """A value in a check's test: a number, a sum in the books' shorthand ("WPB", "WP + 10"), or
         {"advances": skill ref[, "specialisation"]} (one specialisation, or the highest),
         {"times": talent ref[, "specialisation"]} (one, or all added up),
-        {"count": {"talent"|"skill": ref or [refs]} | {"spell": {"lore"|"kind": name}}},
+        {"count": {"talent"|"skill": ref or [refs]} | {"spell": {"lore"|"kind"|"learned_under": name}}}
+        ("lore": the spell entry's own lore, so not an Arcane spell; "learned_under": the lore it was
+        learned under, so a Lore's spells and the Arcane spells learned as part of it),
         {"species"|"career"|"class"|"level"|"status": true}."""
         if isinstance(v, (int, float)): return v
         if isinstance(v, str):
@@ -1222,8 +1226,11 @@ class Builder:
                 refs = {self.lib.current(r) for r in (c[k] if isinstance(c[k], list) else [c[k]])}
                 pool = self.check_talents if k == "talent" else self.check_skills
                 return sum(1 for (r, _), n in pool.items() if r in refs and n > 0)
-            if isinstance(c, dict) and isinstance(c.get("spell"), dict) and set(c["spell"]) <= {"lore", "kind"}:
-                return sum(1 for s in m["spells"] if all(norm(s.get(k) or "") == norm(w) for k, w in c["spell"].items()))
+            if isinstance(c, dict) and isinstance(c.get("spell"), dict) and c["spell"] and set(c["spell"]) <= {"lore", "kind", "learned_under"}:
+                def fits(s, k, w):
+                    if k == "learned_under": return bool(s.get(k)) and self.same_spec(s[k], w)
+                    return norm(s.get(k) or "") == norm(w)
+                return sum(1 for s in m["spells"] if all(fits(s, k, w) for k, w in c["spell"].items()))
             raise self.Unknown(json.dumps(v))
         c = (m.get("career") or {})
         for k, got in (("species", lambda: m["species"].get("ref")), ("career", lambda: c.get("ref")), ("class", lambda: c.get("class")),
@@ -1247,7 +1254,10 @@ class Builder:
                 if k in c:
                     refs = c[k] if isinstance(c[k], list) else [c[k]]
                     return " or ".join(name(r) for r in refs) + f" {k}s taken"
-            if "spell" in c: return " ".join(f"{w}" for w in c["spell"].values()) + " spells known"
+            if "spell" in c:
+                s = c["spell"]
+                words = " ".join(f"{w}" for k, w in s.items() if k != "learned_under") + " spells known"
+                return words.lstrip() + (f" under the Lore of {s['learned_under']}" if s.get("learned_under") else "")
         return next((k for k in ("species", "career", "class", "level", "status") if k in v), json.dumps(v))
 
     def check_test(self, t, m, why):

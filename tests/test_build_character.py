@@ -624,6 +624,22 @@ class Checks(Case):
         r['spells'] = [{'ref': 'spells/beam', 'how': 'free'}]
         self.assertEqual([i for i in self.ids(self.build(r)) if i.startswith('check:')], [])
 
+    def test_spells_learned_under_a_lore_count_its_arcane_spells_too(self):
+        self.checks('lamp-magic', [
+            {'id': 'three-under', 'at': 0, 'test': {'value': {'count': {'spell': {'learned_under': 'Lamps'}}}, 'at_least': 3}},
+            {'id': 'three-own', 'at': 0, 'test': {'value': {'count': {'spell': {'lore': 'Lamps'}}}, 'at_least': 3}}])
+        r = self.lamps('Lamps', 'Tides')
+        r['spells'] = [{'ref': 'spells/beam', 'how': 'free'}, {'ref': 'spells/ray', 'how': 'free'},
+                       {'ref': 'spells/spark', 'how': 'free', 'lore': 'Lamps'}]
+        m = self.build(r)
+        self.assertEqual([s.get('learned_under') for s in m['spells']], ['lamps', 'lamps', 'lamps'])
+        checks = [d for d in m['differences'] if d['id'].startswith('check:')]
+        self.assertEqual([d['id'] for d in checks], ['check:lamp-magic/three-own'])   # the Arcane spell has no lore of its own
+        self.assertIn('Lamps spells known: 2, wanted at least 3', checks[0]['text'])
+        r['spells'][2]['lore'] = 'Tides'                                              # learned under the other lore
+        d = [x for x in self.build(r)['differences'] if x['id'] == 'check:lamp-magic/three-under']
+        self.assertIn('spells known under the Lore of Lamps: 2, wanted at least 3', d[0]['text'])
+
     def test_a_read_or_an_unknown_word_is_to_do_until_an_exception_settles_it(self):
         self.checks('lamp-magic', [{'id': 'order', 'read': 'Each lore after the first needs the one before mastered.', 'at': 0},
                                    {'id': 'odd', 'read': 'Moon phase', 'at': 0, 'test': {'value': {'moon': True}, 'equals': 'full'}}])
