@@ -60,15 +60,70 @@ with `raw/` and an empty `_index.json`.
    there's a GM-only file.
 7. **Optional.** Offer to update `campaign.json` → `party` if a character
    joined, left or died, and `party_ambitions` if the party set new ones.
+8. **The notebook.** Offer notes for what the party will need to remember next
+   time (see "The notebook" below), and ask which current notes this session
+   made no longer matter, to retire them.
+
+## Scraps from sessions nobody wrote up
+
+When the user has only fragments of earlier sessions ("we met a boatman called
+Josef somewhere around the third session"), don't invent session files:
+
+1. **Save the source** as for a session: `sessions/raw/history-<yyyy-mm-dd>.<ext>`
+   (the date they were written down), exactly as given.
+2. **Add each scrap** to `sessions/history.md` (layout §10, "History") under
+   **Scraps**, in the order the sessions happened when that's known. Give a
+   session only when the user remembers one ("around s3"); otherwise none. Keep
+   their words' meaning; don't fill gaps. What's unclear goes under **Open
+   questions**. Secrets go to `gm/sessions/history.md`.
+3. **Names**: add each NPC, place, faction, item and quest to the history's
+   front matter, with the spelling the group uses (check `_index.json` and the
+   notebook first, and ask when a new name is probably an old one).
+4. **Index**: the history's record in `sessions/_index.json` is session `0`,
+   `"file": "history.md"`, with no date, its summary and name lists updated in
+   the same pass.
+5. **The notebook**: ask which of these still matter now, and add those as
+   notes with `"from": "history"`.
+
+Show the user the scraps, names and notes before writing, as for a session.
+
+## The notebook
+
+`notes.json` in the campaign folder (layout §10) holds what the group needs
+to remember now. Each current note prints on the character sheets' play page:
+the party's on every sheet, a character's own (`--for <slug>`) only on theirs.
+Use `scripts/notebook.py` so the file keeps its shape:
+
+```
+python3 scripts/notebook.py <campaign folder> add --kind npc --name "Josef Quartjin" \
+    --text "Captain of the Berebeli; gave us passage to Altdorf" --from 3
+python3 scripts/notebook.py <campaign folder> add --kind item --name "Brass key" --text "..." --from history --for calfaric
+python3 scripts/notebook.py <campaign folder> retire josef-quartjin --session 9 --why "left at Altdorf"
+python3 scripts/notebook.py <campaign folder> list --current
+```
+
+- A note is one line: who or what, and why it matters, in the group's terms.
+  Kinds: `npc`, `place`, `item`, `faction`, `thread`, `fact`.
+- **Retire, don't delete.** When a note stops mattering, retire it with the
+  session it stopped in (when known) and why. It stays in the notebook, in
+  searches and in "who is X" answers; it leaves the sheets. `restore` brings
+  it back if it matters again.
+- Secrets go in the GM's notebook (`--gm`, `gm/notes.json`), which no sheet
+  prints.
+- After adding or retiring notes, rebuild the party's sheets
+  (`wfrp-character-sheet`: `character_pdf.py --pdf`) so the play pages match,
+  and upload the notebook, the history and the sheets.
 
 The connector can't edit files in place. To change a file, write the new
 version and move the old one to the trash; in the local folder, write over it.
 
 ## Search
 
-1. Read `sessions/_index.json`. Match the question against `title`, `summary`,
-   `npcs`, `locations`, `factions`, `items`, `quests`, and `tags`
-   (case-insensitive; partial names are fine).
+1. Read `sessions/_index.json` (session 0 is the history of scraps) and the
+   notebook, `notes.json`, retired notes included. Match the question against
+   `title`, `summary`, `npcs`, `locations`, `factions`, `items`, `quests`, and
+   `tags`, and the notes' names and text (case-insensitive; partial names are
+   fine).
 2. If the index doesn't settle it, search the text of the campaign's
    `sessions/` files (session files first, then `raw/` for exact wording).
    Search `gm/sessions/` too only when the user is the GM.
@@ -88,7 +143,9 @@ version and move the old one to the trash; in the local folder, write over it.
 - **XP so far**: total `xp_awarded` across sessions, and compare with each
   character record's XP total; report any difference rather than fixing it.
 - **Who/what is X**: everything the notes say about an NPC, place, or item,
-  in session order, with session numbers.
+  in session order, with session numbers: the history's scraps first, then
+  the sessions, and the notebook's note on it (saying if it's retired, and
+  since when).
 
 ## GM-only content
 

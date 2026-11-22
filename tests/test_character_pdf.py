@@ -133,24 +133,26 @@ class Sheet(unittest.TestCase):
         self.assertIn('You have the edge (+10) or you do not', play)
         self.assertEqual(play.count('class="track'), 1)
 
-    def test_the_partys_ambitions_print_with_the_characters_own(self):
-        r = record(ambitions={'short': 'Mend the lamp', 'long': ''},
-                   party={'name': 'The Wick', 'members': ['Mara', 'Oss'], 'short': 'Find the lost buoy', 'long': ''})
-        m = bc.build(r, Library(self.root, 'rock'))
-        self.assertEqual(m['party'], {'name': 'The Wick', 'members': ['Mara', 'Oss'], 'short': 'Find the lost buoy'})
+    def test_the_partys_ambitions_come_from_the_campaign_and_print_with_the_characters_own(self):
+        import json
+        cp = os.path.join(self.root, 'campaigns', 'rock', 'campaign.json')
+        with open(cp) as f: c = json.load(f)
+        c['party_ambitions'] = {'short': 'Find the lost buoy', 'long': ''}
+        with open(cp, 'w') as f: json.dump(c, f)
+        m = bc.build(record(ambitions={'short': 'Mend the lamp', 'long': ''}), Library(self.root, 'rock'))
+        self.assertEqual(m['party'], {'short': 'Find the lost buoy'})
         html = character_pdf.document(m)
         amb = html[html.index('<h2>Ambitions</h2>'):]
         amb = amb[:amb.index('<h2>', 5)] if '<h2>' in amb[5:] else amb
-        for s in ('Short: Mend the lamp', 'Party: The Wick', 'Members: Mara, Oss', 'Short: Find the lost buoy'):
+        for s in ('Short: Mend the lamp', '<b>Party</b>', 'Short: Find the lost buoy'):
             self.assertIn(s, amb, s)
         self.assertNotIn('Long:', amb)                                     # nothing named, nothing printed
-        self.assertLess(amb.index('Mend the lamp'), amb.index('The Wick'))
+        self.assertLess(amb.index('Mend the lamp'), amb.index('Find the lost buoy'))
         md = bc.markdown(m)
-        amb = md[md.index('## Ambitions'):]
-        for s in ('- short: Mend the lamp', '- Party name: The Wick', '- Party members: Mara, Oss', '- Party short: Find the lost buoy'):
-            self.assertIn(s, amb, s)
-        self.assertNotIn('## Party', md)
-        self.assertNotIn('Party', character_pdf.document(bc.build(record(), Library(self.root, 'rock'))))
+        self.assertIn('- Party short: Find the lost buoy', md[md.index('## Ambitions'):])
+        m = bc.build(record(party={'short': 'Old copy'}), Library(self.root, 'rock'))
+        self.assertNotIn('Old copy', character_pdf.document(m))             # the record's copy isn't used
+        self.assertTrue(any("campaign.json's `party_ambitions`" in n for n in m['notes']))
 
     def test_text_from_the_record_is_escaped(self):
         html = character_pdf.document(self.model(name='<Mara & Co>'))

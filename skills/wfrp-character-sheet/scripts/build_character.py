@@ -23,6 +23,7 @@ import argparse, ast, fnmatch, json, operator, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from library import Library, RefError, _walk, cite, chapter_titles, cli, norm  # noqa: E402
+import notebook  # noqa: E402
 
 CHARS = ("WS", "BS", "S", "T", "I", "Ag", "Dex", "Int", "WP", "Fel")
 CHAR_NAME = {"WS": "Weapon Skill", "BS": "Ballistic Skill", "S": "Strength", "T": "Toughness",
@@ -327,8 +328,15 @@ class Builder:
         self.run_checks(m)
         for k in ("money", "ambitions", "details"):
             if rec.get(k) not in (None, "", [], {}): m[k] = rec[k]
-        party = {k: v for k, v in (rec.get("party") or {}).items() if v not in (None, "", [])}
+        # the party's ambitions are the campaign's, one copy for every sheet (library-layout.md §8)
+        party = {k: v for k, v in ((self.lib.campaign or {}).get("party_ambitions") or {}).items() if v}
         if party: m["party"] = party
+        if rec.get("party"):
+            self.note("The record has `party`; the party's ambitions are campaign.json's `party_ambitions` now. "
+                      "Move anything new there and take `party` out of the record.")
+        if self.lib.campaign_dir:          # what the campaign notebook says to remember now (§10)
+            here = notebook.current(notebook.load(self.lib.campaign_dir), rec.get("slug"))
+            if here: m["remember"] = [{k: n[k] for k in ("id", "kind", "name", "text", "for") if n.get(k)} for n in here]
         for k in ("psychology", "mutations"):          # plain words as written; table rows with what they say
             named = iter([r for r in self.rows() if r["list"] == k])
             items = []
@@ -1673,13 +1681,13 @@ def elder_lines(el):
 
 
 def party_lines(p):
-    """The party's name, members and ambitions as {label: text}, in the sheet's order."""
-    out = {}
-    if p.get("name"): out["Name"] = p["name"]
-    if p.get("members"): out["Members"] = ", ".join(p["members"]) if isinstance(p["members"], list) else p["members"]
-    if p.get("short"): out["Short"] = p["short"]
-    if p.get("long"): out["Long"] = p["long"]
-    return out
+    """The party's ambitions as {label: text}, in the sheet's order."""
+    return {k.title(): p[k] for k in ("short", "long") if p.get(k)}
+
+
+def remember_lines(notes):
+    """The notebook's current notes as lines for both sheets: the party's, then the character's own."""
+    return [f"{n['name']} ({n['kind']}): {n['text']}" for n in sorted(notes, key=lambda n: bool(n.get("for")))]
 
 
 def markdown(m):
@@ -1757,6 +1765,8 @@ def markdown(m):
                 (f", from `{x['why']}`" if x.get("why") else "") + f" {x.get('cite', '')}".rstrip() for x in v])
     if m.get("elder"):
         L += ["", "## Elder"] + elder_lines(m["elder"])
+    if m.get("remember"):
+        L += ["", "## Remember", "From the campaign notebook, while it matters."] + [f"- {x}" for x in remember_lines(m["remember"])]
     if m.get("effects"):
         L += ["", "## What rules add", "Already in the numbers above."]
         L += [f"- {CHAR_NAME.get(e['on'], e['on'].replace('_', ' ').capitalize())} " +

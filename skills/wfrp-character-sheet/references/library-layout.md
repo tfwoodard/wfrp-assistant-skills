@@ -490,7 +490,7 @@ Each folder in `campaigns/` is one campaign, configured by its `campaign.json`:
 | `creation` | How new characters are made: for species, career and characteristics, `random` (roll and keep), `random-or-choose` (roll, and choosing costs the Rulebook's XP bonus), or `choose`. `starting_xp_bonus` false turns the bonus XP for keeping rolls off. Left out means the Rulebook's rules. |
 | `allowed.<category>` | `"all"`, or `{ "include": [slugs] }` (only these), or `{ "exclude": [slugs] }` (all but these). Applied after the `sources` filter. Categories left out mean `"all"`. |
 | `party` | The current party. `character` is a path to the character's record, relative to the campaign folder. |
-| `party_ambitions` | The party's short- and long-term ambitions, as the group wrote them. |
+| `party_ambitions` | The party's short- and long-term ambitions, as the group wrote them. Every party member's sheet prints them beside the character's own; a character record never copies them. |
 | `in_game_date` | The current date in the Imperial Calendar, as the GM writes it (e.g. "Festag, 33rd Nachexen 2512 IC"). |
 | `notes` | Free text for the GM: setting, tone, things to keep in mind. |
 
@@ -599,6 +599,64 @@ tags: [river, investigation]
 ```
 
 Leave out sections that would be empty, except Summary.
+
+### History: `sessions/history.md`
+
+Scraps remembered from sessions nobody wrote up: what is known, never filled in.
+
+```markdown
+---
+title: "Before the notes"
+covers: "the sessions before notes were kept"
+npcs: [Josef Quartjin]
+locations: []
+factions: []
+items: []
+quests: []
+---
+
+## Scraps
+- (around s3) The party first met Josef on the river at Weissbruck.
+- Calfaric owes a favour to someone in Altdorf (when isn't known).
+## Open questions
+- Who sent the letter?
+```
+
+One file, added to as more is remembered. A scrap names its session only
+when someone remembers it ("around s3"); none is invented. Its index record is
+session `0`, with `"file": "history.md"` and no `date`, so searches find it
+before session 1. Secrets go in `gm/sessions/history.md` the same way.
+
+### Campaign notebook: `notes.json`
+
+What the group needs to remember now: an NPC's name, a place, an item, a
+faction, an open thread, a fact. Each note stays in the file for good; while it
+matters it prints on the character sheets, and once it doesn't it is retired
+and leaves them.
+
+```json
+{"notes": [
+  {"id": "josef-quartjin", "kind": "npc", "name": "Josef Quartjin",
+   "text": "Captain of the Berebeli; gave the party passage to Altdorf",
+   "from": 3, "added": "2026-11-22"},
+  {"id": "brass-key", "kind": "item", "name": "Brass key", "text": "Opens the lamp room",
+   "from": "history", "for": "calfaric", "added": "2026-11-22",
+   "retired": {"session": 9, "date": "2026-12-06", "why": "the lamp room is gone"}}
+]}
+```
+
+| Field | Meaning |
+|---|---|
+| `id` | Made from the name; two notes never share one. |
+| `kind` | `npc`, `place`, `item`, `faction`, `thread` or `fact`. |
+| `text` | One line: what to remember about it. |
+| `from` | The session it came from: a number, `"history"` (sessions/history.md), or null when not known. |
+| `for` | A character's slug when the note is only theirs (it prints only on their sheet); left out for the whole party. |
+| `retired` | Set once the note no longer matters: the session (when known), the date, and why. It stays in searches and the history; it leaves the sheets. |
+
+`scripts/notebook.py` (in the session-notes and character-sheet skills) adds,
+changes, retires and lists notes, so the file keeps this shape. A GM-only
+notebook, `gm/notes.json`, has the same shape and never prints on a sheet.
 
 ### GM-only session notes
 
