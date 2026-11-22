@@ -24,11 +24,13 @@ Google Drive library imported from the group's own PDFs.
 - Player and GM skills are shared as zips in the library's Drive (layout §7);
   the Librarian's skills (`wfrp-library-setup`, `wfrp-import`) stay in the repo.
   `scripts/package-skills.py` says which skill goes where. Whenever you pull a
-  `main` that changed, run `./scripts/package-skills.sh` and compare each
-  `dist/<folder>/manifest.json` with the one in Drive: upload the zips whose
-  SHA-256 changed, plus that folder's `README.md` and `manifest.json`, to the
-  library's `skills/` (players) and every campaign's `gm/skills/` (GM). Then
-  tell the Librarian which skills changed, so the group can re-upload them.
+  `main` that changed, download the `manifest.json` from the library's
+  `skills/` (and a campaign's `gm/skills/` once GM skills exist) and run
+  `./scripts/package-skills.sh --compare players=<that manifest> --upload <dir>`.
+  It says which zips' SHA-256 changed and puts them in `<dir>/players/` with
+  that folder's `README.md` and `manifest.json`: upload those to the library's
+  `skills/` (and the GM ones to every campaign's `gm/skills/`). Then tell the
+  Librarian which skills changed, so the group can re-upload them.
 - Run the tests with `python3 -m unittest discover tests` before pushing. CI
   (`.github/workflows/tests.yml`) runs them with ResourceWarning as an error,
   `sync-shared.sh --check`, the packaging, and fails a pull request that changes
