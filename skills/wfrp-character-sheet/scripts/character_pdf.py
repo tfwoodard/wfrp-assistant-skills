@@ -13,7 +13,7 @@ record says is to settle, what the build couldn't work out) above the basic skil
 advanced skills and the talents, each with a one-line summary; (2) weapons, armour by location, trappings in their
 containers, money, spells each with a one-line summary of what it does (the entry's `summary`, as
 for each talent on the first page),
-ambitions, psychology and mutations (these follow on from the first page, so no page is left
+ambitions (the character's, then the party's name, members and ambitions), psychology and mutations (these follow on from the first page, so no page is left
 nearly empty); (3) a page of its own to mark in play: Wounds, Fortune, Resolve and Corruption as
 boxes, Advantage (a tally at +10 each, or one box where a house rule sets `"advantage": "on-off"`),
 and every condition in play with boxes to count it. Nothing is printed on a filled background, to
@@ -201,8 +201,12 @@ def page_two(m):
     money = m.get("money") or {}
     out.append(f'<div class="box small"><b>Money</b>: {e(money.get("gc", 0))} gc · {e(money.get("ss", 0))} ss · {e(money.get("d", 0))} d</div>')
     side = []
-    if m.get("ambitions"):
-        side.append("<h2>Ambitions</h2><ul>" + "".join(f"<li>{e(k.title())}: {e(v)}</li>" for k, v in m["ambitions"].items() if v) + "</ul>")
+    mine = [(k.title(), v) for k, v in (m.get("ambitions") or {}).items() if v]
+    party = list(bc.party_lines(m.get("party") or {}).items())
+    if mine or party:                       # the character's own, then the party's, in one section
+        side.append("<h2>Ambitions</h2><ul>" + "".join(f"<li>{e(k)}: {e(v)}</li>" for k, v in mine) + "</ul>"
+                    + (f'<div class="small"><b>Party{": " + e(m["party"]["name"]) if m["party"].get("name") else ""}</b></div><ul>'
+                       + "".join(f"<li>{e(k)}: {e(v)}</li>" for k, v in party if k != "Name") + "</ul>" if party else ""))
     for title, key in (("Psychology", "psychology"), ("Mutations", "mutations")):
         if m.get(key):
             side.append(f"<h2>{title}</h2><ul>" + "".join(

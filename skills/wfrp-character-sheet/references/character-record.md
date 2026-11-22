@@ -53,6 +53,7 @@ shows up on the next build, and nothing in the record goes stale.
   "mutations": [],
   "psychology": [],
   "ambitions": { "short": "", "long": "" },
+  "party": { "name": "", "members": [], "short": "", "long": "" },
   "details": { "age": 24, "height": "", "eyes": "", "hair": "" },
   "exceptions": [
     { "id": "talent-max:hardy", "why": "The GM allowed a second Hardy after the fever", "house_rule": null }
@@ -80,6 +81,7 @@ shows up on the next build, and nothing in the record goes stale.
 | `trappings` | Library trappings by `ref`, or anything else by `name` with its `enc`. `id` names a container so other lines can be `in` it (only the container's own Encumbrance counts); `worn` takes 1 off; `stowed` is owned but not carried. Armour counts on the sheet's locations only when `worn`. |
 | `state` | What changes in play. Wounds left, Fortune and Resolve left are worked out. |
 | `psychology`, `mutations` | Each item is plain words (`"Animosity (Sigmarites)"`), or a row of a table in the library: `{ "table": "tables/<slug>", "row": "<the row's name as its cell prints it>", "from": "<the entry that gave it, if one did>", "notes": "" }`. Write a row that way whenever the table is in the library: the sheet then shows what the row says with its citation, and the build applies the formulas the table's entry carries for that row. A row without a formula is noted on the sheet: read it. |
+| `ambitions`, `party` | The character's own short- and long-term ambitions, and the party's: its `name`, `members` and shared `short` and `long` ambitions. The printed sheet shows both in its Ambitions section; leave out what the group hasn't named. |
 | `exceptions` | Differences from the rules the group has settled for this character, by the difference's `id`, with `why`, and `house_rule` when a campaign house rule is the reason. A rule the sheet lists to read (`check:<entry>/<id>`) is settled the same way once it has been read and applied. See below. |
 | `to_complete` | What the group has checked and knows is still owed: `[{"id": "check:asur-magehood/previous-lore", "what": "A fourth Hysh spell, owed for Arcane Magic (Chamon)"}]`. The difference or rule to read with that `id` is listed under "Still to complete" with `what`, not as open; when it no longer turns up, the sheet says the entry can come off. |
 | `incomplete` | Things the player still has to settle; the sheet shows them at the top until they're fixed. |
@@ -151,8 +153,8 @@ looked at.
 hand-kept spreadsheet (as the Drive connector reads it) into JSON: what the
 sheet says, not a record. Write the record from it, resolving each name to its
 entry (`find_entry.py`), with `how: "imported"` on every advance whose history
-the sheet doesn't give, `xp.spent` as the sheet has it, and anything unclear in
-`incomplete`. Then `build_character.py ... --shown shown.json` adds
+the sheet doesn't give, `xp.spent` as the sheet has it, `party` from its Party
+block, and anything unclear in `incomplete`. Then `build_character.py ... --shown shown.json` adds
 `compared`: each number the sheet shows and the build works out differently.
 Go through those and the differences with the player before changing anything.
 
