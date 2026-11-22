@@ -39,6 +39,11 @@ Google Drive library imported from the group's own PDFs.
 
 ## Library operations
 
+- At the start of a session, read `handoff.md` at the library's root: where the work
+  stands, the Librarian's standing decisions, the campaign and its characters, and open
+  items. Before the session ends, bring it up to date (versions in Drive, open items, new
+  decisions) and upload it. It stays in Drive, never in the repo: it describes campaign
+  files and characters.
 - During imports and bulk updates, treat Drive uploads and downloads as trivial.
   The connection is unmetered and fast. When a library file needs checking or
   correcting, download it and fix it; don't weigh whether the transfer is worth it.
