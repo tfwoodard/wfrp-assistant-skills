@@ -2,7 +2,8 @@
 """Print a character's sheet: an HTML page laid out for Letter paper, and a PDF of it.
 
     character_pdf.py RECORD --library ROOT --campaign SLUG [--out DIR] [--pdf]
-        -> DIR/<slug>.html (and DIR/<slug>.pdf with --pdf)
+        -> DIR/<slug>.html, DIR/<slug>.md (the markdown sheet, build_character.py --md), and
+           DIR/<slug>.pdf with --pdf: everything to upload beside the record, from one build
 
 The sheet is the build (build_character.py) of the record, never the record's own numbers, on three
 pages: (1) characteristics with their bonuses, the attributes (Wounds, Movement, Fate and Fortune,
@@ -335,9 +336,17 @@ def main():
     with open(base + ".html", "w", encoding="utf-8") as f:
         f.write(document(m, conditions_in_play(lib)))
     print("wrote", base + ".html")
+    with open(base + ".md", "w", encoding="utf-8") as f:
+        f.write(bc.markdown(m))
+    print("wrote", base + ".md")
     if a.pdf:
         to_pdf(base + ".html", base + ".pdf")
         print("wrote", base + ".pdf")
+    import summaries_owed
+    n = len(summaries_owed.owed(m, lib))
+    if n:
+        print(f"{n} {'summary' if n == 1 else 'summaries'} still to write for the sheet: summaries_owed.py lists them "
+              "with each entry's text")
 
 
 if __name__ == "__main__":

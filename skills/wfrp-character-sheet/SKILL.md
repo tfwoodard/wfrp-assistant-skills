@@ -189,23 +189,36 @@ For a sheet to print or keep beside the table:
 python3 scripts/character_pdf.py <record>.json --library <root> --campaign <slug> --out <dir> --pdf
 ```
 
-It writes `<slug>.html` and `<slug>.pdf` (three Letter pages): characteristics,
+It writes `<slug>.html`, `<slug>.md` (the markdown sheet, the same as
+`build_character.py --md`) and `<slug>.pdf` (three Letter pages) from one build: characteristics,
 attributes, the career, a **To do** box (earlier levels still to complete,
 differences, what is to settle, what wasn't worked out), skills and talents on
 the first; weapons, armour, trappings, money, spells, ambitions and psychology
 on the second; and a page to mark in play: Wounds, Fortune and Resolve as
-boxes, and every condition in play with boxes to count it. Upload both beside
-the record.
+boxes, and every condition in play with boxes to count it. Upload all three
+beside the record.
 
 Each spell and talent prints with a one-line summary of what it does, from its entry's
 `summary`, with any bonus it names in the character's own numbers ("heals 12
-Wounds"). A spell or talent without one is in the To do box: read the entry and write
-one line in your own words, never the book's sentences, show it to the
-Librarian, and set it with `set_formulas.py <spell>.json --summary "..."`. Say who
-makes every Test it names ("if you pass…", "if the target passes…").
-(wfrp-import), naming bonuses in full ("Willpower Bonus yards") so they print
-as numbers. Upload the entry's `.json` and `.md` as after any library change. Without a browser that prints (Playwright, Chrome, Edge or Chromium),
-it says so: send the HTML and the player prints it from a browser.
+Wounds"); so does each condition on the play page. The script says how many are
+still owed, and
+
+```
+python3 scripts/summaries_owed.py <record>.json --library <root> --campaign <slug>
+```
+
+lists each: a talent, spell or condition in play whose entry has no summary, or a
+talent with summaries for other specialisations but not the one taken. With each
+come the entry's file, its citation, the command to set it, and the entry's text.
+Write one line in your own words, never the book's sentences; say who makes
+every Test it names ("if you pass…", "if the target passes…"); name bonuses in
+full ("Willpower Bonus yards") so they print as numbers. Show it to the
+Librarian beside the text, and once approved set it with wfrp-import's
+`set_formulas.py <entry>.json --summary "..."` (`--specialisation` for one
+specialisation's). Upload the entry's `.json` and `.md` as after any library
+change, and print the sheet again. Without a browser that prints (Playwright,
+Chrome, Edge or Chromium), the script says so: send the HTML and the player
+prints it from a browser.
 
 ## A character kept on a sheet
 
