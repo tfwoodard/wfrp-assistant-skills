@@ -223,7 +223,11 @@ apply: on the entry only, carried over on re-import, written when a character
 first takes the spell and shown to the Librarian, never the book's sentences.
 Name a bonus in full ("Willpower Bonus yards") so the sheet prints the
 character's number, and say who makes every Test it names ("if you pass…",
-"if the target passes…").
+"if the target passes…"). Where a talent's specialisations are different
+benefits (Blood of Aenarion's Magical or Martial Prodigy), put what every
+character gets in the summary and each benefit in its own
+(`--specialisation "Magical Prodigy" --summary "..."`): the sheet prints only
+the one taken. Write plain sentences.
 
 **Headings with nothing under them.** A heading whose only contents are other
 entries ("Skills and Talents" over talents that are entries themselves, or a

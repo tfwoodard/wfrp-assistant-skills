@@ -168,8 +168,8 @@ def page_one(m):
     flow = f'{callouts}<h2>Basic skills</h2>{skills(m["skills"]["basic"])}<h2>Advanced skills</h2>{skills(m["skills"]["advanced"])}'
     seen, rows = set(), []
     for t in m["talents"]:
-        first = t["ref"] not in seen
-        seen.add(t["ref"])
+        first = (t["ref"], t.get("summary")) not in seen          # the same words twice print once
+        seen.add((t["ref"], t.get("summary")))
         summary = (e(t["summary"]) if t.get("summary") else "<i>No summary yet: read the entry.</i>") if first else "<i>As above.</i>"
         rows.append(f'<div class="spell"><span class="nm">{e(t["name"])}</span><span class="st">'
                     f'{e(t["times"])}{" of " + e(t["max"]) if t.get("max") is not None else ""}'
