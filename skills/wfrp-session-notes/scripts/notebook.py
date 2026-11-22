@@ -19,13 +19,15 @@ null or left out for the whole party), "added" (the date written), and once it n
 "retired": {"session", "date", "why"}}. A retired note stays in the file, in searches and in the
 history, and leaves the sheets. Ids are made from the name; two notes can't share one.
 """
-import argparse, datetime, json, os, re, sys
+import argparse, datetime, json, os, re, sys, unicodedata
 
 KINDS = ("npc", "place", "item", "faction", "thread", "fact")
 
 
 def slug(s):
-    return re.sub(r"[^a-z0-9]+", "-", str(s).lower()).strip("-") or "note"
+    """An id from a name: "The Bögenhafen cult" -> "the-bogenhafen-cult" (accents dropped, not the letters)."""
+    plain = unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", "-", plain.lower()).strip("-") or "note"
 
 
 def path(campaign_dir, gm=False):
