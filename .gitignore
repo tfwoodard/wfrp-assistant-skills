@@ -32,3 +32,4 @@ desktop.ini
 # --- Python ---
 __pycache__/
 *.pyc
+drive-ledger.json
