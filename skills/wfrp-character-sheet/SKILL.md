@@ -207,7 +207,9 @@ character's, then the party's from `campaign.json`) and psychology on the
 second; and a page to mark in play: Wounds, Fortune and Resolve as boxes,
 Advantage, what the campaign notebook says to **Remember** now (the party's
 notes and this character's own: layout §10), and every condition in play with
-boxes to count it. Upload all three beside the record. When a note is added to
+boxes to count it (one box for a condition whose entry says `"stacks": false`,
+such as Prone), under the summary of how Conditions add up (the Multiple
+Conditions rule's). Upload all three beside the record. When a note is added to
 or retired from the notebook, print the party's sheets again.
 
 Each spell and talent prints with a one-line summary of what it does, from its entry's

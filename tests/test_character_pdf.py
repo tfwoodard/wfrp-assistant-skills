@@ -120,6 +120,36 @@ class Sheet(unittest.TestCase):
         self.assertIn('+10 each', play)
         self.assertEqual(play[play.index('Advantage'):].count('class="track'), 10 + 12)   # a tally, then two conditions
 
+    def test_a_condition_that_doesnt_stack_gets_one_box_and_the_combining_rule_prints_above(self):
+        m = self.model(state={'conditions': [{'name': 'Toppled', 'count': 1}]})
+        html = character_pdf.document(m, [{'name': 'Soaked', 'cite': '(LAMP, p. 1)', 'summary': 'Wet.'},
+                                          {'name': 'Toppled', 'cite': '(LAMP, p. 2)', 'summary': 'Down.', 'stacks': False}],
+                                      {'name': 'Piling Up', 'cite': '(LAMP, p. 3)', 'summary': 'The same one twice adds up.'})
+        play = html[html.index('class="page new play"'):]
+        play = play[play.index('<h2>Conditions</h2>'):]
+        self.assertLess(play.index('The same one twice adds up.'), play.index('Soaked'))
+        soaked = play[play.index('Soaked'):play.index('Toppled')]
+        toppled = play[play.index('Toppled'):]
+        self.assertEqual(soaked.count('class="track'), 6)
+        self.assertEqual(toppled.count('class="track'), 1)
+        self.assertIn('track on">✕', toppled)                                   # the one box, marked
+
+    def test_the_library_says_which_conditions_stack(self):
+        import json
+        d = os.path.join(self.root, 'library-data', 'rules')
+        with open(os.path.join(d, '_index.json')) as f: idx = json.load(f)
+        for slug, name, fields in (('toppled', 'Toppled', {'kind': 'condition', 'stacks': False}),
+                                   ('soaked', 'Soaked', {'kind': 'condition'}),
+                                   ('multiple-conditions', 'Multiple Conditions', {'kind': 'procedure', 'summary': 'They add up.'})):
+            with open(os.path.join(d, slug + '.json'), 'w') as f:
+                json.dump({'slug': slug, 'name': name, 'source': 'LAMP', 'chapter': 'ch2', 'section': name, 'page': 5,
+                           'fields': fields, 'content': []}, f)
+            idx.append({'slug': slug, 'name': name, 'source': 'LAMP', 'chapter': 'ch2', 'section': name, 'page': 5, 'kind': fields['kind']})
+        with open(os.path.join(d, '_index.json'), 'w') as f: json.dump(idx, f)
+        lib = Library(self.root, 'rock')
+        self.assertEqual({c['name']: c['stacks'] for c in character_pdf.conditions_in_play(lib)}, {'Soaked': True, 'Toppled': False})
+        self.assertEqual(character_pdf.conditions_combining(lib)['summary'], 'They add up.')
+
     def test_a_house_rule_makes_advantage_one_box(self):
         import json
         p = os.path.join(self.root, 'campaigns', 'rock', 'campaign.json')
