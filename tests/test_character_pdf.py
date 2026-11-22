@@ -44,6 +44,9 @@ class Sheet(unittest.TestCase):
         todo = html[html.index('class="todo"'):html.index('Basic skills')]
         self.assertLess(html.index('class="flow"'), html.index('class="todo"'))     # at the top of the columns, above the basic skills
         self.assertNotIn('background:', html)                                          # no fills: they waste ink
+        self.assertNotIn('Watchers: Warden (', html)                                    # the header names the career
+        self.assertNotIn('<b>Encumbrance</b>', html)                                    # it is in the attributes
+        self.assertNotIn('<td class="">Tending</td>', html)                             # Tending (Wicks) is listed
         for s in ('Still to complete', 'Differs from the rules', 'To settle', 'Not worked out'):
             self.assertIn(s, todo, s)
         m = bc.build(dict(r, to_complete=[{'id': 'xp-cost:*', 'what': 'Pay back the 87 XP'}]), Library(self.root, 'rock'))
@@ -106,7 +109,9 @@ class Sheet(unittest.TestCase):
 
     def test_the_play_page_marks_what_is_taken_and_lists_the_conditions(self):
         m = self.model(state={'wounds_taken': 2, 'fortune_spent': 1, 'corruption': 1, 'conditions': [{'name': 'Soaked', 'count': 2}]})
-        html = character_pdf.document(m, [{'name': 'Soaked', 'cite': '(LAMP, p. 1)'}, {'name': 'Dazzled'}])
+        html = character_pdf.document(m, [{'name': 'Soaked', 'cite': '(LAMP, p. 1)', 'summary': 'Dry off after Toughness Bonus Rounds.'},
+                                          {'name': 'Dazzled'}])
+        self.assertIn('Dry off after 4 Rounds.', html)
         play = html[html.index('class="page new play"'):]
         self.assertEqual(play.count('track on">✕'), 2 + 1 + 1 + 2)        # wounds, fortune, corruption, Soaked: marked, not filled
         self.assertIn('Dazzled', play)
