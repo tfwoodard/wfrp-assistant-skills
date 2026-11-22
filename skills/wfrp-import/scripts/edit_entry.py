@@ -32,7 +32,7 @@ INDEX_FIELDS = {
     "creatures": ("kind", "species_type", "characteristics", "traits", "title"), "traits": ("rated",),
     "diseases": ("contraction", "incubation", "duration"), "mutations": ("kind",), "lore": ("kind",),
 }
-FORMULAS = ("effects", "checks", "grants", "rows", "summary", "summaries")
+FORMULAS = ("effects", "checks", "grants", "rows", "lived_through", "summary", "summaries")
 ROLES = ("adds-to", "version-of", "distinct-from", "reprint-of", "replaces")
 
 

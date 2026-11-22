@@ -32,16 +32,29 @@ Librarian has confirmed beside its sentence goes in: the text stays the authorit
 import argparse, json, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from convert_rules import formula_problem, norm  # noqa: E402
+from convert_rules import entry_tables, formula_problem, norm  # noqa: E402
 from render_entry import render  # noqa: E402
 
 
-def set_formulas(entry, effects=None, checks=None, row=None, grants=None):
+def set_formulas(entry, effects=None, checks=None, row=None, grants=None, row_fields=None, lived_through=None):
     """Change `entry` in place; returns what changed as text. Raises ValueError for a formula that
-    doesn't fit the entry."""
+    doesn't fit the entry. `row_fields` ({"careers", "psychology", "burdens"}, with `row`) are the
+    rest of what a Time's row gives an Elder; `lived_through` names the table of Times (ADR 0008)."""
     f = entry.setdefault('fields', {})
     said = []
-    for kind, items in (('effects', effects), ('checks', checks), ('grants', grants)):
+    if lived_through is not None:
+        bad = formula_problem(entry, 'lived_through', lived_through) if lived_through else None
+        if bad: raise ValueError(bad)
+        if lived_through: f['lived_through'] = lived_through
+        else: f.pop('lived_through', None)
+        said.append('lived_through: ' + ('set' if lived_through else 'none'))
+    pairs = [('effects', effects), ('checks', checks), ('grants', grants)]
+    if row_fields is not None:
+        if row is None: raise ValueError('--row-fields goes with --row')
+        if not isinstance(row_fields, dict) or set(row_fields) - {'careers', 'psychology', 'burdens'}:
+            raise ValueError('--row-fields takes "careers", "psychology" and "burdens"')
+        pairs += list(row_fields.items())
+    for kind, items in pairs:
         if items is None:
             continue
         if row is None:
@@ -54,17 +67,17 @@ def set_formulas(entry, effects=None, checks=None, row=None, grants=None):
             raise ValueError('a table row takes "effects" and "checks"')
         else:
             rows = {k: dict(v) for k, v in f.get('rows', {}).items()}
-            printed = [str(c) for b in entry.get('content', []) if b.get('type') == 'table'
+            printed = [str(c) for b in entry_tables(entry.get('content'))
                        for r in b.get('rows', []) for c in r if norm(str(c)) == norm(row)]
             key = next((k for k in rows if norm(k) == norm(row)), printed[0] if printed else row)   # as the table prints it
-            if items: rows.setdefault(key, {})[kind] = items
+            if items or items == 0 and kind == 'careers': rows.setdefault(key, {})[kind] = items
             else: rows.get(key, {}).pop(kind, None)
             rows = {k: v for k, v in rows.items() if v}
             bad = formula_problem(entry, 'rows', rows) if rows else None
             if bad: raise ValueError(bad)
             if rows: f['rows'] = rows
             else: f.pop('rows', None)
-            said.append(f'row "{key}" {kind}: {len(items)}' if items else f'row "{key}" {kind}: none')
+            said.append(f'row "{key}" {kind}: ' + (str(items) if kind == 'careers' else str(len(items)) if items else 'none'))
     return ', '.join(said)
 
 
@@ -77,17 +90,22 @@ def main():
     ap.add_argument('--summary', help="one line in your own words of what the entry does, for the printed sheet")
     ap.add_argument('--specialisation', help="with --summary: the specialisation the summary is for")
     ap.add_argument('--row', help="the table row the formulas are for, by a cell's whole text")
+    ap.add_argument('--row-fields', help='with --row, JSON: what a Time gives an Elder: {"careers": N, "psychology": [...], '
+                    '"burdens": [{"text": "...", "only_earliest": true}]} (ADR 0008)')
+    ap.add_argument('--lived-through', help='JSON {"table": TITLE, "column": NAME}: the table of Times an Elder lives through '
+                    '(ADR 0008); {} removes it')
     ap.add_argument('--show', action='store_true', help="print the entry's formulas and its numbered blocks")
     a = ap.parse_args()
     with open(a.entry, encoding='utf-8') as fh:
         entry = json.load(fh)
     if a.show:
-        print(json.dumps({k: v for k, v in entry.get('fields', {}).items() if k in ('effects', 'checks', 'grants', 'rows', 'summary', 'summaries')}, ensure_ascii=False, indent=1))
+        print(json.dumps({k: v for k, v in entry.get('fields', {}).items() if k in ('effects', 'checks', 'grants', 'rows', 'lived_through', 'summary', 'summaries')}, ensure_ascii=False, indent=1))
         for i, b in enumerate(entry.get('content', [])):
             print(f'{i}: {b.get("type")} {(b.get("text") or b.get("title") or "")[:70]}')
         return 0
-    if a.effects is None and a.checks is None and a.grants is None and a.summary is None:
-        ap.error('give --effects, --checks, --grants, --summary or --show')
+    if a.effects is None and a.checks is None and a.grants is None and a.summary is None and a.row_fields is None \
+            and a.lived_through is None:
+        ap.error('give --effects, --checks, --grants, --row-fields, --lived-through, --summary or --show')
     if a.specialisation and a.summary is None:
         ap.error('--specialisation goes with --summary')
     if a.summary is not None:
@@ -104,10 +122,12 @@ def main():
         else: f.pop('summary', None)
     try:
         said = ('summary: ' + ('set' if a.summary.strip() else 'none')) if a.summary is not None and \
-            a.effects is None and a.checks is None and a.grants is None else None
+            a.effects is None and a.checks is None and a.grants is None and a.row_fields is None and a.lived_through is None else None
         said = said or set_formulas(entry, json.loads(a.effects) if a.effects is not None else None,
                             json.loads(a.checks) if a.checks is not None else None, a.row,
-                            json.loads(a.grants) if a.grants is not None else None)
+                            json.loads(a.grants) if a.grants is not None else None,
+                            json.loads(a.row_fields) if a.row_fields is not None else None,
+                            json.loads(a.lived_through) if a.lived_through is not None else None)
     except ValueError as x:
         print(f'{a.entry}: {x}', file=sys.stderr)
         return 1

@@ -14,6 +14,12 @@ Commands:
                                               the starting characteristics, all ten, as rolled or
                                               allocated (before anything a talent adds)
   points --fate N --resilience N              the extra points the species gives to share out
+  elder --born TIME [--career "TIME=CAREER:rolled|chosen" ...]
+                                              an Elder (a creation rule with a grant from
+                                              elder-career, such as HEPG's Elders of the Asur): the
+                                              Time of birth and the career followed in each Time
+                                              lived through; their skills are bought with --how elder
+                                              --time TIME
   item "NAME" [--qty N] [--id ID] [--in ID] [--worn] [--stowed] [--enc N] [--notes TEXT]
                                               a trapping: the library's entry when one has that name,
                                               otherwise the name (give --enc); --id names a container,
@@ -26,9 +32,10 @@ Commands:
   buy --talent "NAME"                         a talent, once: "Hardy", "Arcane Magic (Hysh)"
   buy --spell "NAME" [--lore LORE]            a spell; --lore for an Arcane spell when the
                                               character has more than one lore
-        with --session N, --date YYYY-MM-DD, --notes TEXT, and --how xp|free|talent|species|career
+        with --session N, --date YYYY-MM-DD, --notes TEXT, and --how xp|free|talent|species|career|elder
         (free: given in play, no XP; talent: one of the spells Petty Magic gives when it is taken;
-        species, career: given at creation, checked against what the creation rules grant)
+        species, career: given at creation, checked against what the creation rules grant; elder:
+        from an Elder's career in the Time given with --time)
   log TEXT [--session N] [--date YYYY-MM-DD]   appends a changelog entry
 
 A purchase is added to the record's `advances` (the build prices it: never write the price), the
@@ -215,9 +222,35 @@ def finish(record, lib):
     return new, said
 
 
+def elder(record, lib, a):
+    careers = []
+    for spec in a.career or []:
+        time, eq, rest = spec.partition("=")
+        name, _, how = rest.rpartition(":")
+        if not eq or how not in ("rolled", "chosen") or not name.strip():
+            sys.exit(f"'{spec}': write TIME=CAREER:rolled or TIME=CAREER:chosen")
+        r = lib.find("careers", name.strip())
+        if not r: sys.exit(f"'{name.strip()}' isn't one entry among the careers in play.")
+        careers.append({"time": time.strip(), "ref": lib.current(r), "how": how})
+    new = copy.deepcopy(record)
+    new.setdefault("species", {})["elder"] = {"born": a.born, "careers": careers}
+    said = [f"An Elder born in the {a.born}" + ("; earlier careers: " + "; ".join(
+        f"{c['time']}: {lib.entry(c['ref'])['name']} ({c['how']})" for c in careers) if careers else "")]
+    m = bc.build(copy.deepcopy(new), lib)
+    for c in (m.get("elder") or {}).get("careers", []):
+        if c.get("left"): said.append(f"To give from the {c['time']} career: {c['left']} advances (buy --skill ... --how elder --time \"{c['time']}\")")
+    said += [f"Differs from the rules: {d['text']} `{d['id']}`" for d in m["differences"] if d["id"].startswith(("elder:", "creation:"))]
+    said += ["Burden: " + t for b in (m.get("elder") or {}).get("burdens", []) for t in b["text"]]
+    return new, said
+
+
 def buy(record, lib, a):
     line, name = line_for(a, lib)
     line["how"] = a.how
+    if a.how == "elder":
+        if not a.time: sys.exit("--how elder needs --time: the Time of the Elder's career it came from")
+        if not a.skill: sys.exit("an Elder's earlier careers give skill advances only")
+        line["time"] = a.time
     for k in ("session", "notes"):
         if getattr(a, k) is not None: line[k] = getattr(a, k)
     before = bc.build(copy.deepcopy(record), lib)
@@ -231,11 +264,15 @@ def buy(record, lib, a):
     said = [f"{name}" + (f" x{a.count}" if "count" in line and a.count != 1 else "") +
             (": " + ("given in play, no XP" if a.how == "free" else "comes with the talent, no XP" if a.how == "talent" else
                     f"from the {a.how} at creation" if a.how in ("species", "career") else
+                    f"from the Elder's career in the {a.time}" if a.how == "elder" else
                     f"{price} XP" if price is not None else "price not worked out"))]
     if a.how == "xp" and price is not None and (new.get("xp") or {}).get("spent") is not None:
         new["xp"]["spent"] += price                    # an imported record keeps its total by hand
     after = bc.build(copy.deepcopy(new), lib)
     said.append(f"XP to spend: {before['xp']['current']} -> {after['xp']['current']}")
+    for c in (after.get("elder") or {}).get("careers", []):
+        if a.how == "elder" and bc.norm(c["time"]) == bc.norm(a.time or "") and c.get("left") is not None:
+            said.append(f"Still to give from the {c['time']} career ({c['name']}): {c['left']} advances")
     for g in after.get("creation", []):
         if g["how"] == a.how and g["kind"] == next(k for k in ("characteristic", "skill", "talent") if k in line) and g["left"]:
             left = g["left"] if not isinstance(g["left"], dict) else ", ".join(f"{n} at {v}" for v, n in g["left"].items())
@@ -288,7 +325,8 @@ def main():
     g.add_argument("--characteristic"); g.add_argument("--skill"); g.add_argument("--talent"); g.add_argument("--spell")
     b.add_argument("--lore")
     b.add_argument("--count", type=int, default=1)
-    b.add_argument("--how", choices=("xp", "free", "talent", "species", "career"), default="xp")
+    b.add_argument("--how", choices=("xp", "free", "talent", "species", "career", "elder"), default="xp")
+    b.add_argument("--time", help="with --how elder: the Time of the Elder's career the advances came from")
     st = sub.add_parser("start")
     for k in ("--name", "--species", "--career"): st.add_argument(k, required=True)
     st.add_argument("--origin"); st.add_argument("--player")
@@ -304,6 +342,8 @@ def main():
     mo = sub.add_parser("money")
     for k in ("--gc", "--ss", "--d"): mo.add_argument(k, type=int)
     sub.add_parser("finish")
+    el = sub.add_parser("elder")
+    el.add_argument("--born", required=True); el.add_argument("--career", action="append")
     pt = sub.add_parser("points")
     pt.add_argument("--fate", type=int, required=True); pt.add_argument("--resilience", type=int, required=True)
     for p in (b, sub.add_parser("log")):
@@ -320,15 +360,17 @@ def main():
         with open(a.record, encoding="utf-8") as f:
             record = json.load(f)
     date = getattr(a, "date", None) or datetime.date.today().isoformat()
-    if a.cmd in ("start", "initial", "points"):
+    if a.cmd in ("start", "initial", "points", "elder"):
         if a.cmd == "start": new, said = start(lib, a)
         elif a.cmd == "initial": new, said = initial(record, a)
+        elif a.cmd == "elder": new, said = elder(record, lib, a)
         else:
             new = copy.deepcopy(record)
             new["extra_points"] = {"fate": a.fate, "resilience": a.resilience}
             said = [f"Extra points: Fate {a.fate}, Resilience {a.resilience}"]
         new.setdefault("changelog", []).append({"date": date, "text": said[0]})
-        settle_creation_xp(new, lib, said, a.cmd == "start")
+        if a.cmd != "elder" or new.get("creating"):      # an Elder written in later keeps the XP it has
+            settle_creation_xp(new, lib, said, a.cmd == "start")
     elif a.cmd in ("item", "money", "finish"):
         if a.cmd == "item": new, said = item(record, lib, a)
         elif a.cmd == "money":

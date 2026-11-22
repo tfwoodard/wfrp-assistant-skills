@@ -13,7 +13,8 @@ record says is to settle, what the build couldn't work out) above the basic skil
 advanced skills and the talents, each with a one-line summary; (2) weapons, armour by location, trappings in their
 containers, money, spells each with a one-line summary of what it does (the entry's `summary`, as
 for each talent on the first page),
-ambitions (the character's, then the party's name, members and ambitions), psychology and mutations (these follow on from the first page, so no page is left
+ambitions (the character's, then the party's name, members and ambitions), psychology, mutations, and an Elder's
+Time of birth, earlier careers and burdens (these follow on from the first page, so no page is left
 nearly empty); (3) a page of its own to mark in play: Wounds, Fortune, Resolve and Corruption as
 boxes, Advantage (a tally at +10 each, or one box where a house rule sets `"advantage": "on-off"`),
 and every condition in play with boxes to count it. Nothing is printed on a filled background, to
@@ -213,6 +214,8 @@ def page_two(m):
                 f"<li>{e(x)}</li>" if isinstance(x, str) else
                 f"<li>{e(x['name'])}" + (f": {e('; '.join(x['cells']))}" if x.get("cells") else "") +
                 (f" <span class='cite'>{e(x.get('cite'))}</span>" if x.get("cite") else "") + "</li>" for x in m[key]) + "</ul>")
+    if m.get("elder"):                       # where they were born, the careers before this one, what it costs them
+        side.append("<h2>Elder</h2><ul>" + "".join(f"<li>{e(x[2:])}</li>" for x in bc.elder_lines(m["elder"])) + "</ul>")
     st = m.get("state") or {}
     for title, key in (("Conditions", "conditions"), ("Critical wounds", "critical_wounds"), ("Insanities", "insanities")):
         if st.get(key):

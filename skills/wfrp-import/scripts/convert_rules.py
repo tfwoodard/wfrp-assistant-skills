@@ -1875,7 +1875,17 @@ def old_role(x):
     return isinstance(x, list) and any(old_role(v) for v in x)
 
 
-FORMULA_KINDS = ('effects', 'checks', 'grants', 'rows')
+FORMULA_KINDS = ('effects', 'checks', 'grants', 'rows', 'lived_through')
+ROW_KEYS = ('effects', 'checks', 'careers', 'psychology', 'burdens')     # what a table row's formulas may hold
+
+
+def entry_tables(blocks):
+    """Every table in an entry's blocks, those inside a sidebar or a box included."""
+    for b in blocks or []:
+        if b.get('type') == 'table':
+            yield b
+        if isinstance(b.get('content'), list):
+            yield from entry_tables(b['content'])
 
 
 def formula_problem(entry, kind, items):
@@ -1886,14 +1896,23 @@ def formula_problem(entry, kind, items):
     an effect may be "on" and the words of a "test" are the character builder's to know."""
     def shape(k, its, row=None):
         if k == 'grants' and row:
-            return 'a table row takes "effects" and "checks"'
+            return 'a table row takes ' + ', '.join(f'"{w}"' for w in ROW_KEYS)
+        if row and k == 'careers':
+            return None if isinstance(its, int) and its >= 0 else '"careers" is how many earlier careers the row gives (ADR 0008)'
+        if row and k == 'psychology':
+            return None if isinstance(its, list) and all(isinstance(x, str) and x for x in its) else \
+                '"psychology" lists the traits the row gives, by name'
+        if row and k == 'burdens':
+            return None if isinstance(its, list) and all(isinstance(x, dict) and isinstance(x.get('text'), str) and x['text']
+                                                         and set(x) <= {'text', 'only_earliest'} for x in its) else \
+                '"burdens" lists {"text": "...", "only_earliest": true|false}'
         if k not in ('effects', 'checks', 'grants') or not isinstance(its, list):
             return 'takes "effects" and "checks", each a list' + ('' if row else ', and "rows" for a table\'s rows')
         for it in its:
             if not isinstance(it, dict):
                 return 'each formula is an object'
-            if k == 'effects' and not ('on' in it and ('add' in it or 'multiply' in it)):
-                return 'an effect needs "on" and "add" (or "multiply", for a price)'
+            if k == 'effects' and not ('on' in it and ('add' in it or 'multiply' in it or 'set' in it)):
+                return 'an effect needs "on" and "add" (or "multiply", for a price, or "set", for a value it replaces)'
             if k == 'checks' and not (it.get('id') and ('test' in it or it.get('read'))):
                 return 'a check needs an "id" and a "test" or a "read"'
             if k == 'grants' and not all(it.get(w) for w in ('id', 'how', 'kind', 'from')):
@@ -1902,17 +1921,26 @@ def formula_problem(entry, kind, items):
                 return f'"at" must be the number of one of the entry\'s {len(entry["content"])} blocks (from 0)'
         return None
 
+    if kind == 'lived_through':
+        if not isinstance(items, dict) or set(items) != {'table', 'column'}:
+            return '"lived_through" is {"table": its title, "column": the column naming each Time} (ADR 0008)'
+        t = next((b for b in entry_tables(entry.get('content')) if norm(b.get('title') or '') == norm(items['table'])), None)
+        if not t:
+            return f'no table "{items["table"]}" in the entry'
+        if norm(items['column']) not in [norm(c) for c in t.get('columns', [])]:
+            return f'the table "{items["table"]}" has no column "{items["column"]}"'
+        return None
     if kind != 'rows':
         return shape(kind, items)
     if not isinstance(items, dict):
         return '"rows" is an object of row name to its formulas'
-    rows = [r for b in entry['content'] if b.get('type') == 'table' for r in b.get('rows', [])]
+    rows = [r for b in entry_tables(entry['content']) for r in b.get('rows', [])]
     for name, rf in items.items():
         hits = sum(1 for r in rows if norm(name) in [norm(str(c)) for c in r])
         if hits != 1:
             return f'"{name}" names {hits} rows of its table: it must name one, by a cell\'s whole text'
-        if not isinstance(rf, dict) or not rf:
-            return f'row "{name}" needs "effects" or "checks"'
+        if not isinstance(rf, dict) or not rf or set(rf) - set(ROW_KEYS):
+            return f'row "{name}" takes ' + ', '.join(f'"{w}"' for w in ROW_KEYS)
         bad = next((w for w in (shape(k, v, name) for k, v in rf.items()) if w), None)
         if bad:
             return f'row "{name}": {bad}'
