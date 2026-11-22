@@ -102,7 +102,11 @@ Values: a characteristic or its bonus, or a sum of them as the species
 formulas write it (`"WPB"`, `"WP + 10"`); `{"advances": skill, "specialisation"}`
 (one specialisation or the highest); `{"times": talent, "specialisation"}` (one
 specialisation or all); `{"count": {"talent"|"skill": ref or [refs]}}` (how many
-of them are taken) or `{"count": {"spell": {"lore"|"kind": name}}}`; and
+of them are taken) or `{"count": {"spell": {"lore"|"kind"|"learned_under": name}}}`
+(`lore` is the spell entry's own lore, which an Arcane spell hasn't; `learned_under`
+is the lore the character learned it under, so it counts that Lore's spells and
+the Arcane spells learned as part of it: the record's `lore` on the spell's line,
+or the character's only lore); and
 `{"species"|"career"|"class"|"level"|"status": true}`. A Wind and its Lore are
 the same specialisation ("Hysh" is "Light"). Comparisons: `{"value": V,
 "at_least"|"at_most"|"equals": W}`, where `equals` may list what it may be.
