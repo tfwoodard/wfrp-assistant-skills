@@ -133,6 +133,25 @@ class Sheet(unittest.TestCase):
         self.assertIn('You have the edge (+10) or you do not', play)
         self.assertEqual(play.count('class="track'), 1)
 
+    def test_the_partys_ambitions_print_with_the_characters_own(self):
+        r = record(ambitions={'short': 'Mend the lamp', 'long': ''},
+                   party={'name': 'The Wick', 'members': ['Mara', 'Oss'], 'short': 'Find the lost buoy', 'long': ''})
+        m = bc.build(r, Library(self.root, 'rock'))
+        self.assertEqual(m['party'], {'name': 'The Wick', 'members': ['Mara', 'Oss'], 'short': 'Find the lost buoy'})
+        html = character_pdf.document(m)
+        amb = html[html.index('<h2>Ambitions</h2>'):]
+        amb = amb[:amb.index('<h2>', 5)] if '<h2>' in amb[5:] else amb
+        for s in ('Short: Mend the lamp', 'Party: The Wick', 'Members: Mara, Oss', 'Short: Find the lost buoy'):
+            self.assertIn(s, amb, s)
+        self.assertNotIn('Long:', amb)                                     # nothing named, nothing printed
+        self.assertLess(amb.index('Mend the lamp'), amb.index('The Wick'))
+        md = bc.markdown(m)
+        amb = md[md.index('## Ambitions'):]
+        for s in ('- short: Mend the lamp', '- Party name: The Wick', '- Party members: Mara, Oss', '- Party short: Find the lost buoy'):
+            self.assertIn(s, amb, s)
+        self.assertNotIn('## Party', md)
+        self.assertNotIn('Party', character_pdf.document(bc.build(record(), Library(self.root, 'rock'))))
+
     def test_text_from_the_record_is_escaped(self):
         html = character_pdf.document(self.model(name='<Mara & Co>'))
         self.assertIn('&lt;Mara &amp; Co&gt;', html)

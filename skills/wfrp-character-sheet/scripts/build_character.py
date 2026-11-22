@@ -325,6 +325,8 @@ class Builder:
         self.run_checks(m)
         for k in ("money", "ambitions", "details"):
             if rec.get(k) not in (None, "", [], {}): m[k] = rec[k]
+        party = {k: v for k, v in (rec.get("party") or {}).items() if v not in (None, "", [])}
+        if party: m["party"] = party
         for k in ("psychology", "mutations"):          # plain words as written; table rows with what they say
             named = iter([r for r in self.rows() if r["list"] == k])
             items = []
@@ -1526,6 +1528,16 @@ def _short(v):
 
 
 # ---------------------------------------------------------------------------- the readable sheet
+def party_lines(p):
+    """The party's name, members and ambitions as {label: text}, in the sheet's order."""
+    out = {}
+    if p.get("name"): out["Name"] = p["name"]
+    if p.get("members"): out["Members"] = ", ".join(p["members"]) if isinstance(p["members"], list) else p["members"]
+    if p.get("short"): out["Short"] = p["short"]
+    if p.get("long"): out["Long"] = p["long"]
+    return out
+
+
 def markdown(m):
     L = []
     c = m.get("career") or {}
@@ -1591,6 +1603,9 @@ def markdown(m):
         L.append("Money: " + ", ".join(f"{v} {k}" for k, v in m["money"].items()))
     for title, key in (("Ambitions", "ambitions"), ("Psychology", "psychology"), ("Mutations", "mutations")):
         v = m.get(key)
+        if key == "ambitions":              # the character's own, then the party's
+            v = {**{k: x for k, x in (v or {}).items() if x},
+                 **{f"Party {k.lower()}": x for k, x in party_lines(m.get("party") or {}).items()}}
         if v:
             L += ["", f"## {title}"] + ([f"- {k}: {x}" for k, x in v.items() if x] if isinstance(v, dict) else [
                 f"- {x}" if isinstance(x, str) else
