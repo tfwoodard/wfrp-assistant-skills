@@ -57,6 +57,11 @@ class Notebook(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.cdir, 'gm', 'notes.json')))
         self.assertNotIn('Hooded', json.dumps(notebook.load(self.cdir)))
 
+    def test_an_accented_name_keeps_its_letters_in_the_id(self):
+        self.nb('add', '--kind', 'thread', '--name', 'The Bögenhafen cult', '--text', 'Root it out')
+        self.assertEqual(notebook.load(self.cdir)[0]['id'], 'the-bogenhafen-cult')
+        self.assertEqual(self.nb('retire', 'The Bögenhafen cult').returncode, 0)      # found by its name too
+
     def test_the_sheets_show_what_is_current_for_that_character(self):
         notebook.save(self.cdir, [
             {'id': 'oss', 'kind': 'npc', 'name': 'Oss', 'text': 'Rows the night crossing', 'from': None},
