@@ -402,6 +402,8 @@ class ConvertRulesTest(unittest.TestCase):
         self.assertEqual([e['name'] for e in new['entries']], ['Dread', 'Wick Rot'])   # each needs more than a name
         self.assertIn({'text': 'Tools of Trimming', 'page': 1}, new['not_entries'])
         self.assertEqual(plan_levels.outcome(lay, plan, None), plan_levels.outcome(lay, new, None))
+        self.assertEqual([plan_levels.converter(p)[0] for p in (plan, {'lists': [{}]}, {'talents': [1, 2]})],
+                         ['convert_rules.py', 'convert_spells.py', 'convert_skills_talents.py'])   # each plan checked by its own
         out = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'heading_levels.py'), layout], capture_output=True, text=True).stdout
         self.assertIn('Level 2: 1 headings', out)
         self.assertIn('Trimming Wicks (p. 1)', out)

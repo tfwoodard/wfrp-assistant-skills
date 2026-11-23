@@ -111,7 +111,7 @@ PDF or anything read from it into the repo.
    them in the report's `entries_from_levels`. A heading at an entry level that
    is in neither list is still an error, so nothing is placed by accident.
    `plan_levels.py PLAN LAYOUT --write` rewrites an older plan that lists every
-   entry this way, only where the converter's output stays exactly the same; a
+   entry this way, only where the output of the converter that reads it stays exactly the same; a
    plan with open errors (an unplaced heading) or with entries that split their
    headings into entries of their own stays as it is.
 4. Convert with the converter for that kind of chapter, then check coverage:
