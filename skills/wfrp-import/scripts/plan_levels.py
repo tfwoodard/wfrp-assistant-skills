@@ -24,7 +24,7 @@ from convert_rules import IDENTITY, apply_defaults, convert, heading_runs  # noq
 from edit_entry import dump_like  # noqa: E402
 from entry_text import fix_case, norm  # noqa: E402
 
-NEW_IN_REPORT = ('entries_from_levels',)     # what a plan with entry_levels adds to the report
+NEW_IN_REPORT = ('entries_from_levels', 'split_pieces')     # what a plan with entry_levels adds to the report
 
 
 def converter(plan):
@@ -91,7 +91,8 @@ def rewrite(plan, layout):
         k = (norm(e.get('heading', e['name'])), e['page'])
         simple = set(e) <= {'name', 'page'} | set(defaults) and all(e.get(d, defaults[d]) == defaults[d] for d in defaults)
         name_as_printed = next((fix_case(h[3]) for h in heads if (h[0], h[1]) == k), None) == e['name']
-        if not (at.get(k) in S and simple and name_as_printed and 'heading' not in e):
+        twice = sum(1 for h in heads if (h[0], h[1]) == k) > 1      # one text twice on a page: kept, as the plan orders them
+        if twice or not (at.get(k) in S and simple and name_as_printed and 'heading' not in e):
             keep.append(e)
     if len(keep) + len(not_entries) >= len(entries):
         return None, f'levels {sorted(S)} would save nothing ({len(keep)} entries kept, {len(not_entries)} not_entries)'
