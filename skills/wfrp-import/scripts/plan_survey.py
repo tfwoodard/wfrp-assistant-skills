@@ -24,6 +24,7 @@ library); keep it out of the repo.
 import argparse, collections, glob, json, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import detectors  # noqa: E402
 
 # plan keys, by group (top-level keys, then keys inside an entry)
 TOP = {
@@ -36,22 +37,12 @@ TOP = {
 ENTRY = {
     "map": {"name", "page", "kind", "category", "slug", "aliases", "heading", "career", "describes_items",
             "heading_only", "subheadings"},
-    "facts": {"fields", "audience", "level_updates"},
+    "facts": {"fields", "audience", "level_updates"},       # fields: checked against detectors.py
     "layout": {"field_labels", "stat_blocks", "split_headings", "split_labels", "starts_at", "headings_as_rows",
                "row_bands"},
 }
 # a plan key that sets one thing for the whole chapter (a column scheme, the icon fonts) counts once
 PER_PLAN = {"intro", "scheme_columns", "icon_text", "icon_fonts", "level_icons", "whole_words"}
-CHARS = r"WS|BS|S|T|I|Ag|Dex|Int|WP|Fel"
-# a field, and a signal in the entry's own text that a detector could read it from (or None)
-SIGNALS = {
-    "stacks": lambda text, v: v is False and re.search(r"\b(does not|doesn't|do not|cannot) stack\b", text, re.I),
-    "characteristic": lambda text, v: re.search(rf"\(({CHARS})\)", text[:300]) and re.search(rf"\({re.escape(str(v))}\)", text[:300]),
-    "advanced": lambda text, v: re.search(r"\b(Advanced|Basic)\b", text[:300]),
-    "grouped": lambda text, v: re.search(r"\b(Grouped|Specialisation|Specialization)\b", text[:300]),
-}
-
-
 def norm(s):
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s()]", "", str(s or "").lower())).strip()
 
@@ -67,18 +58,15 @@ def entry_text(root, category, name, source):
     if not path or not os.path.exists(path): return None
     with open(path, encoding="utf-8") as f:
         e = json.load(f)
-    out = []
-    def walk(bs):
-        for b in bs or []:
-            for k in ("text", "title"):
-                if isinstance(b.get(k), str): out.append(b[k])
-            for r in b.get("rows") or []:
-                out.extend(str(c) for c in r)
-            for i in b.get("items") or []:
-                out.append(i if isinstance(i, str) else json.dumps(i, ensure_ascii=False))
-            walk(b.get("content") if isinstance(b.get("content"), list) else [])
-    walk(e.get("content"))
-    return "\n".join(out)
+    return detectors.plain_text(e.get("content"))
+
+
+def base_skill(root, name):
+    b = detectors.base_name(name)
+    p = os.path.join(root, "library-data", "skills", "_index.json")
+    if not b or not os.path.exists(p): return None
+    with open(p, encoding="utf-8") as f:
+        return next((r for r in json.load(f) if norm(r.get("name")) == norm(b)), None)
 
 
 def survey(root, examples=3):
@@ -140,8 +128,11 @@ def survey(root, examples=3):
                         if text is None:
                             text = entry_text(root, e.get("category") or "rules", e.get("name"), src)   # no category: a rules entry
                             if text is None: unread.append(label); text = ""
-                        sig = SIGNALS.get(fk)
-                        add("facts", f"field {fk}", bool(sig and text and sig(text, fv)), "a signal in its text", f"{label}: {fk}={fv!r}")
+                        cat = e.get("category") or "rules"
+                        base = base_skill(root, e.get("name")) if cat == "skills" else None
+                        found = text and any(p["field"] == fk and p["value"] == fv for p in detectors.propose(
+                            cat, e.get("kind"), e.get("name"), {}, text, base))
+                        add("facts", f"field {fk}", bool(found), "a detector reads it from its text", f"{label}: {fk}={fv!r}")
                 elif key not in ("name", "page"):
                     add(group, f"entry {key}", example=label)
             add("map", "entry (heading is an entry)", example=label)

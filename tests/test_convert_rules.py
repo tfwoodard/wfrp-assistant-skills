@@ -40,7 +40,7 @@ PLAN = {
 }
 
 
-def draw_chapter(path, unplanned=False, bare=False):
+def draw_chapter(path, unplanned=False, bare=False, no_stack=False):
     """Page 1: chapter title, an intro paragraph, "Trimming Wicks" (with a subheading, a list and a
     word split at a line end), a boxed ruled table, and the condition "Smoked". Page 2: the
     table's continuation in a box, a psychology trait and a disease."""
@@ -96,7 +96,8 @@ def draw_chapter(path, unplanned=False, bare=False):
     box_table(L, y - 10, [('1–4', 'Short'), ('5–8', 'Long')], header=True)
     y = h - 115
     text(R, y, 'Smoked', 'Helvetica-Bold', 12); y -= 14
-    for s in ('A Smoked keeper coughs and cannot', 'see far. Remove it with fresh air.'):
+    for s in ('A Smoked keeper coughs and cannot', 'see far. Remove it with fresh air.') + \
+            (('Smoked does not stack; you are', 'Smoked or you are not.') if no_stack else ()):
         text(R, y, s); y -= 11
     for i in range(10):
         text(R, y - 11 * i - 20, 'Keepers say fresh air helps everyone here.')
@@ -208,6 +209,7 @@ class ConvertRulesTest(unittest.TestCase):
         self.assertTrue(any('they live on the library' in e['error'] for e in report['errors']), report['errors'])
 
     def test_a_talent_in_prose_with_no_maximum_is_taken_once(self):
+        sys.path.insert(0, SCRIPTS)
         import convert_rules
         entries = [('talents', {'slug': 'salt-blood', 'name': 'Salt Blood', 'fields': {}}),
                    ('talents', {'slug': 'keen', 'name': 'Keen', 'fields': {'max': 'Initiative Bonus'}}),
@@ -345,6 +347,20 @@ class ConvertRulesTest(unittest.TestCase):
         self.assertEqual(self.load(out, 'lore--dread.json')['fields'], {'kind': 'other'})
         rec = {x['slug']: x for x in self.load(out, '_records.json')}
         self.assertEqual(rec['dread']['kind'], 'other')
+
+    def test_a_field_the_text_states_is_proposed_not_set(self):
+        r, out, layout, report = self.convert(no_stack=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        got = [p for p in report.get('proposed_fields', []) if p['entry'] == 'rules/smoked']
+        self.assertEqual([(p['field'], p['value'], p['detector']) for p in got], [('stacks', False, 'stacks')])
+        self.assertIn('does not stack', got[0]['says'])
+        self.assertIn('--set stacks=false --plan sources/TEST/plans/ch5.json', got[0]['set_with'])
+        self.assertNotIn('stacks', self.load(out, 'smoked.json')['fields'])       # the Librarian sets it
+        plan = dict(PLAN, entries=[dict(e, fields={'stacks': False}) if e['name'] == 'Smoked' else e for e in PLAN['entries']])
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(plan, f)
+        r, out, layout, report = self.convert(no_stack=True)
+        self.assertEqual(report.get('proposed_fields', []), [])                         # the plan says so already
 
     def test_an_unplanned_heading_at_entry_level_is_an_error(self):
         r, out, layout, report = self.convert(unplanned=True)
