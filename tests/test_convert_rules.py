@@ -362,6 +362,16 @@ class ConvertRulesTest(unittest.TestCase):
         r, out, layout, report = self.convert(no_stack=True)
         self.assertEqual(report.get('proposed_fields', []), [])                         # the plan says so already
 
+    def test_the_plans_defaults_give_an_entry_its_kind(self):
+        plan = dict(PLAN, defaults={'kind': 'condition'},
+                    entries=[{k: v for k, v in e.items() if not (e['name'] == 'Smoked' and k == 'kind')} for e in PLAN['entries']])
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(plan, f)
+        r, out, layout, report = self.convert()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.load(out, 'smoked.json')['kind'], 'condition')
+        self.assertEqual(self.load(out, 'trimming-wicks.json')['kind'], 'procedure')   # its own kind stands
+
     def test_an_unplanned_heading_at_entry_level_is_an_error(self):
         r, out, layout, report = self.convert(unplanned=True)
         self.assertEqual(r.returncode, 1)

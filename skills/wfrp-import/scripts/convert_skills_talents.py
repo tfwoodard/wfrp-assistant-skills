@@ -43,7 +43,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from convert_rules import convert, heading_runs, write_outputs  # noqa: E402
+from convert_rules import apply_defaults, convert, heading_runs, write_outputs  # noqa: E402
 from entry_text import field_text, label_of, merge_lines, new_paragraph, plain, split_items, top_fields  # noqa: E402
 
 CHARACTERISTICS = ('WS', 'BS', 'S', 'T', 'I', 'Ag', 'Dex', 'Int', 'WP', 'Fel')
@@ -207,7 +207,7 @@ def main(argv=None):
     with open(a.layout, encoding='utf-8') as f:
         layout = json.load(f)
     with open(a.plan, encoding='utf-8') as f:
-        plan = json.load(f)
+        plan = apply_defaults(json.load(f))
     taken = {}
     for t in a.taken:
         cat, _, path = t.partition('=')

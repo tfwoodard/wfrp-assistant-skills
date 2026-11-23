@@ -56,7 +56,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from convert_rules import convert, heading_runs, read_taken, relate_again, write_outputs  # noqa: E402
+from convert_rules import apply_defaults, convert, heading_runs, read_taken, relate_again, write_outputs  # noqa: E402
 from entry_text import block_fields, fix_case, label_of, norm, plain, slugify, top_fields  # noqa: E402
 
 LABELS = {'cn': 'cn', 'range': 'range', 'target': 'target', 'targets': 'target', 'duration': 'duration'}
@@ -216,7 +216,7 @@ def main(argv=None):
     with open(a.layout, encoding='utf-8') as f:
         layout = json.load(f)
     with open(a.plan, encoding='utf-8') as f:
-        plan = json.load(f)
+        plan = apply_defaults(json.load(f))
     taken = read_taken([t if '=' in t else f'spells={t}' for t in a.taken], plan['source'])
     entries, records, report = convert_chapter(layout, plan, taken, a.library_data)
     return write_outputs(entries, records, report, a.out, a.formulas_from, plan)

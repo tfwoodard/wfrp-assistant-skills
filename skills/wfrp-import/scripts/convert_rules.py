@@ -40,7 +40,10 @@ its name (or its "heading", when the book prints more: "Fear (Rating)"), and
 runs until the next planned entry's heading. An entry is a rules entry (its
 "kind": procedure, condition, psychology, glossary) unless it names another
 "category" (diseases, lore), which keeps the plan's "kind" when it gives one
-(lore: god, place...). "field_labels" read the text after those bold labels
+(lore: god, place...). The plan's "defaults" ({"kind": ..., "category": ...}) give
+every entry it lists the kind or category it doesn't name itself, so a chapter
+of conditions or talents needn't repeat it on each line (apply_defaults();
+plan_defaults.py rewrites a plan that way). "field_labels" read the text after those bold labels
 ("**Harbour Master**: ...", run together or a line each) into the entry's fields
 (where prose follows the last one with no blank line, the fields end at a line that stops
 well short of the column's width),
@@ -1437,6 +1440,22 @@ def flow_tables(regions, lines, plan, report):
             {'box': bid, 'tables': [{'title': x['title'], 'rows': len(x['rows'])} for x in tables]})
 
 
+DEFAULTABLE = ('kind', 'category')
+
+
+def apply_defaults(plan):
+    """The plan with its "defaults" written into each of its entries that doesn't give that key
+    itself (an entry's own value stands). Only "kind" and "category" can be defaulted; anything
+    else is an error. Converters call this as they load a plan, before adding entries of their own."""
+    d = plan.get('defaults') or {}
+    bad = sorted(set(d) - set(DEFAULTABLE))
+    if bad:
+        raise SystemExit(f'the plan\'s defaults can only give {", ".join(DEFAULTABLE)}, not {", ".join(bad)}')
+    if not d:
+        return plan
+    return dict(plan, entries=[dict({k: v for k, v in d.items() if k not in e}, **e) for e in plan.get('entries', [])])
+
+
 def convert(layout, plan, taken=(), library=None):
     report = {'errors': [], 'questions': [], 'left_out': [], 'tables_to_confirm': [], 'diagrams': [], 'sizes': {}}
     regions = {r['id']: dict(r) for r in layout.get('regions', [])}
@@ -1886,7 +1905,7 @@ def main(argv=None):
     with open(a.layout, encoding='utf-8') as f:
         layout = json.load(f)
     with open(a.plan, encoding='utf-8') as f:
-        plan = json.load(f)
+        plan = apply_defaults(json.load(f))
     entries, records, report = convert(layout, plan, read_taken(a.taken, plan['source']), a.library_data)
     return write_outputs(entries, records, report, a.out, a.formulas_from, plan)
 
