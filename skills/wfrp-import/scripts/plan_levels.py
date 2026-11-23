@@ -11,8 +11,11 @@ make entries); the headings at those levels the plan doesn't place go in "not_en
 entry keeps its own line only when it needs more than its name and page (a kind or category other
 than the defaults, aliases, fields, a heading printed differently, any other key) or isn't at
 those levels. The converter is then run on LAYOUT with the old plan and the new one, and the new
-plan is written (in the old one's layout, with --write) only if every entry, index record, error,
-question and left-out line comes out the same. Otherwise it says what differs and writes nothing.
+plan is written (in the old one's layout, with --write) only if every entry, index record and the
+whole report come out the same, from the converter that reads the plan (convert_spells.py for one
+with "lists", convert_skills_talents.py for one with "skills" or "talents", convert_rules.py
+otherwise; the report's "entries_from_levels" is new and not compared). Otherwise it says what
+differs and writes nothing.
 """
 import argparse, collections, copy, json, os, sys
 
@@ -21,13 +24,28 @@ from convert_rules import IDENTITY, apply_defaults, convert, heading_runs  # noq
 from edit_entry import dump_like  # noqa: E402
 from entry_text import fix_case, norm  # noqa: E402
 
-COMPARED = ('errors', 'questions', 'left_out', 'tables_to_confirm', 'box_placement')
+NEW_IN_REPORT = ('entries_from_levels',)     # what a plan with entry_levels adds to the report
+
+
+def converter(plan):
+    """The name of the converter that reads this plan and a function (layout, plan, library) running it."""
+    if plan.get('lists'):
+        import convert_spells
+        return 'convert_spells.py', lambda lay, p, lib: convert_spells.convert_chapter(lay, p, (), lib)
+    if plan.get('skills') or plan.get('talents'):
+        import convert_skills_talents
+        return 'convert_skills_talents.py', lambda lay, p, lib: convert_skills_talents.convert_chapter(lay, p, None)
+    return 'convert_rules.py', lambda lay, p, lib: convert(lay, p, (), lib)
 
 
 def outcome(layout, plan, library):
-    entries, records, report = convert(copy.deepcopy(layout), apply_defaults(copy.deepcopy(plan)), (), library)
-    return (json.dumps(entries, sort_keys=True, ensure_ascii=False), json.dumps(records, sort_keys=True, ensure_ascii=False),
-            {k: json.dumps(report.get(k), sort_keys=True, ensure_ascii=False) for k in COMPARED})
+    """Everything the plan's own converter makes of LAYOUT: entries, index records and the whole report
+    (but what entry_levels adds to it), as JSON text to compare."""
+    _, run = converter(plan)
+    entries, records, report = run(copy.deepcopy(layout), apply_defaults(copy.deepcopy(plan)), library)
+    report = {k: v for k, v in report.items() if k not in NEW_IN_REPORT}
+    dump = lambda x: json.dumps(x, sort_keys=True, ensure_ascii=False)
+    return dump(entries), dump(records), {k: dump(v) for k, v in report.items()}
 
 
 def rewrite(plan, layout):
@@ -109,13 +127,16 @@ def main(argv=None):
         return 0
     before, after = outcome(layout, plan, a.library_data), outcome(layout, new, a.library_data)
     diff = [k for k, x, y in (('entries', before[0], after[0]), ('index records', before[1], after[1])) if x != y] + \
-        [k for k in COMPARED if before[2][k] != after[2][k]]
+        [f'report {k}' for k in sorted(set(before[2]) | set(after[2])) if before[2].get(k) != after[2].get(k)]
     if diff:
         print(f'  not written: the conversion differs in {", ".join(diff)}')
         return 1
-    print('  converts the same: every entry, index record, error, question and left-out line')
+    print(f'  converts the same with {converter(plan)[0]}: every entry, index record and the whole report')
+    text = dump_like(new, raw) or json.dumps(new, ensure_ascii=False, indent=1) + '\n'
+    if len(text) >= len(raw):
+        print(f'  not written: the new plan is no shorter ({len(text)} characters, {len(raw)} before)')
+        return 0
     if a.write:
-        text = dump_like(new, raw) or json.dumps(new, ensure_ascii=False, indent=1) + '\n'
         with open(a.plan, 'w', encoding='utf-8') as f:
             f.write(text)
         print(f'  wrote {len(text.encode("utf-8"))} bytes')
