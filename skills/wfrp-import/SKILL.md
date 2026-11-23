@@ -139,7 +139,11 @@ PDF or anything read from it into the repo.
    **`proposed_relations`**: what the entries' own text states that the plan
    doesn't give (`scripts/detectors.py`). Examples: a condition that says it
    doesn't stack, a skill's characteristic and type from its bold lead line, a
-   specialisation's base skill. Show each to the Librarian with the sentence it
+   specialisation's base skill, an entry made from a box adding to the entry it
+   is printed in, a rule named after a career ("Dwarf Engineer") adding to it.
+   The box proposals are suggestions: the entry a box sits in isn't always the
+   one it belongs to (a Wind's rule printed in its Order's section), so look at
+   each. Show each to the Librarian with the sentence it
    comes from (`says`). Set the confirmed ones with the `set_with` command
    (`edit_entry.py ... --plan`), so the entry and the plan both carry them. A
    proposal with `plan` disagrees with what the plan already says: look at both.

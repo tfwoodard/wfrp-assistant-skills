@@ -25,6 +25,7 @@ import argparse, collections, glob, json, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import detectors  # noqa: E402
+from check_names import name_key  # noqa: E402
 
 # plan keys, by group (top-level keys, then keys inside an entry)
 TOP = {
@@ -69,12 +70,24 @@ def base_skill(root, name):
         return next((r for r in json.load(f) if norm(r.get("name")) == norm(b)), None)
 
 
+def names(root):
+    """{"category/slug": name} for every entry in the library's indexes."""
+    out = {}
+    for p in glob.glob(os.path.join(root, "library-data", "*", "_index.json")):
+        cat = os.path.basename(os.path.dirname(p))
+        with open(p, encoding="utf-8") as f:
+            for r in json.load(f):
+                out[f"{cat}/{r['slug']}"] = r.get("name") or ""
+    return out
+
+
 def survey(root, examples=3):
     count = collections.Counter()                 # (group, kind) -> items
     covered = collections.Counter()               # (group, kind) -> items a signal or default accounts for
     how = collections.defaultdict(collections.Counter)    # (group, kind) -> what accounts for them
     seen = collections.defaultdict(list)          # (group, kind) -> examples not accounted for
     unknown, unread, plans = collections.Counter(), [], 0
+    named = names(root)
 
     def add(group, kind, ok=None, why="", example=None):
         count[(group, kind)] += 1
@@ -102,9 +115,14 @@ def survey(root, examples=3):
                 for ref, rels in (val or {}).items():
                     for r in rels:
                         a, b, role = ref.split("/")[-1], str(r.get("to", "")).split("/")[-1], r.get("role")
-                        if role == "adds-to":            # "lore-runes" adds to "lore": the name says so
-                            add("facts", "relation adds-to", bool(b) and a.startswith(b + "-"), "the names show it",
-                                f"{where}: {ref} -> {r.get('to')}")
+                        if role == "adds-to":            # what the names show (the layout's boxes, the survey can't)
+                            mine = named.get(ref if "/" in ref else "", "")
+                            theirs = named.get(str(r.get("to")), "")
+                            why = "the slugs show it" if b and a.startswith(b + "-") else \
+                                "the same name (check_names asks)" if mine and theirs and name_key(mine) == name_key(theirs) else \
+                                "the name ends in a career's" if str(r.get("to", "")).startswith("careers/") and theirs and \
+                                norm(mine).endswith(" " + norm(theirs)) else None
+                            add("facts", "relation adds-to", bool(why), why or "", f"{where}: {ref} -> {r.get('to')}")
                         else:                             # two entries of one name: the pair is found by name,
                             same = bool(b) and (a == b or a.startswith(b + "-") or b.startswith(a + "-"))
                             add("facts", f"relation {role}", same, "the names show the pair (which relation is a question)",
@@ -158,7 +176,8 @@ def report(s):
     if s["unclassified"]:
         L += ["", "## Unclassified plan keys (add them to the survey's groups)"] + [f"- {k}: {v}" for k, v in sorted(s["unclassified"].items())]
     L += ["", "Not measured here: whether a converter could tell which headings are entries without the plan",
-          "(the map's largest part). That needs each chapter's layout from its PDF."]
+          "(the map's largest part), or which box an adds-to comes from (convert_rules proposes those from the",
+          "layout). Both need each chapter's layout from its PDF."]
     if s["entries_not_read"]:
         L += ["", f"## Entries not in this copy of the library ({len(s['entries_not_read'])}): their fields counted as not accounted for"]
         L += [f"- {x}" for x in s["entries_not_read"][:20]] + ([f"- … and {len(s['entries_not_read']) - 20} more"] if len(s["entries_not_read"]) > 20 else [])
