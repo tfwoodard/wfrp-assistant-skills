@@ -2125,6 +2125,38 @@ def carry_formulas(entries, library_data, report):
             report.setdefault('formulas_carried', []).append({'entry': f'{cat}/{e["slug"]}', 'kind': 'summaries'})
 
 
+def carry_fields(entries, records, library_data, report):
+    """A field the library's entry has and this conversion doesn't make (a species' characteristics
+    and starting skills, written by hand when the chapter was first imported) is carried over, so a
+    re-import never drops what was added after the converter ran; so is the index record's value of
+    it. Each is listed in the report's "fields_carried", to be checked: one the book no longer
+    supports is taken off by hand. A field the conversion makes keeps the conversion's value."""
+    indexes = {}
+    for cat, e in entries:
+        path = os.path.join(library_data, cat, e['slug'] + '.json')
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding='utf-8') as f:
+            old = json.load(f).get('fields', {})
+        mine = e.setdefault('fields', {})
+        gone = [k for k in old if k not in mine and k not in FORMULA_KINDS and k not in ('summary', 'summaries')]
+        if not gone:
+            continue
+        if cat not in indexes:
+            ipath = os.path.join(library_data, cat, '_index.json')
+            indexes[cat] = {}
+            if os.path.exists(ipath):
+                with open(ipath, encoding='utf-8') as f:
+                    indexes[cat] = {r.get('slug'): r for r in json.load(f) if isinstance(r, dict)}
+        was = indexes[cat].get(e['slug'], {})
+        rec = next((r for r in records if r.get('slug') == e['slug'] and r.get('_category', cat) == cat), None)
+        for k in gone:
+            mine[k] = old[k]
+            if rec is not None and k in was and k not in rec:
+                rec[k] = was[k]
+        report.setdefault('fields_carried', []).append({'entry': f'{cat}/{e["slug"]}', 'fields': gone})
+
+
 def assume_max_one(entries, records, report):
     """A talent printed in prose rather than in the talent format ("Max:" and "Tests:" lines) and
     naming no maximum can be taken once: its Max is "1", marked `max_assumed`, put in the index, and
@@ -2152,6 +2184,7 @@ def write_outputs(entries, records, report, out, formulas_from=None, plan=None):
                                           '"version-of" (layout §4). Change it in the plan'})
     if formulas_from:
         carry_formulas(entries, formulas_from, report)
+        carry_fields(entries, records, formulas_from, report)
     assume_max_one(entries, records, report)
     os.makedirs(out, exist_ok=True)
     for cat, e in entries:
@@ -2166,8 +2199,11 @@ def write_outputs(entries, records, report, out, formulas_from=None, plan=None):
         json.dump(report, f, ensure_ascii=False, indent=1)
         f.write('\n')
     counts = ', '.join(f'{sum(1 for c, _ in entries if c == k)} {k}' for k in sorted({c for c, _ in entries}))
+    carried = len(report.get('fields_carried', []))
     print(f'{counts}; {len(report["errors"])} errors, {len(report["questions"])} questions, '
-          f'{len(report["tables_to_confirm"])} tables to confirm -> {out}', file=sys.stderr)
+          f'{len(report["tables_to_confirm"])} tables to confirm' +
+          (f', {carried} entries keep fields from the library (fields_carried)' if carried else '') + f' -> {out}',
+          file=sys.stderr)
     return 1 if report['errors'] else 0
 
 if __name__ == '__main__':

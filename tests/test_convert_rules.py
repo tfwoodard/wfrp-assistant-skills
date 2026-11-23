@@ -272,6 +272,30 @@ class ConvertRulesTest(unittest.TestCase):
         with open(os.path.join(again, 'smoked.json'), 'rb') as a, open(smoked, 'rb') as b:
             self.assertEqual(a.read(), b.read())                           # the re-import reproduces the library's entry
 
+    def test_a_reimport_keeps_fields_added_by_hand(self):
+        r, out, layout, report = self.convert()
+        lib = os.path.join(self.d, 'library-data')
+        os.makedirs(os.path.join(lib, 'diseases'))
+        e = self.load(out, 'diseases--wick-rot.json')
+        made = dict(e['fields'])                                             # what the conversion makes
+        e['fields'].update({'spreads_by': 'damp wicks', 'contraction': 'changed by hand'})
+        with open(os.path.join(lib, 'diseases', 'wick-rot.json'), 'w') as f:
+            json.dump(e, f)
+        rec = dict(next(x for x in self.load(out, '_records.json') if x['slug'] == 'wick-rot'), spreads_by='damp wicks')
+        rec.pop('_category', None)
+        with open(os.path.join(lib, 'diseases', '_index.json'), 'w') as f:
+            json.dump([rec], f)
+        again = os.path.join(self.d, 'again')
+        r = run('convert_rules.py', layout, '--plan', os.path.join(self.d, 'plan.json'), '--out', again, '--formulas-from', lib)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('1 entries keep fields from the library (fields_carried)', r.stderr)   # said, not silent
+        f = self.load(again, 'diseases--wick-rot.json')['fields']
+        self.assertEqual(f['spreads_by'], 'damp wicks')                      # added by hand: kept
+        self.assertEqual(f['contraction'], made['contraction'])              # the conversion's own field: its value
+        self.assertEqual(self.load(again, '_report.json')['fields_carried'], [{'entry': 'diseases/wick-rot', 'fields': ['spreads_by']}])
+        self.assertEqual(next(x for x in self.load(again, '_records.json') if x['slug'] == 'wick-rot')['spreads_by'], 'damp wicks')
+        self.assertNotIn('spreads_by', self.load(again, 'smoked.json')['fields'])
+
     def test_a_box_sent_to_several_entries_is_copied_into_each(self):
         plan = dict(PLAN, boxes={'1.1': {'to': ['Trimming Wicks', 'Smoked']}})
         with open(os.path.join(self.d, 'plan.json'), 'w') as f:
