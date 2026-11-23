@@ -223,6 +223,14 @@ beside its sentence when a rule is first applied to a character, and set it
 once the Librarian confirms. The text stays the authority; a formula is a
 reading of it, and one that is lost is simply written again.
 
+To see what the plans tell the converters that they could find for themselves,
+run `scripts/plan_survey.py --library <root>`. It sorts every plan item into
+facts (fields, relations, who an entry is for), the map (which headings are
+entries, kinds, tables, names) and layout (one printing's quirks), and counts
+what a signal in the entry's own text or a chapter-wide default already
+accounts for: the to-do list for detectors. Its report names entries, so it
+stays out of the repo.
+
 To correct an entry's fields or relations after an import (a skill's
 characteristic the converter missed, an `adds-to` the plan lacked), use
 `scripts/edit_entry.py --library <root> <category>/<slug> --set FIELD=VALUE
