@@ -36,6 +36,12 @@ class Defaults(unittest.TestCase):
         self.assertEqual([plan_defaults.meaning(e) for e in apply_defaults(new)['entries']],
                          [plan_defaults.meaning(e) for e in plan['entries']])
 
+    def test_defaults_that_save_only_their_own_line_arent_set(self):
+        plan = {'entries': [{'name': 'Gull Rock', 'page': 1, 'category': 'lore', 'kind': 'place'}]}
+        new, said = plan_defaults.compact(plan)
+        self.assertIsNone(new)
+        self.assertIn('not worth it', said)
+
     def test_an_entry_with_no_kind_at_all_blocks_a_kind_default(self):
         plan = {'entries': [{'name': 'Rowing', 'category': 'skills'}, {'name': 'Steady', 'category': 'talents'},
                             {'name': 'A', 'kind': 'other'}, {'name': 'B', 'kind': 'other'}, {'name': 'C', 'kind': 'other'}]}
@@ -49,7 +55,7 @@ class Defaults(unittest.TestCase):
             plan = {'source': 'LAMP', 'chapter': 'ch5', 'entries': [{'name': n, 'page': 1, 'kind': 'condition'} for n in 'ABC']}
             with open(p, 'w') as f: f.write(json.dumps(plan, indent=1) + '\n')
             r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'plan_defaults.py'), p], capture_output=True, text=True)
-            self.assertIn("kind 'condition': 3 lines fewer", r.stdout)
+            self.assertIn("kind 'condition': 3 keys fewer", r.stdout)
             with open(p) as f: self.assertEqual(json.load(f), plan)                # a dry run writes nothing
             subprocess.run([sys.executable, os.path.join(SCRIPTS, 'plan_defaults.py'), p, '--write'], check=True, capture_output=True)
             with open(p) as f: raw = f.read()
@@ -57,6 +63,17 @@ class Defaults(unittest.TestCase):
             self.assertTrue(raw.startswith('{\n "source"'))                         # still an indent of 1
             r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'plan_defaults.py'), p], capture_output=True, text=True)
             self.assertIn('has defaults already', r.stdout)
+            hand = os.path.join(d, 'ch6.json')                                     # laid out by hand
+            with open(hand, 'w') as f:
+                f.write('{"source": "LAMP", "chapter": "ch6",\n "entries": [' + ',\n  '.join(
+                    json.dumps({'name': n, 'page': 1, 'kind': 'condition'}) for n in 'ABC') + ']}\n')
+            with open(hand) as f: before = f.read()
+            r = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'plan_defaults.py'), hand, '--write'], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn('not written', r.stdout)
+            with open(hand) as f: self.assertEqual(f.read(), before)
+            subprocess.run([sys.executable, os.path.join(SCRIPTS, 'plan_defaults.py'), hand, '--write', '--reformat'], check=True, capture_output=True)
+            with open(hand) as f: self.assertEqual(json.load(f)['defaults'], {'kind': 'condition'})
 
 
 if __name__ == '__main__':

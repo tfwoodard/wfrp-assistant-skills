@@ -9,10 +9,11 @@ it relied on the converter's own fallback: no category is "rules", and a rules e
 a "procedure"). Every entry must mean the same kind and category afterwards as before, read through
 convert_rules.apply_defaults(); a plan where a default can't say the same (a non-rules entry with no
 kind at all, under a kind default) gets no default for that key, and the report says so. A default
-that saves no lines isn't set. A plan with "defaults" already is left as it is.
+that saves no keys isn't set, nor defaults that save no more keys than they add themselves. A plan with "defaults" already is left as it is.
 
 Without --write it reports what would change. With it, each changed plan is written in its own
-layout (edit_entry.dump_like) and its size printed, for the upload.
+layout (edit_entry.dump_like) and its size printed, for the upload. A plan laid out by hand (a layout
+json.dumps doesn't give) is skipped and said, unless --reformat lets it be written with an indent of 1.
 """
 import argparse, collections, json, os, sys
 
@@ -28,7 +29,7 @@ def meaning(e):
 
 
 def compact(plan):
-    """(new plan or None, what was done): the plan with defaults, when they save lines."""
+    """(new plan or None, what was done): the plan with defaults, when they save keys."""
     entries = plan.get("entries") or []
     if plan.get("defaults"):
         return None, "has defaults already"
@@ -36,7 +37,7 @@ def compact(plan):
         return None, "no entries"
     before = [meaning(e) for e in entries]
     out, said = [dict(e) for e in entries], []
-    defaults = {}
+    defaults, total = {}, 0
     for key, i in (("category", 0), ("kind", 1)):
         values = [m[i] for m in before if m[i] is not None]
         if not values: continue
@@ -53,10 +54,13 @@ def compact(plan):
         saved = sum(1 for a, b in zip(out, trial) if key in a and key not in b) - \
             sum(1 for a, b in zip(out, trial) if key not in a and key in b)
         if saved <= 0:
-            said.append(f"no {key} default: it would save no lines")
+            said.append(f"no {key} default: it would save no keys")
             continue
         out, defaults[key] = trial, top
-        said.append(f"{key} {top!r}: {saved} lines fewer")
+        total = total + saved
+        said.append(f"{key} {top!r}: {saved} keys fewer")
+    if defaults and total <= len(defaults):          # each default costs a key of its own
+        return None, "; ".join(said) + f"; not worth it: the defaults cost {len(defaults)} keys of their own"
     if not defaults:
         return None, "; ".join(said) or "nothing to share"
     new = {}
@@ -77,6 +81,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("plans", nargs="+")
     ap.add_argument("--write", action="store_true")
+    ap.add_argument("--reformat", action="store_true", help="with --write: a plan laid out by hand is written with an indent of 1")
     a = ap.parse_args(argv)
     for p in a.plans:
         with open(p, encoding="utf-8") as f:
@@ -85,6 +90,11 @@ def main(argv=None):
         print(f"{p}: {said}")
         if new and a.write:
             text = dump_like(new, raw)
+            if text is None and a.reformat:
+                text = json.dumps(new, ensure_ascii=False, indent=1) + "\n"
+            if text is None:                 # laid out by hand: written only when --reformat says so
+                print("  not written: its layout isn't one json.dumps gives; --reformat writes it with an indent of 1")
+                continue
             with open(p, "w", encoding="utf-8") as f:
                 f.write(text)
             print(f"  wrote {len(text.encode('utf-8'))} bytes")
