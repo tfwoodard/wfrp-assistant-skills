@@ -17,7 +17,8 @@ ambitions (the character's, then the party's name, members and ambitions), psych
 Time of birth, earlier careers and burdens (these follow on from the first page, so no page is left
 nearly empty); (3) a page of its own to mark in play: Wounds, Fortune, Resolve and Corruption as
 boxes, Advantage (a tally at +10 each, or one box where a house rule sets `"advantage": "on-off"`),
-and every condition in play with boxes to count it. Nothing is printed on a filled background, to
+and every condition in play with boxes to count it (six, or one for a condition whose entry says `"stacks": false`),
+under the summary of the rule for how Conditions add up (Multiple Conditions). Nothing is printed on a filled background, to
 save ink: a box already marked (a Wound taken, Fortune spent) shows a cross. Accepted differences, house rules and
 what rules add are on the markdown sheet (build_character.py --md), not the printed one.
 
@@ -233,7 +234,7 @@ def page_two(m):
     return '<div class="page">' + "".join(out) + "</div>"
 
 
-def page_play(m, conditions=()):
+def page_play(m, conditions=(), combining=None):
     """A page to mark during a session: Wounds, Fortune and Resolve as boxes (those already taken or
     spent filled in), and each condition in play with boxes to count it."""
     w, f, r, st = m["wounds"], m["fate"], m["resilience"], m.get("state") or {}
@@ -266,8 +267,10 @@ def page_play(m, conditions=()):
         def bonuses(text):          # "Toughness Bonus Rounds" -> "3 Rounds", in this character's numbers
             return re.sub(r"\b(%s) Bonus\b" % "|".join(bc.CHAR_NAME.values()),
                           lambda x: str(m["characteristics"][bc.NAME_CHAR[bc.norm(x.group(1))]]["bonus"]), text or "")
-        out.append("<h2>Conditions</h2><div class='flow'>" + "".join(
-            f'<div class="cond"><div class="ch2"><span class="cn">{e(c["name"])}</span>{boxes(6, have.get(bc.norm(c["name"]), 0))}'
+        rule = (f'<div class="sum">{e(combining["summary"])} <span class="cite">{e(short(combining.get("cite", "")))}</span></div>'
+                if combining and combining.get("summary") else "")      # how the same and different Conditions add up
+        out.append("<h2>Conditions</h2>" + rule + "<div class='flow'>" + "".join(
+            f'<div class="cond"><div class="ch2"><span class="cn">{e(c["name"])}</span>{boxes(6 if c.get("stacks", True) else 1, have.get(bc.norm(c["name"]), 0))}'
             f'<span class="cite">{e(short(c.get("cite", "")))}</span></div>'
             + (f'<div class="sum">{e(bonuses(c["summary"]))}</div>' if c.get("summary") else "") + "</div>" for c in conditions) + "</div>")
     elif st.get("conditions"):
@@ -275,23 +278,39 @@ def page_play(m, conditions=()):
     return '<div class="page new play">' + "".join(out) + "</div>"
 
 
+COMBINING = "Multiple Conditions"     # the rule saying how Conditions add up; the sheet prints its summary
+
+
 def conditions_in_play(lib):
-    """The conditions in play, from the library's rules: [{name, ref, cite}]."""
+    """The conditions in play, from the library's rules: [{name, ref, cite, summary, stacks}]. `stacks`
+    is the entry's own field: false for a Condition you either have or don't (one box on the play
+    page); true or left out for one you can have several of."""
     out = []
     for _, r in lib.index("rules"):
         if r.get("kind") == "condition":
             ref = f"rules/{r['slug']}"
             try:
                 ce = lib.entry(ref)
+                f = ce.get("fields", {})
                 out.append({"name": r["name"], "ref": ref, "cite": bc.cite(ce, bc.chapter_titles(lib)),
-                            "summary": ce.get("fields", {}).get("summary")})
-            except Exception: out.append({"name": r["name"], "ref": ref})
+                            "summary": f.get("summary"), "stacks": f.get("stacks", True) is not False})
+            except Exception: out.append({"name": r["name"], "ref": ref, "stacks": True})
     return sorted(out, key=lambda c: c["name"])
 
 
-def document(m, conditions=()):
+def conditions_combining(lib):
+    """How Conditions add up, for the head of the play page's list: {name, ref, cite, summary} of the
+    rule (its entry's summary), or None when the library hasn't that rule."""
+    ref = lib.find("rules", COMBINING)
+    if not ref: return None
+    try: ce = lib.entry(ref)
+    except Exception: return None
+    return {"name": ce["name"], "ref": ref, "cite": bc.cite(ce, bc.chapter_titles(lib)), "summary": ce.get("fields", {}).get("summary")}
+
+
+def document(m, conditions=(), combining=None):
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>{e(m.get("name"))}</title>'
-            f"<style>{CSS}</style></head><body>{page_one(m)}{page_two(m)}{page_play(m, conditions)}</body></html>")
+            f"<style>{CSS}</style></head><body>{page_one(m)}{page_two(m)}{page_play(m, conditions, combining)}</body></html>")
 
 
 def find_browser():
@@ -346,7 +365,7 @@ def main():
     os.makedirs(a.out, exist_ok=True)
     base = os.path.join(a.out, m.get("slug") or bc.slug(m.get("name") or "character"))
     with open(base + ".html", "w", encoding="utf-8") as f:
-        f.write(document(m, conditions_in_play(lib)))
+        f.write(document(m, conditions_in_play(lib), conditions_combining(lib)))
     print("wrote", base + ".html")
     with open(base + ".md", "w", encoding="utf-8") as f:
         f.write(bc.markdown(m))

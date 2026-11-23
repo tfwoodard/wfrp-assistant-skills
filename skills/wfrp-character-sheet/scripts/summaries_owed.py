@@ -63,6 +63,9 @@ def owed(m, lib):
     for c in character_pdf.conditions_in_play(lib):
         if not c.get("summary"):
             add("condition", c["name"], c["ref"], None, "no summary")
+    rule = character_pdf.conditions_combining(lib)
+    if rule and not rule.get("summary"):
+        add("rule", rule["name"], rule["ref"], None, "no summary (printed above the conditions)")
     return out
 
 
@@ -83,7 +86,7 @@ def main(argv=None):
         print(f"Every talent, spell and condition on {who}'s sheet has its summary.")
         return 0
     counts = ", ".join(f"{k}s {n}" for k, n in
-                       ((k, sum(1 for i in items if i["kind"] == k)) for k in ("talent", "spell", "condition")) if n)
+                       ((k, sum(1 for i in items if i["kind"] == k)) for k in ("talent", "spell", "condition", "rule")) if n)
     print(f"{len(items)} summaries to write for {who}'s sheet ({counts}). Write each in your own words, show it to the "
           "Librarian beside the entry's text, and set it once approved.")
     titles = bc.chapter_titles(lib)
