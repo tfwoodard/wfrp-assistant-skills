@@ -235,6 +235,12 @@ beside its sentence when a rule is first applied to a character, and set it
 once the Librarian confirms. The text stays the authority; a formula is a
 reading of it, and one that is lost is simply written again.
 
+A plan's `defaults` (`{"kind": "condition"}`, `{"category": "lore", "kind":
+"other"}`) give every entry it lists the kind or category it doesn't name, so
+write a chapter's common kind once, not on each line. `plan_defaults.py PLAN
+--write` rewrites an existing plan that way, only where every entry still
+means the same.
+
 To see what the plans tell the converters that they could find for themselves,
 run `scripts/plan_survey.py --library <root>`. It sorts every plan item into
 facts (fields, relations, who an entry is for), the map (which headings are

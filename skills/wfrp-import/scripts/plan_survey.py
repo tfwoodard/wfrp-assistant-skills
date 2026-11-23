@@ -28,7 +28,7 @@ import detectors  # noqa: E402
 
 # plan keys, by group (top-level keys, then keys inside an entry)
 TOP = {
-    "map": {"entries", "intro", "tables", "lists", "rename", "careers", "talents", "skills"},
+    "map": {"entries", "intro", "tables", "lists", "rename", "careers", "talents", "skills", "defaults"},
     "facts": {"relations"},
     "layout": {"icon_fonts", "icon_text", "level_icons", "scheme_columns", "not_headings", "text_tables",
                "shared_labels", "whole_words", "hand_tables", "boxes"},
@@ -42,7 +42,7 @@ ENTRY = {
                "row_bands"},
 }
 # a plan key that sets one thing for the whole chapter (a column scheme, the icon fonts) counts once
-PER_PLAN = {"intro", "scheme_columns", "icon_text", "icon_fonts", "level_icons", "whole_words"}
+PER_PLAN = {"intro", "scheme_columns", "icon_text", "icon_fonts", "level_icons", "whole_words", "defaults"}
 def norm(s):
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s()]", "", str(s or "").lower())).strip()
 
