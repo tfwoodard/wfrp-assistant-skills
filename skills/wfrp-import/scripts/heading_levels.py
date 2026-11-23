@@ -77,7 +77,9 @@ def main(argv=None):
         if l['heading'] not in levels or l.get('box'):
             continue
         key = (norm(text), l['page'])
-        mark = 'the plan\'s own entry' if key in own else 'not an entry (not_entries)' if key in skip or (key[0], None) in skip else ''
+        piece = next((p['of'] for p in report.get('split_pieces', []) if (norm(p['name']), p['page']) == key), None)
+        mark = ('the plan\'s own entry' if key in own else f'a piece of {piece} (its split_headings)' if piece else
+                'not an entry (not_entries)' if key in skip or (key[0], None) in skip else '')
         n += 1
         print(f'{n:3}. {fix_case(text)} (p. {l["page"]})' + (f'  [{mark}]' if mark else ''))
     other = [(fix_case(t), lines[i]['page'], lines[i]['heading']) for i, (t, _) in sorted(runs.items())

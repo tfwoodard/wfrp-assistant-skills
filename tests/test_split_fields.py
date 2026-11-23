@@ -226,3 +226,43 @@ class RowGroupsTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+@unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the fixture PDF')
+class SplitEntriesWithLevelsTest(unittest.TestCase):
+    """With "entry_levels", the headings under a split entry are its pieces, not entries."""
+    convert = SplitFieldsTest.convert
+
+    def outputs(self, out):
+        got = {}
+        for n in sorted(os.listdir(out)):
+            if n != '_report.json':
+                with open(os.path.join(out, n)) as f:
+                    got[n] = f.read()
+        return got
+
+    def test_pieces_stay_with_their_split_entry(self):
+        # sizes: the title 30 pt (level 1), the split entries 19 (2), their pieces 12 (3)
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as d2:
+            layout, out, report, records = self.convert(d)
+            levels = dict(PLAN, entry_levels=[2, 3])
+            layout2, out2, report2, records2 = self.convert(d2, plan=levels)
+            self.assertEqual(report2['errors'], [])
+            self.assertEqual([(p['name'], p['of']) for p in report2['split_pieces']],
+                             [('Whale Oil', 'Catalogue of Oils'), ('Tallow Oil', 'Catalogue of Oils'),
+                              ('The Drowned Lamp', 'Jinxed Lamps')])
+            self.assertNotIn('entries_from_levels', report2)
+            self.assertEqual(self.outputs(out), self.outputs(out2))           # the same entries as listing them
+            with open(os.path.join(d2, 'plan.json'), 'w') as f:
+                json.dump(levels, f)
+            shown = run('heading_levels.py', layout2, '--levels', '2,3', '--plan', os.path.join(d2, 'plan.json')).stdout
+            self.assertIn('Whale Oil (p. 1)  [a piece of Catalogue of Oils (its split_headings)]', shown)
+
+    def test_an_entry_the_plan_lists_ends_the_split(self):
+        plan = dict(PLAN, entry_levels=[2, 3],
+                    entries=[PLAN['entries'][0], {'name': 'Tallow Oil', 'page': 1, 'kind': 'other'}, PLAN['entries'][1]])
+        with tempfile.TemporaryDirectory() as d:
+            layout, out, report, records = self.convert(d, plan=plan)
+            self.assertEqual(report['errors'], [])
+            self.assertEqual(records['tallow-oil']['kind'], 'other')           # a rules entry of its own now
+            self.assertEqual([p['name'] for p in report['split_pieces']], ['Whale Oil', 'The Drowned Lamp'])

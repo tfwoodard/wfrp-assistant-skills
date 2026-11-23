@@ -816,8 +816,11 @@ def level_entries(plan, lines, runs, report):
     (its name as printed, fix_case(); its page; the plan's "defaults"). A heading the plan's own
     "entries" already place keeps the plan's spec. "not_entries" lists headings at those levels
     that are sections of the entry above them, by text, or {"text", "page"}: they are neither
-    entries nor reported as unplaced. Returns (entries, the (text, page or None) to leave as
-    sections)."""
+    entries nor reported as unplaced. A heading under an entry with "split_headings", smaller
+    than that entry's own heading, is one of its pieces, not an entry: until the next heading at
+    an entry level at least as large as the split entry's, or the next entry the plan lists (list
+    an entry there to end the split). The report's "split_pieces" names each. Returns (entries,
+    the (text, page or None) to leave as sections or pieces)."""
     explicit = list(plan.get('entries') or [])
     levels = set(plan.get('entry_levels') or [])
     skip = set()
@@ -825,25 +828,37 @@ def level_entries(plan, lines, runs, report):
         skip.add((norm(x), None) if isinstance(x, str) else (norm(x.get('text')), x.get('page')))
     if not levels:
         return explicit, skip
-    placed = {(norm(e.get('heading', e['name'])), e['page']) for e in explicit}
+    placed = {(norm(e.get('heading', e['name'])), e['page']): e for e in explicit}
     defaults = plan.get('defaults') or {}
-    made, used = [], set()
+    made, used, pieces = [], set(), []
+    split = None                     # (its heading's level, its name) while inside a split entry
     for i, (text, last) in sorted(runs.items()):
         l = lines[i]
-        if l['heading'] not in levels or l.get('box'):
+        if l.get('box'):
             continue
         key = (norm(text), l['page'])
         if key in placed:
+            e = placed[key]
+            split = (l['heading'], e['name']) if e.get('split_headings') else None
+            continue
+        if l['heading'] not in levels:
             continue
         if key in skip or (key[0], None) in skip:
             used.add(key if key in skip else (key[0], None))
             continue
+        if split and l['heading'] > split[0]:           # smaller than the split entry's heading
+            pieces.append({'name': fix_case(text), 'page': l['page'], 'of': split[1]})
+            skip.add(key)
+            continue
+        split = None
         made.append(dict(defaults, name=fix_case(text), page=l['page']))
     for x in sorted(skip - used, key=str):
         if not any((norm(t), lines[i]['page']) == x or (x[1] is None and norm(t) == x[0]) for i, (t, _) in runs.items()):
             report['errors'].append({'error': f'not_entries: no heading {x[0]!r}' + (f' on page {x[1]}' if x[1] else '')})
     if made:
         report['entries_from_levels'] = [{'name': e['name'], 'page': e['page']} for e in made]
+    if pieces:
+        report['split_pieces'] = pieces
     return explicit + made, skip
 
 
