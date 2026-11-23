@@ -261,7 +261,11 @@ beside its `--effects` (which may `set` a value, or change `extra_points`); give
 the entry `adds-to` a creation rule with `edit_entry.py` so the builder reads it. On every re-import,
 pass the converter `--formulas-from <library-data>`: it copies each entry's
 formulas from the entry it replaces, and lists as questions any that no longer
-fit, to be written again. Never write a formula unasked or in bulk: propose it
+fit, to be written again. It also keeps any field the library's entry has that the
+conversion doesn't make (a species' characteristics and starting skills, added by
+hand at the first import), and its index value, and lists each under the report's
+`fields_carried`: check them, and take off by hand one the book no longer
+supports. A field the conversion makes keeps the conversion's value. Never write a formula unasked or in bulk: propose it
 beside its sentence when a rule is first applied to a character, and set it
 once the Librarian confirms. The text stays the authority; a formula is a
 reading of it, and one that is lost is simply written again.
