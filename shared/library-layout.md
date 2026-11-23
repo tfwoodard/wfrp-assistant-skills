@@ -388,6 +388,13 @@ entry, which section holds which category) and lives in Drive beside the
 source (`sources/<code>/plans/<chapter>.json`), never in the repo: it is the
 book's outline.
 
+A **plan pack** (`sources/<code>/packs/<chapter>.json`, made by
+`wfrp-import/scripts/plan_pack.py`) is a plan another group can use: the same
+shape and page numbers, with every string of the book's replaced by a
+fingerprint that the installer's own copy of the book turns back into text.
+It holds no words from the book, so it can be shared with a group that owns
+the book; the plan it was made from can't.
+
 When text extraction garbles a page (a table drawn as art, a stat line in an
 image), look at the page image and transcribe it, and say so in the chapter's
 notes. If the PDF is scanned (no text layer), ask before running OCR.

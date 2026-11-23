@@ -1,5 +1,10 @@
 # WFRP Assistant Skills
 
+> **Unofficial.** This is a fan-made, non-commercial tool. It is not affiliated
+> with, endorsed by or connected to Games Workshop or Cubicle 7. Warhammer
+> Fantasy Roleplay is a trademark of Games Workshop. The repository holds no
+> text, art, rules or stats from any book: it works on the books *you* own.
+
 Claude skills for running **Warhammer Fantasy Roleplay, 4th edition** at the
 table. They import game material from **sources you own** (Cubicle 7 PDFs and
 your own homebrew) into a private library, then use it to:
