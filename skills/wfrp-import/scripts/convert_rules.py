@@ -175,6 +175,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from render_entry import render  # noqa: E402
 import items  # noqa: E402
 import creatures  # noqa: E402
+import detectors  # noqa: E402
 import convert_careers  # noqa: E402
 from entry_text import (blocks_from_lines, fix_case, join_lines, marked, merge_lines, norm, plain, slugify,  # noqa: E402
                         split_items, split_row, table_data, vocabulary)
@@ -457,6 +458,15 @@ def same_entry(a, b):
     """Whether two entries say the same thing throughout: name, fields (a price, a quality, a
     casting number) and text. An item's whole statement is its fields, so text alone won't do."""
     return all(all_text(a.get(k)) == all_text(b.get(k)) for k in ('name', 'fields', 'content'))
+
+
+def base_skill(library, name):
+    """The library's skill a "Base (Specialisation)" name specialises: its index record, or None."""
+    b = detectors.base_name(name)
+    p = os.path.join(library, 'skills', '_index.json') if library and b else None
+    if not p or not os.path.exists(p): return None
+    with open(p, encoding='utf-8') as f:
+        return next((r for r in json.load(f) if norm(r.get('name')) == norm(b)), None)
 
 
 def relate_same_name(cat, entry, rec, plan, library, report):
@@ -1748,6 +1758,19 @@ def convert(layout, plan, taken=(), library=None):
                  'fields': fields, 'content': content}
         if cat == 'rules':
             entry['kind'] = spec.get('kind', 'procedure')
+        # fields the entry's own text states that the plan doesn't give: proposed, never set (detectors.py)
+        base = base_skill(library, name) if cat == 'skills' else None
+        if base and not any(r.get('role') == 'adds-to' for r in (plan.get('relations', {}).get(f'{cat}/{slug}') or [])):
+            report.setdefault('proposed_relations', []).append({
+                'entry': f'{cat}/{slug}', 'name': name, 'role': 'adds-to', 'to': f'skills/{base["slug"]}',
+                'says': f'{name} is a specialisation of {base["name"]}',
+                'set_with': f'edit_entry.py --library <root> {cat}/{slug} --relation adds-to:skills/{base["slug"]} '
+                            f'--plan sources/{plan["source"]}/plans/{plan["chapter"]}.json'})
+        for p in detectors.propose(cat, fields.get('kind'), name, spec.get('fields') or {}, detectors.plain_text(content), base):
+            report.setdefault('proposed_fields', []).append({
+                'entry': f'{cat}/{slug}', 'name': name, 'page': spec['page'], **p,
+                'set_with': f'edit_entry.py --library <root> {cat}/{slug} --set {p["field"]}={json.dumps(p["value"])} '
+                            f'--plan sources/{plan["source"]}/plans/{plan["chapter"]}.json'})
         if spec.get('aliases'):
             entry['aliases'] = spec['aliases']
         if spec.get('audience'):

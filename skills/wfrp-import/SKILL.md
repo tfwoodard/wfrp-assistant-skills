@@ -135,6 +135,18 @@ PDF or anything read from it into the repo.
    relation (layout §4) on every new entry that shares a name with another,
    in any category; propose the role in the plan's `relations`, and the
    Librarian confirms.
+6. The rules converter's report lists **`proposed_fields`** and
+   **`proposed_relations`**: what the entries' own text states that the plan
+   doesn't give (`scripts/detectors.py`). Examples: a condition that says it
+   doesn't stack, a skill's characteristic and type from its bold lead line, a
+   specialisation's base skill. Show each to the Librarian with the sentence it
+   comes from (`says`). Set the confirmed ones with the `set_with` command
+   (`edit_entry.py ... --plan`), so the entry and the plan both carry them. A
+   proposal with `plan` disagrees with what the plan already says: look at both.
+   Run the converter with `--library-data` so specialisations find their base
+   skill. A field the text states but no detector reads yet is worth a new
+   detector (with tests on invented text) rather than a plan note:
+   `plan_survey.py` shows which.
 
 When a table or stat line can't be read from the text (drawn as art, or its
 cells out of order), transcribe it from the page image, keeping every word,
