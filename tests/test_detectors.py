@@ -63,3 +63,38 @@ class Skills(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class AddsTo(unittest.TestCase):
+    def setUp(self):
+        import json, tempfile
+        self.tmp = tempfile.TemporaryDirectory()
+        os.makedirs(os.path.join(self.tmp.name, 'careers'))
+        with open(os.path.join(self.tmp.name, 'careers', '_index.json'), 'w') as f:
+            json.dump([{'slug': 'lamplighter', 'name': 'Lamplighter'}, {'slug': 'warden', 'name': 'Warden'}], f)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def propose(self, entries, out, relations=None):
+        import convert_rules
+        report = {}
+        convert_rules.propose_adds_to(entries, out, {'source': 'LAMP', 'chapter': 'ch4', 'relations': relations or {}},
+                                      self.tmp.name, report)
+        return [(r['entry'], r['to']) for r in report.get('proposed_relations', [])], report
+
+    def test_a_box_entry_adds_to_the_entry_it_is_printed_in(self):
+        entries = [{'spec': {'name': 'Gull Rock'}}, {'spec': {'name': 'A Seed of Trouble'}, 'host': 'Gull Rock', 'from_box': '4.1'}]
+        out = [('lore', {'name': 'Gull Rock', 'slug': 'gull-rock'}), ('lore', {'name': 'A Seed of Trouble', 'slug': 'a-seed-of-trouble'})]
+        got, report = self.propose(entries, out)
+        self.assertEqual(got, [('lore/a-seed-of-trouble', 'lore/gull-rock')])
+        self.assertIn('printed in a box within Gull Rock', report['proposed_relations'][0]['says'])
+        self.assertIn('--relation adds-to:lore/gull-rock --plan sources/LAMP/plans/ch4.json', report['proposed_relations'][0]['set_with'])
+        got, _ = self.propose(entries, out, {'lore/a-seed-of-trouble': [{'role': 'adds-to', 'to': 'lore/elsewhere'}]})
+        self.assertEqual(got, [])                                                  # the plan says already
+
+    def test_a_rule_named_after_a_career(self):
+        out = [('rules', {'name': 'Dwarf Lamplighter', 'slug': 'dwarf-lamplighter'}),
+               ('rules', {'name': 'Lamplighters Guild', 'slug': 'lamplighters-guild'})]       # not "ends in"
+        got, _ = self.propose([], out)
+        self.assertEqual(got, [('rules/dwarf-lamplighter', 'careers/lamplighter')])

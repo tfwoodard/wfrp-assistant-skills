@@ -463,6 +463,37 @@ def same_entry(a, b):
     return all(all_text(a.get(k)) == all_text(b.get(k)) for k in ('name', 'fields', 'content'))
 
 
+def propose_adds_to(entries, out, plan, library, report):
+    """Relations the layout and the names show, proposed for the Librarian (never set): an entry
+    made from a box adds to the entry whose text the box sits in; a rules entry whose name ends in
+    a career's name ("Dwarf Engineer") adds to that career. Not proposed where the plan already
+    gives the entry an adds-to."""
+    ref = {norm(e['name']): f'{cat}/{e["slug"]}' for cat, e in out}
+    careers = []
+    p = os.path.join(library, 'careers', '_index.json') if library else None
+    if p and os.path.exists(p):
+        with open(p, encoding='utf-8') as f:
+            careers = [r for r in json.load(f) if r.get('name')]
+    rels = plan.get('relations', {})
+    def has_adds_to(r):
+        return any(x.get('role') == 'adds-to' for x in (rels.get(r) or rels.get(r.split('/', 1)[1]) or []))
+    def propose(mine, to, says):
+        if mine and to and mine != to and not has_adds_to(mine):
+            report.setdefault('proposed_relations', []).append({
+                'entry': mine, 'role': 'adds-to', 'to': to, 'says': says,
+                'set_with': f'edit_entry.py --library <root> {mine} --relation adds-to:{to} '
+                            f'--plan sources/{plan["source"]}/plans/{plan["chapter"]}.json'})
+    for e in entries:
+        if e.get('host'):
+            propose(ref.get(norm(e['spec']['name'])), ref.get(norm(e['host'])),
+                    f'{e["spec"]["name"]} is printed in a box within {e["host"]}')
+    for cat, e in out:
+        if cat != 'rules': continue
+        for c in careers:
+            if norm(e['name']).endswith(' ' + norm(c['name'])):
+                propose(f'rules/{e["slug"]}', f'careers/{c["slug"]}', f'{e["name"]} names the career {c["name"]}')
+
+
 def base_skill(library, name):
     """The library's skill a "Base (Specialisation)" name specialises: its index record, or None."""
     b = detectors.base_name(name)
@@ -1523,7 +1554,7 @@ def convert(layout, plan, taken=(), library=None):
                     report['left_out'] += [x['text'] for x in lines if x.get('box') == bid]
                 elif 'entry' in bp:
                     e = {'spec': dict(bp['entry'], page=l['page']), 'level': None, 'lines': [], 'boxes': [bid],
-                         'own_box': True}
+                         'own_box': True, 'from_box': bid}
                     entries.append(e)
                 elif 'entries' in bp:
                     # A box of several short pieces, each under its own heading (adventure hooks):
@@ -1553,7 +1584,7 @@ def convert(layout, plan, taken=(), library=None):
                             end = starts[n + 1] if n + 1 < len(starts) else at[-1] + 1
                             entries.append({'spec': dict(bp['entries'], name=fix_case(plain(text)), page=lines[k]['page']),
                                             'level': None, 'lines': [lines[m] for m in at if last < m < end],
-                                            'boxes': []})
+                                            'boxes': [], 'from_box': bid})
                 else:
                     pending_boxes.append((bid, target))
             i += 1
@@ -1598,6 +1629,16 @@ def convert(layout, plan, taken=(), library=None):
     # A box goes to the entry whose text runs just above it on its page, in the columns it spans;
     # with no text above it there, to the entry running into the page. The plan's "to" overrides.
     owner = {id(x): e for e in entries for x in e['lines']}
+    for e in entries:          # a box made an entry of its own sits in another entry's text: its host
+        if e.get('from_box'):
+            region = regions.get(e['from_box'], {})
+            x0, top, x1, _ = region.get('bbox', (0, 0, 0, 0))
+            body = [x for x in lines if not x.get('box') and id(x) in owner and owner[id(x)] is not e]
+            above = [x for x in body if x['page'] == region.get('page') and x['baseline'] < top and x['x1'] > x0 and x['x0'] < x1]
+            before = [x for x in body if x['page'] < region.get('page', 0)]
+            host = owner[id(max(above, key=lambda x: x['baseline']))] if above else owner[id(before[-1])] if before else None
+            if host is not None:
+                e['host'] = host['spec']['name']
     report['box_placement'] = []
     expanded = []
     for bid, target in pending_boxes:          # "to" can name several entries: one copy in each
@@ -1822,6 +1863,7 @@ def convert(layout, plan, taken=(), library=None):
         for sub in split:
             add_entry(dict(sub, _report=report, _library=library), out, records, plan, taken, used_slugs)
 
+    propose_adds_to(entries, out, plan, library, report)
     describe_items(found_items, describers, plan, report)
     for it in found_items:
         add_entry({'name': it['name'], 'category': 'trappings', 'page': it['page'], 'section': it['section'],
