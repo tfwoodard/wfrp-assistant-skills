@@ -7,8 +7,10 @@ For each plan: the category most of its entries have, and the kind, become the p
 an entry with that value loses its own line, and one with another value keeps it (or gains it, where
 it relied on the converter's own fallback: no category is "rules", and a rules entry with no kind is
 a "procedure"). Every entry must mean the same kind and category afterwards as before, read through
-convert_rules.apply_defaults(); a plan where a default can't say the same (a non-rules entry with no
-kind at all, under a kind default) gets no default for that key, and the report says so. A default
+convert_rules.apply_defaults(), which gives the defaults only to entries in the chapter's own
+category: the kind is chosen among those, and an entry in another category keeps its own lines. A
+plan where a default can't say the same (an entry of the chapter's own category with no kind at all,
+under a kind default) gets no default for that key, and the report says so. A default
 that saves no keys isn't set, nor defaults that save no more keys than they add themselves. A plan with "defaults" already is left as it is.
 
 Without --write it reports what would change. With it, each changed plan is written in its own
@@ -39,16 +41,20 @@ def compact(plan):
     out, said = [dict(e) for e in entries], []
     defaults, total = {}, 0
     for key, i in (("category", 0), ("kind", 1)):
-        values = [m[i] for m in before if m[i] is not None]
+        # a default reaches only the chapter's own entries (apply_defaults): the kind is chosen among them
+        own = defaults.get("category", "rules")
+        mine = [key == "category" or m[0] == own for m in before]
+        values = [m[i] for m, y in zip(before, mine) if y and m[i] is not None]
         if not values: continue
         top, n = collections.Counter(values).most_common(1)[0]
-        if key == "kind" and any(m[1] is None for m in before):
-            said.append(f"no kind default: {sum(1 for m in before if m[1] is None)} entries have no kind at all")
+        if key == "kind" and any(m[1] is None for m, y in zip(before, mine) if y):
+            said.append(f"no kind default: {sum(1 for m, y in zip(before, mine) if y and m[1] is None)} entries have no kind at all")
             continue
         trial = []
-        for e, m in zip(out, before):
+        for e, m, y in zip(out, before, mine):
             e = dict(e)
-            if m[i] == top: e.pop(key, None)
+            if not y: pass                   # another category's entry keeps its own lines
+            elif m[i] == top: e.pop(key, None)
             else: e[key] = m[i]
             trial.append(e)
         saved = sum(1 for a, b in zip(out, trial) if key in a and key not in b) - \

@@ -263,7 +263,10 @@ reading of it, and one that is lost is simply written again.
 
 A plan's `defaults` (`{"kind": "condition"}`, `{"category": "lore", "kind":
 "other"}`) give every entry it lists the kind or category it doesn't name, so
-write a chapter's common kind once, not on each line. Any key but an entry's
+write a chapter's common kind once, not on each line. A default reaches only the
+chapter's own entries: those in its default category, or in rules when it names
+none. An entry that names another category (a species or a disease in a rules
+chapter) takes none of them, so it says its own kind. Any key but an entry's
 identity (name, page, heading, slug, aliases, starts_at) can be a default,
 including an instruction every entry takes (`"stat_blocks": true`); an entry
 that doesn't take it says `false`. `plan_defaults.py PLAN

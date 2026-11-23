@@ -1515,18 +1515,23 @@ IDENTITY = ('name', 'page', 'heading', 'slug', 'aliases', 'starts_at')     # nev
 
 
 def apply_defaults(plan):
-    """The plan with its "defaults" written into each of its entries that doesn't give that key
-    itself (an entry's own value stands, false included). Any key but an entry's identity (name,
-    page, heading, slug, aliases, starts_at) can be defaulted: a chapter's kind and category, or
-    an instruction every entry in it takes ("stat_blocks", "describes_items"). Converters call this
-    as they load a plan, before adding entries of their own."""
+    """The plan with its "defaults" written into each of its entries in the chapter's own category
+    that doesn't give that key itself (an entry's own value stands, false included). The chapter's
+    category is the default "category", or "rules" when there is none; an entry that names another
+    category (a species, a disease in a rules chapter) takes none of the defaults, since a kind or
+    an instruction for the chapter's entries isn't one for it. Any key but an entry's identity
+    (name, page, heading, slug, aliases, starts_at) can be defaulted: a chapter's kind and category,
+    or an instruction every entry in it takes ("stat_blocks", "describes_items"). Converters call
+    this as they load a plan, before adding entries of their own."""
     d = plan.get('defaults') or {}
     bad = sorted(set(d) & set(IDENTITY))
     if bad:
         raise SystemExit(f'the plan\'s defaults can\'t give {", ".join(bad)}: those make each entry itself')
     if not d:
         return plan
-    return dict(plan, entries=[dict({k: v for k, v in d.items() if k not in e}, **e) for e in plan.get('entries', [])])
+    own = d.get('category', 'rules')
+    return dict(plan, entries=[dict({k: v for k, v in d.items() if k not in e}, **e) if e.get('category', own) == own else e
+                               for e in plan.get('entries', [])])
 
 
 def convert(layout, plan, taken=(), library=None):
