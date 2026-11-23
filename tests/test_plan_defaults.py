@@ -78,3 +78,14 @@ class Defaults(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class DefaultsTakeInstructionsTest(unittest.TestCase):
+    def test_an_instruction_is_a_default_and_identity_is_not(self):
+        import convert_rules
+        plan = {'defaults': {'stat_blocks': True},
+                'entries': [{'name': 'Lamp Goblin', 'page': 3}, {'name': 'Wick Lore', 'page': 4, 'stat_blocks': False}]}
+        got = convert_rules.apply_defaults(plan)['entries']
+        self.assertEqual([e['stat_blocks'] for e in got], [True, False])
+        with self.assertRaises(SystemExit):
+            convert_rules.apply_defaults({'defaults': {'page': 3}, 'entries': [{'name': 'Lamp Goblin'}]})

@@ -43,7 +43,11 @@ runs until the next planned entry's heading. An entry is a rules entry (its
 (lore: god, place...). The plan's "defaults" ({"kind": ..., "category": ...}) give
 every entry it lists the kind or category it doesn't name itself, so a chapter
 of conditions or talents needn't repeat it on each line (apply_defaults();
-plan_defaults.py rewrites a plan that way). "field_labels" read the text after those bold labels
+plan_defaults.py rewrites a plan that way). "entry_levels" ([2, 3]: heading sizes
+as pdf_layout.py ranks them, 1 the largest) makes every heading at those levels an entry,
+named as printed, so the plan lists only the entries that need more than a name and a
+page; "not_entries" names the headings at those levels that are sections of the entry
+above them (heading_levels.py shows the levels, with examples, and what they'd make). "field_labels" read the text after those bold labels
 ("**Harbour Master**: ...", run together or a line each) into the entry's fields
 (where prose follows the last one with no blank line, the fields end at a line that stops
 well short of the column's width),
@@ -807,6 +811,42 @@ def boxes_as_text(lines, boxes_plan, report, gutters=None):
     return out
 
 
+def level_entries(plan, lines, runs, report):
+    """The plan's entries, and with "entry_levels" every heading at those levels made an entry too
+    (its name as printed, fix_case(); its page; the plan's "defaults"). A heading the plan's own
+    "entries" already place keeps the plan's spec. "not_entries" lists headings at those levels
+    that are sections of the entry above them, by text, or {"text", "page"}: they are neither
+    entries nor reported as unplaced. Returns (entries, the (text, page or None) to leave as
+    sections)."""
+    explicit = list(plan.get('entries') or [])
+    levels = set(plan.get('entry_levels') or [])
+    skip = set()
+    for x in plan.get('not_entries') or []:
+        skip.add((norm(x), None) if isinstance(x, str) else (norm(x.get('text')), x.get('page')))
+    if not levels:
+        return explicit, skip
+    placed = {(norm(e.get('heading', e['name'])), e['page']) for e in explicit}
+    defaults = plan.get('defaults') or {}
+    made, used = [], set()
+    for i, (text, last) in sorted(runs.items()):
+        l = lines[i]
+        if l['heading'] not in levels or l.get('box'):
+            continue
+        key = (norm(text), l['page'])
+        if key in placed:
+            continue
+        if key in skip or (key[0], None) in skip:
+            used.add(key if key in skip else (key[0], None))
+            continue
+        made.append(dict(defaults, name=fix_case(text), page=l['page']))
+    for x in sorted(skip - used, key=str):
+        if not any((norm(t), lines[i]['page']) == x or (x[1] is None and norm(t) == x[0]) for i, (t, _) in runs.items()):
+            report['errors'].append({'error': f'not_entries: no heading {x[0]!r}' + (f' on page {x[1]}' if x[1] else '')})
+    if made:
+        report['entries_from_levels'] = [{'name': e['name'], 'page': e['page']} for e in made]
+    return explicit + made, skip
+
+
 def heading_runs(lines):
     """Index of each heading start -> (text, last index): a heading printed over two lines is one."""
     runs, i = {}, 0
@@ -1471,17 +1511,19 @@ def flow_tables(regions, lines, plan, report):
             {'box': bid, 'tables': [{'title': x['title'], 'rows': len(x['rows'])} for x in tables]})
 
 
-DEFAULTABLE = ('kind', 'category')
+IDENTITY = ('name', 'page', 'heading', 'slug', 'aliases', 'starts_at')     # never defaulted: what makes an entry itself
 
 
 def apply_defaults(plan):
     """The plan with its "defaults" written into each of its entries that doesn't give that key
-    itself (an entry's own value stands). Only "kind" and "category" can be defaulted; anything
-    else is an error. Converters call this as they load a plan, before adding entries of their own."""
+    itself (an entry's own value stands, false included). Any key but an entry's identity (name,
+    page, heading, slug, aliases, starts_at) can be defaulted: a chapter's kind and category, or
+    an instruction every entry in it takes ("stat_blocks", "describes_items"). Converters call this
+    as they load a plan, before adding entries of their own."""
     d = plan.get('defaults') or {}
-    bad = sorted(set(d) - set(DEFAULTABLE))
+    bad = sorted(set(d) & set(IDENTITY))
     if bad:
-        raise SystemExit(f'the plan\'s defaults can only give {", ".join(DEFAULTABLE)}, not {", ".join(bad)}')
+        raise SystemExit(f'the plan\'s defaults can\'t give {", ".join(bad)}: those make each entry itself')
     if not d:
         return plan
     return dict(plan, entries=[dict({k: v for k, v in d.items() if k not in e}, **e) for e in plan.get('entries', [])])
@@ -1529,8 +1571,8 @@ def convert(layout, plan, taken=(), library=None):
         if bid not in regions:
             report['errors'].append({'error': f'the plan names box {bid}, which pdf_layout.py did not find'})
 
-    planned = list(plan['entries'])
     runs = heading_runs(lines)
+    planned, skip = level_entries(plan, lines, runs, report)
     intro = plan.get('intro')
     # Walk the lines, cutting entries at planned headings.
     entries = []          # {"spec", "level", "lines": [...], "boxes": [ids]}
@@ -1605,7 +1647,8 @@ def convert(layout, plan, taken=(), library=None):
                 entries.append(current)
                 i = last + 1
                 continue
-            if current is not None and l['size'] >= current['size']:
+            if current is not None and l['size'] >= current['size'] and (norm(text), l['page']) not in skip and \
+                    (norm(text), None) not in skip:
                 report['errors'].append({'error': f'heading {text!r} on page {l["page"]} is at the level of '
                                          f'{current["spec"]["name"]!r} but the plan doesn\'t place it'})
         if current is None and i in runs and l['heading'] == 1:

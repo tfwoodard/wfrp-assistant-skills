@@ -92,6 +92,28 @@ PDF or anything read from it into the repo.
    what's left out (art credits, flavour quotes the Librarian doesn't want),
    and every same-name decision (below). Keep it in Drive beside the source
    (`sources/<code>/plans/<chapter>.json`), never in the repo.
+
+   **Which headings are entries** is settled with the Librarian as plain
+   questions, not by listing every heading. Run `heading_levels.py
+   scratch/ch3-layout.json`: it shows each heading size (level 1 is the
+   largest) with how many headings it has and a few examples. Ask which sizes
+   start an entry ("the big ones like *Dread* and *Wick Rot*, or the smaller
+   ones like *Tools of Trimming* too?"), then run it again with `--levels 2,3`
+   and show the numbered list of headings that would become entries. Ask which
+   of them aren't entries of their own (they stay sections of the entry
+   before), and whether any entry is missing from the list. Write the answers
+   as the plan's `"entry_levels": [2, 3]`, `"not_entries": [{"text": "Tools of
+   Trimming", "page": 1}]` (a bare string matches the heading on any page),
+   and an `entries` line only for an entry that needs more than its name and
+   page: another kind or category than the `defaults`, aliases, fields, a
+   heading printed with more than the name, or one printed at another size.
+   The converter makes the rest from their headings, in page order, and lists
+   them in the report's `entries_from_levels`. A heading at an entry level that
+   is in neither list is still an error, so nothing is placed by accident.
+   `plan_levels.py PLAN LAYOUT --write` rewrites an older plan that lists every
+   entry this way, only where the converter's output stays exactly the same; a
+   plan with open errors (an unplaced heading) or with entries that split their
+   headings into entries of their own stays as it is.
 4. Convert with the converter for that kind of chapter, then check coverage:
 
    ```
@@ -241,7 +263,10 @@ reading of it, and one that is lost is simply written again.
 
 A plan's `defaults` (`{"kind": "condition"}`, `{"category": "lore", "kind":
 "other"}`) give every entry it lists the kind or category it doesn't name, so
-write a chapter's common kind once, not on each line. `plan_defaults.py PLAN
+write a chapter's common kind once, not on each line. Any key but an entry's
+identity (name, page, heading, slug, aliases, starts_at) can be a default,
+including an instruction every entry takes (`"stat_blocks": true`); an entry
+that doesn't take it says `false`. `plan_defaults.py PLAN
 --write` rewrites an existing plan that way, only where every entry still
 means the same.
 
