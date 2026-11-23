@@ -372,6 +372,44 @@ class ConvertRulesTest(unittest.TestCase):
         self.assertEqual(self.load(out, 'smoked.json')['kind'], 'condition')
         self.assertEqual(self.load(out, 'trimming-wicks.json')['kind'], 'procedure')   # its own kind stands
 
+    def test_entry_levels_make_every_heading_at_them_an_entry(self):
+        # sizes: the title 30 pt (level 1), "Trimming Wicks" 18 (2), the others 12 (3)
+        plan = dict(PLAN, entry_levels=[3], not_entries=['Tools of Trimming'],
+                    entries=[e for e in PLAN['entries'] if e['name'] != 'Smoked'])
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(plan, f)
+        r, out, layout, report = self.convert()
+        self.assertEqual(r.returncode, 0, report['errors'])
+        self.assertEqual(report['entries_from_levels'], [{'name': 'Smoked', 'page': 1}])
+        self.assertEqual(self.load(out, 'smoked.json')['kind'], 'procedure')
+        self.assertIn('Tools of Trimming', json.dumps(self.load(out, 'trimming-wicks.json')))   # a section, no error
+        plan['not_entries'] = ['Tools of Trimming', 'Wick Mending']
+        with open(os.path.join(self.d, 'plan.json'), 'w') as f:
+            json.dump(plan, f)
+        r, out, layout, report = self.convert()
+        self.assertIn("not_entries: no heading 'wick mending'", [e['error'] for e in report['errors']])
+
+    def test_plan_levels_rewrites_only_what_converts_the_same(self):
+        r, out, layout, report = self.convert()
+        sys.path.insert(0, SCRIPTS)
+        import plan_levels
+        with open(layout) as f: lay = json.load(f)
+        plain = [{'name': 'Trimming Wicks', 'page': 1}, {'name': 'Smoked', 'page': 1}]
+        plan = dict(PLAN, defaults={'kind': 'procedure'}, entries=plain + PLAN['entries'][2:])
+        new, said = plan_levels.rewrite(plan, lay)
+        self.assertIsNotNone(new, said)
+        self.assertEqual(new['entry_levels'], [2, 3])
+        self.assertEqual([e['name'] for e in new['entries']], ['Dread', 'Wick Rot'])   # each needs more than a name
+        self.assertIn({'text': 'Tools of Trimming', 'page': 1}, new['not_entries'])
+        self.assertEqual(plan_levels.outcome(lay, plan, None), plan_levels.outcome(lay, new, None))
+        out = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'heading_levels.py'), layout], capture_output=True, text=True).stdout
+        self.assertIn('Level 2: 1 headings', out)
+        self.assertIn('Trimming Wicks (p. 1)', out)
+        out = subprocess.run([sys.executable, os.path.join(SCRIPTS, 'heading_levels.py'), layout, '--levels', '3',
+                              '--plan', os.path.join(self.d, 'plan.json')], capture_output=True, text=True).stdout
+        self.assertIn("Smoked (p. 1)  [the plan's own entry]", out)
+        self.assertIn('{"entry_levels": [3]}', out)
+
     def test_an_unplanned_heading_at_entry_level_is_an_error(self):
         r, out, layout, report = self.convert(unplanned=True)
         self.assertEqual(r.returncode, 1)
