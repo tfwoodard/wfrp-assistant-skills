@@ -975,6 +975,9 @@ def main(argv=None):
     first, last = parse_pages(a.pages)
     icon_text = dict(x.split('=', 1) for x in a.icon_text)
     doc = read(a.pdf, first, last, a.page_offset, a.icon_fonts, a.boxes, icon_text, a.margin_lines)
+    # how this layout was made, so it can be made again (a plan pack's installer does)
+    doc['options'] = {'pages': a.pages, 'page_offset': a.page_offset, 'icon_fonts': a.icon_fonts,
+                      'boxes': a.boxes, 'icon_text': icon_text, 'margin_lines': a.margin_lines}
     if doc['pages_without_text']:
         print('no text layer on printed pages ' + ', '.join(map(str, doc['pages_without_text'])) +
               ': look at the page images, and ask before running OCR', file=sys.stderr)

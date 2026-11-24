@@ -1,0 +1,496 @@
+{
+ "pack": 1,
+ "source": "HEPG",
+ "chapter": "ch2",
+ "name": "ch2",
+ "layout": {
+  "pages": "19-43",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "HEPG",
+  "chapter": "ch2",
+  "defaults": {
+   "category": "lore",
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "fe936e2f687cc444ebda"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "d6dca8b27127cf38d871"
+    },
+    "page": 21
+   },
+   {
+    "name": {
+     "#": "161075fd49a02fcb079b"
+    },
+    "page": 22
+   },
+   {
+    "name": {
+     "#": "fc33580e51c6b7d32028"
+    },
+    "page": 24
+   },
+   {
+    "name": {
+     "#": "c04c15c66d37b0321cff"
+    },
+    "page": 25
+   },
+   {
+    "name": {
+     "#": "167b02cdc1e8992bc91d"
+    },
+    "page": 26
+   },
+   {
+    "name": {
+     "#": "7f72869e117ead05bc92"
+    },
+    "page": 30
+   },
+   {
+    "name": {
+     "#": "a01e7bfe1793dbaf0bcc"
+    },
+    "page": 32,
+    "describes_items": true,
+    "category": "rules",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "0bdeccf9f292884c6194"
+    },
+    "page": 36,
+    "describes_items": true,
+    "category": "rules",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "3a940941c3b41fe71f34"
+    },
+    "page": 37,
+    "describes_items": true,
+    "category": "rules",
+    "kind": "other"
+   }
+  ],
+  "boxes": {
+   "19.2": {
+    "text": true
+   },
+   "33.2": {
+    "text": true
+   },
+   "23.1": {
+    "to": {
+     "#": "fa3bd9914559d460d2c3"
+    }
+   },
+   "23.2": {
+    "entry": {
+     "name": {
+      "#": "cf975ddd1c0c2dc34155"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "24.2": {
+    "entry": {
+     "name": {
+      "#": "0658cae8c3b076418bbe"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "25.3": {
+    "entry": {
+     "name": {
+      "#": "b32127e838cea0664ba2"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "43.2": {
+    "entry": {
+     "name": {
+      "#": "23b65e984015b2481952"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   }
+  },
+  "tables": {
+   "33.1": {
+    "title": {
+     "#": "0ce3c2ce50eb6254686c"
+    },
+    "items": {
+     "kind": "melee",
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     }
+    }
+   },
+   "34.1": {
+    "title": {
+     "#": "92fea1873f74b4f0b7db"
+    },
+    "items": {
+     "kind": "armour",
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:fbf92fe5d03f515dd03a": {
+       "#": "285c579c0d156ef00560"
+      },
+      "#:3be11c324060d1ab3408": {
+       "#": "af34d131f8a95899b64f"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     }
+    }
+   },
+   "36.1": {
+    "items": {
+     "kind": "herb-or-draught",
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:3bd19418a66a89a8a140": {
+       "#": "2a8db618c99ea2da7b69"
+      }
+     }
+    }
+   },
+   "36.3": {
+    "header_row": true,
+    "title": {
+     "#": "26d1a909a5ca1bfb9555"
+    },
+    "items": {
+     "kind": "herb-or-draught",
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:3bd19418a66a89a8a140": {
+       "#": "2a8db618c99ea2da7b69"
+      }
+     }
+    }
+   },
+   "36.2": {
+    "slug": {
+     "#slug": "951610a7a61946cd7715"
+    },
+    "title": {
+     "#": "2f0649c60a7b2ce2fa7a"
+    },
+    "roll": "d10",
+    "roll_column": 0
+   },
+   "37.1": {
+    "items": {
+     "kind": "item",
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:3bd19418a66a89a8a140": {
+       "#": "2a8db618c99ea2da7b69"
+      }
+     }
+    }
+   },
+   "40.1": {
+    "title": {
+     "#": "5522f3b2a50e19728ec0"
+    }
+   },
+   "42.1": {
+    "title": {
+     "#": "6e863ae677561a3559d1"
+    },
+    "stacked": {
+     "title": {
+      "#": "28746d26dd9bb0faaf8f"
+     },
+     "columns": [
+      {
+       "#": "aa5ece6d627e070eaaca"
+      },
+      {
+       "#": "d2d6f5776842c365797c"
+      },
+      {
+       "#": "a01d4ed6cb9867bad137"
+      },
+      {
+       "#": "4ca167b04c290f10d289"
+      },
+      {
+       "#": "b300e3cb38f9f968b4c5"
+      },
+      {
+       "#": "6c2752fb74c3388dcf60"
+      },
+      {
+       "#": "54b0123e58e89a2093ef"
+      },
+      {
+       "#": "9b941b88311d0be14c99"
+      },
+      {
+       "#": "45afc024e5d989d4c07c"
+      },
+      {
+       "#": "c6b156ea24910cf2cb81"
+      }
+     ]
+    }
+   },
+   "40.3": {}
+  },
+  "relations": {
+   "#slug:trappings/732eb0fb4f2c21fe5cf9": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "6b16518a99abaf34c967",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/873f501e7bf1003163a6": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "5449a266399d3a712e5d",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/112826ef69ab20f3c26c": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "8f95bc640dcc55690368",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/20d80c40697eb9aaffae": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "71c9c7698a97b93250e6",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/a08073bf111c9294825e": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "352437ffa350200fd9e3",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/b4dd1b49c6199ae858fa": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "d19ca7eb701a43ddb123",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/88d1081dec07198b6fb8": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "87aacfd26ab87f0fc6f0",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/716be67c658e4b990050": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "9508a4c2e645a44cd8ef",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/b52b533fcd97adddb899": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "2c3896ae69b393e5196d",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/f52905c6ada33dd9959b": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "1cf41fdc347ae63d1f80",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/b3c2a940abb069a82b30": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "ffc9d0268cf5b7dd2e4e",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/b83ea2424acbb96a9ccb": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "9feb7b9d6ddea88bfbfc",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/0f7c27f16d581a062acb": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "e6bd6fd86cfb6cefbf8b",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/756ca11325d7fe7a33c8": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "97f5290e3451bf3579d8",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/de9c22187036f7ab94c9": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "f6122fe95e197097bc47",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:trappings/032dba076f11c0abaf81": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "a5b66d65a1cf6346a85a",
+      "in": "trappings"
+     }
+    }
+   ]
+  },
+  "rename": {}
+ },
+ "left_out": [
+  "tables/34.1/items/fields/#9bfd090fe3f0d4bfa325",
+  "tables/36.2/about",
+  "rename/#fa39aa190fd3c3c7f721",
+  "rename/#ae7c162ac08c318d5c8b",
+  "rename/#c9118b0e4f75a2117db0",
+  "rename/#e87d56f244d73e845507",
+  "rename/#abbd1cc569698fe30967",
+  "rename/#8e868a3632943106441d",
+  "rename/#09c7754a4dbdfd9f6989",
+  "rename/#944ac2e4053f06e7ccb1",
+  "rename/#c0237780ef7c0a7196fe",
+  "rename/#78f8fc9add027909872f",
+  "rename/#5e0ac5b4d2340e9f2a22",
+  "rename/#58ebb09fe9da6a250144",
+  "rename/#47504711d885f3d44669",
+  "rename/#de9afb6eb4571e7b424c",
+  "rename/#d7dddceaf9f5ea53bb48",
+  "rename/#2f3ff4a6bf8e391e6f16",
+  "rename/#6a1738048f2e60bd7334",
+  "rename/#3d26d92c56b34c360b8f"
+ ],
+ "pdf_sha256": "45e527e991a87cf48fb30af05277f6c849d72395079dcbbf100334270caf97cf",
+ "pdf_bytes": 66475581
+}

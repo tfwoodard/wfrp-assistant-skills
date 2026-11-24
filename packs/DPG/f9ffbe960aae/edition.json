@@ -1,0 +1,38 @@
+{
+ "source": "DPG",
+ "pdf_sha256": "f9ffbe960aae459ff53d1ecc832298908f1f22cd7a223aab863d4ca14bea7e50",
+ "pdf_bytes": 71047654,
+ "title": "Dwarf Player’s Guide",
+ "chapters": {
+  "ch1": {
+   "chapter": "ch1",
+   "pages": "4-23",
+   "left_out": 0
+  },
+  "ch2": {
+   "chapter": "ch2",
+   "pages": "24-35",
+   "left_out": 0
+  },
+  "ch3": {
+   "chapter": "ch3",
+   "pages": "36-84",
+   "left_out": 9
+  },
+  "ch4": {
+   "chapter": "ch4",
+   "pages": "85-118",
+   "left_out": 10
+  },
+  "ch5": {
+   "chapter": "ch5",
+   "pages": "119-130",
+   "left_out": 1
+  },
+  "ch6": {
+   "chapter": "ch6",
+   "pages": "131-141",
+   "left_out": 0
+  }
+ }
+}

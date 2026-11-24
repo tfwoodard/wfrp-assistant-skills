@@ -1,0 +1,46 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch1",
+ "name": "ch1",
+ "layout": {
+  "pages": "4-5",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch1",
+  "defaults": {
+   "category": "lore",
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "d6994c1d09e9542d6ddb"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [],
+  "boxes": {},
+  "tables": {},
+  "relations": {}
+ },
+ "left_out": [],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

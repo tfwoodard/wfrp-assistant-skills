@@ -1,0 +1,263 @@
+{
+ "pack": 1,
+ "source": "HEPG",
+ "chapter": "ch4",
+ "name": "ch4",
+ "layout": {
+  "pages": "76-90",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "HEPG",
+  "chapter": "ch4",
+  "defaults": {
+   "kind": "other"
+  },
+  "level_icons": {
+   "1": {
+    "pts": 40,
+    "letter": "E"
+   },
+   "2": {
+    "pts": 54,
+    "letter": "A"
+   },
+   "3": {
+    "pts": 46,
+    "letter": "C"
+   },
+   "4": {
+    "pts": 61,
+    "letter": "D"
+   },
+   "5": {
+    "pts": 78
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "a667011474329ec58d46"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entry_levels": [
+   2
+  ],
+  "not_entries": [
+   {
+    "text": {
+     "#": "38f7e7952f7948dee51a"
+    },
+    "page": 80
+   },
+   {
+    "text": {
+     "#": "90b226f8f6c050a54088"
+    },
+    "page": 81
+   },
+   {
+    "text": {
+     "#": "7c47c152ce0d492de756"
+    },
+    "page": 86
+   }
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "6d72d28dd12957d536e5"
+    },
+    "page": 83,
+    "heading_only": true
+   },
+   {
+    "category": "skills",
+    "name": {
+     "#": "72e8bad247f32fa5cb5f"
+    },
+    "heading": {
+     "#": "ebb124e5cccf5874bfde"
+    },
+    "page": 83,
+    "fields": {
+     "characteristic": {
+      "#": "9cdf652c9c7f4cc724a1"
+     },
+     "advanced": true,
+     "grouped": false
+    }
+   },
+   {
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     }
+    ],
+    "name": {
+     "#": "b7b4a3b86e56928d824e"
+    },
+    "heading": {
+     "#": "e2234f73ea7a9ccf887b"
+    },
+    "page": 83
+   },
+   {
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     }
+    ],
+    "name": {
+     "#": "a667011474329ec58d46"
+    },
+    "heading": {
+     "#": "9c4abfc0f85cb511533c"
+    },
+    "page": 83
+   },
+   {
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     },
+     {
+      "#": "f592ee3a8182f8253bc7"
+     }
+    ],
+    "name": {
+     "#": "652b8c0037480c0d2a55"
+    },
+    "heading": {
+     "#": "f0b7dd9f0703bbc53e3f"
+    },
+    "page": 83
+   },
+   {
+    "name": {
+     "#": "4775425bdcd292d3d13a"
+    },
+    "page": 83
+   },
+   {
+    "name": {
+     "#": "dab7cf248344bdc7c414"
+    },
+    "page": 83
+   },
+   {
+    "name": {
+     "#": "a4c0059cf5808d2330b5"
+    },
+    "page": 90,
+    "career": {
+     "levels": 5
+    },
+    "kind": "procedure"
+   }
+  ],
+  "lists": [
+   {
+    "name": {
+     "#": "e807556489b3e9cc90fc"
+    },
+    "page": 80,
+    "kind": "petty"
+   },
+   {
+    "name": {
+     "#": "81579fda7a85145e713d"
+    },
+    "page": 81,
+    "kind": "arcane"
+   },
+   {
+    "name": {
+     "#": "e05b0843a897e4026d60"
+    },
+    "page": 86,
+    "kind": "lore",
+    "lore": {
+     "#": "a667011474329ec58d46"
+    }
+   }
+  ],
+  "boxes": {},
+  "tables": {},
+  "relations": {
+   "#slug:rules/e2c37a67a91589d5717e": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "f425628139d963df4f96",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:skills/62e2d67d5495fd34f46b": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "fddaefa8fbeff98c8adc",
+      "in": "skills"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "entries/7/career/class"
+ ],
+ "pdf_sha256": "45e527e991a87cf48fb30af05277f6c849d72395079dcbbf100334270caf97cf",
+ "pdf_bytes": 66475581
+}

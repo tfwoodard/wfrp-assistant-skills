@@ -1,0 +1,583 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch12",
+ "name": "ch12",
+ "layout": {
+  "pages": "151-172",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch12",
+  "defaults": {
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "dde698797049546ac544"
+   },
+   "kind": "other"
+  },
+  "entry_levels": [
+   2,
+   3
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "663e1eab232a8f8fbf00"
+    },
+    "page": 151,
+    "describes_items": true
+   },
+   {
+    "name": {
+     "#": "5560d614417f7209f727"
+    },
+    "page": 153,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "3f9ab02a91e32d75d0fc"
+    },
+    "page": 153,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "5ccb03c0de300409fa7c"
+    },
+    "page": 155,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "4d9ccd319f32357cccae"
+    },
+    "page": 156,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "aa157e77c4517e2d5dc0"
+    },
+    "page": 160,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "f634d65583c5f4e18fc3"
+    },
+    "page": 161,
+    "split_headings": {
+     "category": "trappings",
+     "kind": "potion",
+     "field_labels": [
+      {
+       "#": "e29f5d6f8926370c4302"
+      },
+      {
+       "#": "595af19bdd6c54703d6b"
+      },
+      {
+       "#": "7ceb9c9216b00a001156"
+      },
+      {
+       "#": "d2e95116fef002387e89"
+      },
+      {
+       "#": "0724e8607900fba95957"
+      },
+      {
+       "#": "91cf52d830779bc775ec"
+      },
+      {
+       "#": "bc18e36b473cc1edc87b"
+      }
+     ]
+    }
+   },
+   {
+    "name": {
+     "#": "ee0332f919b4aa0f0515"
+    },
+    "page": 164,
+    "slug": {
+     "#slug": "4b7e08b0945b2359081f"
+    }
+   },
+   {
+    "name": {
+     "#": "013a061e812a6771d2f9"
+    },
+    "page": 165,
+    "split_headings": {
+     "category": "trappings",
+     "kind": "grimoire"
+    }
+   },
+   {
+    "name": {
+     "#": "a8caa3660028e2ed66ba"
+    },
+    "page": 166,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "714f46ffe11b3c2f0c4b"
+    },
+    "page": 167,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "5f6affca070b1bd9e0c8"
+    },
+    "page": 168,
+    "category": "lore",
+    "audience": "gm",
+    "slug": {
+     "#slug": "29c9b5956ee9cb28baed"
+    },
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "de362c1bb341289e52de"
+       },
+       " ",
+       {
+        "#": "3b7039c476ec3d0701ac"
+       }
+      ]
+     }
+    ],
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "95976d706a7090cbbf9b"
+    },
+    "page": 170
+   },
+   {
+    "name": {
+     "#": "4cc7d01980837eb32fe5"
+    },
+    "page": 170,
+    "category": "qualities",
+    "kind": "item-quality",
+    "slug": {
+     "#slug": "7d6a25a7f389b69aee8b"
+    },
+    "aliases": [
+     {
+      "#": "6f8ceb0160072fece29b"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "1fcb38fb860f649f2f03"
+      },
+      " ",
+      {
+       "#": "6f8ceb0160072fece29b"
+      },
+      " ",
+      {
+       "#": "65df10ee8102ec95d717"
+      }
+     ]
+    },
+    "page": 170,
+    "heading": {
+     "#": "95976d706a7090cbbf9b"
+    },
+    "split_headings": {
+     "category": "trappings",
+     "kind": "cursed-item",
+     "audience": "gm",
+     "field_labels": [
+      {
+       "#": "4a8757c3f423e7e3e197"
+      },
+      {
+       "#": "a06d5b110f70752f22a9"
+      },
+      {
+       "#": "328cfd02d65d76664c5a"
+      }
+     ],
+     "text_labels": [
+      {
+       "#": "160636a5e851cdca6f29"
+      }
+     ]
+    }
+   }
+  ],
+  "boxes": {
+   "161.1": {
+    "entry": {
+     "name": {
+      "#": "14c06c1a148ce4edeb8d"
+     },
+     "category": "talents",
+     "heading": {
+      "#": "600ccdc284e883b60225"
+     },
+     "field_labels": [
+      {
+       "#": "099ac1a8feef00505061"
+      },
+      {
+       "#": "f592ee3a8182f8253bc7"
+      }
+     ]
+    }
+   },
+   "161.2": {
+    "to": {
+     "#": "aa157e77c4517e2d5dc0"
+    }
+   },
+   "163.1": {
+    "to": {
+     "#": "7bc29456fba36da1f8dc"
+    }
+   },
+   "164.1": {
+    "to": {
+     "#": "ee0332f919b4aa0f0515"
+    }
+   },
+   "165.1": {
+    "to": {
+     "#": "ee0332f919b4aa0f0515"
+    }
+   },
+   "166.1": {
+    "to": {
+     "#": "a8caa3660028e2ed66ba"
+    }
+   },
+   "167.1": {
+    "to": {
+     "#": "19df64c13c34e5ef738b"
+    }
+   },
+   "172.1": {
+    "to": {
+     "#": "355751c0864efceac32a"
+    }
+   }
+  },
+  "tables": {
+   "151.1": {
+    "title": {
+     "#": "663e1eab232a8f8fbf00"
+    },
+    "items": {
+     "kind": "clothing",
+     "fields": {
+      "#:3bd19418a66a89a8a140": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      }
+     }
+    }
+   },
+   "153.1": {
+    "slug": {
+     "#slug": "44a186e3336890e093ea"
+    },
+    "title": {
+     "#": "074bff80c9b045e2f4cd"
+    },
+    "banner": true,
+    "header_row": true,
+    "fold": 2,
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "156.1": {
+    "slug": {
+     "#slug": "fc5e41c15dfdcfbf4c7e"
+    },
+    "title": {
+     "#": "a569dcdb148775a530ec"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "bbd92678f1e1a8f926fd"
+      },
+      " ",
+      {
+       "#": "5112e39bc5477a020cf5"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "5ef5d54dc095851dd07e"
+      },
+      " ",
+      {
+       "#": "6e57d8ac7a9628ff77e7"
+      },
+      " ",
+      {
+       "#": "5e71c9889b050ae1e943"
+      },
+      ",",
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "0dcd14fa25cca1ebb1ae"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "42be32b09792d453142e"
+      },
+      " ",
+      {
+       "#": "f778542281c141f0f370"
+      },
+      " ",
+      {
+       "#": "869ea2dc25b634c77f96"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "42be32b09792d453142e"
+      },
+      " ",
+      {
+       "#": "672daf054b83c9460b39"
+      },
+      " ",
+      {
+       "#": "671f435626525b5a3c08"
+      },
+      " ",
+      {
+       "#": "8eb0caea1eec4297bc3e"
+      }
+     ]
+    },
+    "banner": true,
+    "banner_rows": 1,
+    "header_row": true
+   },
+   "157.1": {
+    "slug": {
+     "#slug": "0cf4b9231c82c264205f"
+    },
+    "title": {
+     "#": "4d9ccd319f32357cccae"
+    },
+    "banner": true,
+    "banner_rows": 1,
+    "header_row": true,
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "159.1": {
+    "slug": {
+     "#slug": "254bb25c85ffcfb8a68a"
+    },
+    "title": {
+     "#": "971a6f105dd77455f087"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "484f5a497100b30cdd22"
+      },
+      " ",
+      {
+       "#": "3e1e988bcb17815b8e0f"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "5e71c9889b050ae1e943"
+      },
+      " ",
+      {
+       "#": "5ef5d54dc095851dd07e"
+      },
+      " ",
+      {
+       "#": "0ce69e1a11993bd1eb84"
+      },
+      ",",
+      " ",
+      {
+       "#": "8dc269787dcb43e8f72c"
+      },
+      " ",
+      {
+       "#": "f21aa8e7a670e07aec34"
+      },
+      " ",
+      {
+       "#": "bf9d33f6dccd139c7827"
+      }
+     ]
+    },
+    "banner": true,
+    "header_row": true,
+    "roll": "d10",
+    "roll_column": 0
+   },
+   "160.1": {
+    "title": {
+     "#": "25099043e854fc16d0ea"
+    },
+    "banner": true,
+    "header_row": true
+   },
+   "160.3": {
+    "slug": {
+     "#slug": "90e97eb31795d2304df0"
+    },
+    "title": {
+     "#": "9ff87cbba76a24b6be22"
+    },
+    "banner_rows": 1,
+    "header_row": true
+   },
+   "161.2": {
+    "slug": {
+     "#slug": "01f8836ef72612c58f24"
+    },
+    "title": {
+     "#": "1055f05b4b03432cda6a"
+    },
+    "header_row": true,
+    "roll": "d10",
+    "roll_column": 0
+   },
+   "163.1": {
+    "title": {
+     "#": "b9112d085c07b5c2abbb"
+    },
+    "banner": true,
+    "header_row": true
+   },
+   "165.1": {
+    "slug": {
+     "#slug": "d178b237cc0a57a62274"
+    },
+    "title": {
+     "#": "21aec35fbef5248e8bbd"
+    },
+    "columns": [
+     "d100",
+     {
+      "#": "84193c2a3add9286ccbb"
+     }
+    ],
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "166.1": {
+    "slug": {
+     "#slug": "047e688723fe0d6e2a3c"
+    },
+    "title": {
+     "#": "a8caa3660028e2ed66ba"
+    },
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "167.1": {
+    "title": {
+     "#": "19df64c13c34e5ef738b"
+    }
+   },
+   "172.1": {
+    "title": {
+     "#": "a66edec8d13da9234192"
+    }
+   }
+  },
+  "relations": {
+   "#slug:rules/4b7e08b0945b2359081f": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "cb81c500fa4c240b2207",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:talents/cb8ad986862825c43a5f": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "1c70e28caf0117e8844c",
+      "in": "talents"
+     }
+    }
+   ]
+  },
+  "whole_words": [
+   "operations"
+  ]
+ },
+ "left_out": [
+  "tables/153.1/about",
+  "tables/157.1/about",
+  "tables/160.3/about",
+  "tables/161.2/about",
+  "tables/165.1/about",
+  "tables/166.1/about"
+ ],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

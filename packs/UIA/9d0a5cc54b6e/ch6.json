@@ -1,0 +1,296 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch6",
+ "name": "ch6",
+ "layout": {
+  "pages": "61-79",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch6",
+  "defaults": {
+   "category": "lore",
+   "kind": "other"
+  },
+  "level_icons": {
+   "1": {
+    "mark_font": "crossbat"
+   },
+   "2": {
+    "pts": 57
+   },
+   "3": {
+    "pts": 29
+   },
+   "4": {
+    "pts": 9
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "1d3e1f085bd7b2de10a1"
+   },
+   "category": "lore",
+   "kind": "god"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "37df96230b3db589a7c8"
+    },
+    "page": 61,
+    "kind": "organisation"
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "faa016c78496156cfd37"
+      },
+      " ",
+      "(",
+      {
+       "#": "e5967e7f7bbdcf1cad9d"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "18d4b2b02543dd6dbf70"
+      },
+      ")"
+     ]
+    },
+    "page": 69,
+    "heading": {
+     "#": "faa016c78496156cfd37"
+    }
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "d87a60ad027d76b4e66a"
+      },
+      " ",
+      {
+       "#": "949b525a20d6bd757425"
+      },
+      " ",
+      {
+       "#": "6985cab1a3f9ee53b79c"
+      },
+      " ",
+      "(",
+      {
+       "#": "e5967e7f7bbdcf1cad9d"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "18d4b2b02543dd6dbf70"
+      },
+      ")"
+     ]
+    },
+    "page": 69,
+    "heading": {
+     "#": "accda6bbd3bc7698d513"
+    }
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "e5967e7f7bbdcf1cad9d"
+      },
+      " ",
+      {
+       "#": "616dbe9ccbd1318bed02"
+      },
+      " ",
+      "(",
+      {
+       "#": "e5967e7f7bbdcf1cad9d"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "18d4b2b02543dd6dbf70"
+      },
+      ")"
+     ]
+    },
+    "page": 71,
+    "heading": {
+     "#": "81d97466cfed81ccc83c"
+    }
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "b6f2df45911a4c1623ae"
+      },
+      " ",
+      {
+       "#": "f0bba829b788ae13389b"
+      },
+      " ",
+      {
+       "#": "8bec5edcc67970e588ca"
+      },
+      " ",
+      {
+       "#": "ff1bcbf6e7d69acbf6db"
+      },
+      " ",
+      "(",
+      {
+       "#": "e5967e7f7bbdcf1cad9d"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "18d4b2b02543dd6dbf70"
+      },
+      ")"
+     ]
+    },
+    "page": 71,
+    "heading": {
+     "#": "c843a2fdb79c0a18f817"
+    }
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "392f7827d7c66f7fe85d"
+      },
+      " ",
+      "(",
+      {
+       "#": "e5967e7f7bbdcf1cad9d"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "18d4b2b02543dd6dbf70"
+      },
+      ")"
+     ]
+    },
+    "page": 73,
+    "kind": "organisation",
+    "heading": {
+     "#": "392f7827d7c66f7fe85d"
+    }
+   },
+   {
+    "name": {
+     "#": "e8b5d737b82d965f6e65"
+    },
+    "page": 78,
+    "career": {},
+    "category": "rules",
+    "kind": "procedure"
+   }
+  ],
+  "lists": [
+   {
+    "name": {
+     "#": "8fbde449ccde63a059c1"
+    },
+    "page": 79,
+    "kind": "miracle",
+    "lore": {
+     "#": "18d4b2b02543dd6dbf70"
+    }
+   }
+  ],
+  "boxes": {},
+  "tables": {},
+  "relations": {
+   "#slug:lore/0b4c7dbcca9f1327673c": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "bd2bf533718bbcd5d46c",
+      "in": "lore"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "entries/6/career/class"
+ ],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

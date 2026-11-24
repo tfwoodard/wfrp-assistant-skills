@@ -1,0 +1,130 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch4",
+ "name": "ch4",
+ "layout": {
+  "pages": "40-49",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch4",
+  "level_icons": {
+   "1": {
+    "mark_font": "crossbat"
+   },
+   "2": {
+    "pts": 57
+   },
+   "3": {
+    "pts": 29
+   },
+   "4": {
+    "pts": 9
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "4faa280b6c67188108c3"
+   },
+   "category": "lore",
+   "kind": "organisation"
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "5c5908791df494ea3e4b"
+    },
+    "page": 41,
+    "category": "lore",
+    "kind": "organisation"
+   },
+   {
+    "name": {
+     "#": "117019ca7496751a6a8a"
+    },
+    "page": 44,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "cd141f4dd47189c2257f"
+    },
+    "page": 46,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "14753724f45d43b075f9"
+    },
+    "page": 48,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   }
+  ],
+  "boxes": {},
+  "tables": {},
+  "relations": {}
+ },
+ "left_out": [],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

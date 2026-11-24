@@ -1,0 +1,769 @@
+{
+ "pack": 1,
+ "source": "CRB",
+ "chapter": "ch7",
+ "name": "ch7",
+ "layout": {
+  "pages": "202-228",
+  "page_offset": 0,
+  "icon_fonts": [],
+  "boxes": true,
+  "icon_text": {},
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "CRB",
+  "chapter": "ch7",
+  "defaults": {
+   "category": "lore",
+   "kind": "god"
+  },
+  "intro": {
+   "name": {
+    "#": "c1a19bf8497c1da9106e"
+   },
+   "kind": "glossary",
+   "slug": {
+    "#slug": "c419c9cd3f77f91007f7"
+   }
+  },
+  "entry_levels": [
+   2
+  ],
+  "not_entries": [
+   {
+    "text": {
+     "#": "ccd5e5d9eae279aeceb2"
+    },
+    "page": 220
+   }
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "46c7686d8da8af10b6b9"
+    },
+    "page": 202,
+    "kind": "glossary",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "9ef42c6ca66b787f0fb9"
+    },
+    "page": 203,
+    "kind": "glossary",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "ef30c15aefe3ffbd11be"
+    },
+    "heading": {
+     "#": "259eeef6ce2e32b8d10b"
+    },
+    "page": 205,
+    "slug": {
+     "#slug": "953e7e6282fe66fb5019"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "d0bab5aa711fd72c1506"
+    },
+    "heading": {
+     "#": "ee7615ccb7fdbacd6fc4"
+    },
+    "page": 206,
+    "slug": {
+     "#slug": "af8197bfa8ff903913ab"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "47f996c4f5ebf4fbe532"
+    },
+    "heading": {
+     "#": "312e1656ccbf3268ca1c"
+    },
+    "page": 207,
+    "slug": {
+     "#slug": "bd2bf533718bbcd5d46c"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "b789adc26e33cbcae78c"
+    },
+    "heading": {
+     "#": "032e36bf59aa1098b862"
+    },
+    "page": 208,
+    "slug": {
+     "#slug": "bb67bbee03b01bcbd84f"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "cb22817df2a05ea9f345"
+    },
+    "heading": {
+     "#": "f3c4d294d86ed8f05e42"
+    },
+    "page": 209,
+    "slug": {
+     "#slug": "e5005a342a68ba54981c"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "4cfe40dc15cceecff07e"
+    },
+    "heading": {
+     "#": "348749ec08fe57f2f0a4"
+    },
+    "page": 210,
+    "slug": {
+     "#slug": "256113c76a4b650fa12d"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "2fbe61a4f85bb9fd858b"
+    },
+    "heading": {
+     "#": "be3f69b176a22f7c8d0d"
+    },
+    "page": 211,
+    "slug": {
+     "#slug": "463d0dec391d943d88de"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "b6e1f21945bfb9e46765"
+    },
+    "heading": {
+     "#": "67251eafc57e2d568b4e"
+    },
+    "page": 212,
+    "slug": {
+     "#slug": "956601d533588a5ae21f"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "5c24fd0ef802180152a8"
+    },
+    "heading": {
+     "#": "99d7ded7a2b8c349aaee"
+    },
+    "page": 213,
+    "slug": {
+     "#slug": "50b3c848fd5f834ead35"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "b1df3e731d1b621ec830"
+    },
+    "heading": {
+     "#": "1377da7d84ed69a689ad"
+    },
+    "page": 214,
+    "slug": {
+     "#slug": "bb3bc7103ada7f0b29f3"
+    },
+    "field_labels": [
+     {
+      "#": "36003622d4a6bca91a61"
+     },
+     {
+      "#": "329d40b13dcbd125edcf"
+     },
+     {
+      "#": "28f785d29d5a89b1e532"
+     },
+     {
+      "#": "8dd59a6c2aecf465724e"
+     },
+     {
+      "#": "5183fc3312dd147ae433"
+     },
+     {
+      "#": "317ca01b3eaaa213fd54"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "88aef3fe3b792cb05f2f"
+    },
+    "page": 217,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "66160ef793e18766fcd8"
+    },
+    "page": 217,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "97a3d1c6b8e5ec3e8a9e"
+    },
+    "page": 217,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "db83b01ebf41a829742f"
+    },
+    "page": 217,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "1474240f2f736b0e6500"
+    },
+    "page": 218,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "468d97d7317ab999cc02"
+    },
+    "page": 222,
+    "kind": "procedure",
+    "slug": {
+     "#slug": "4860acb4d3319a84933a"
+    },
+    "category": "rules"
+   }
+  ],
+  "lists": [
+   {
+    "name": {
+     "#": "44ed6e41cd76ddc2c396"
+    },
+    "page": 220,
+    "kind": "blessing",
+    "slug": {
+     "#slug": "db1fe925c5f60f238d4d"
+    }
+   },
+   {
+    "name": {
+     "#": "9c9dabaea0925b7c1084"
+    },
+    "page": 222,
+    "kind": "miracle",
+    "lore": {
+     "#": "cfadfa56486e4084ca5b"
+    },
+    "entry": false
+   },
+   {
+    "name": {
+     "#": "dfe82dccb75ab491014b"
+    },
+    "page": 223,
+    "kind": "miracle",
+    "lore": {
+     "#": "64a193bde048df436e07"
+    },
+    "entry": false
+   },
+   {
+    "name": {
+     "#": "8fbde449ccde63a059c1"
+    },
+    "page": 223,
+    "kind": "miracle",
+    "lore": {
+     "#": "18d4b2b02543dd6dbf70"
+    },
+    "entry": false
+   },
+   {
+    "name": {
+     "#": "76119394b9b7c07276ae"
+    },
+    "page": 224,
+    "kind": "miracle",
+    "lore": {
+     "#": "aed7261b0627cd0fdb03"
+    },
+    "entry": false
+   },
+   {
+    "name": {
+     "#": "6e245c07f84585ce2515"
+    },
+    "page": 225,
+    "kind": "miracle",
+    "lore": {
+     "#": "7e5589bc19201539456e"
+    },
+    "entry": false
+   },
+   {
+    "name": {
+     "#": "2b079998faf41d4ad83b"
+    },
+    "page": 225,
+    "kind": "miracle",
+    "lore": {
+     "#": "3db507068d0cd919039b"
+    },
+    "entry": false
+   },
+   {
+    "name": {
+     "#": "f9c268cef3c5c71aec18"
+    },
+    "page": 226,
+    "kind": "miracle",
+    "lore": {
+     "#": "de0f62cd9cf5c8361340"
+    },
+    "entry": false
+   },
+   {
+    "name": {
+     "#": "04b41b3ddad2321c7845"
+    },
+    "page": 227,
+    "kind": "miracle",
+    "lore": {
+     "#": "97f6d7ae19896246ef42"
+    },
+    "entry": false
+   },
+   {
+    "name": {
+     "#": "8ee2fa0eed5743267104"
+    },
+    "page": 227,
+    "kind": "miracle",
+    "lore": {
+     "#": "b29b9d7ee41968631c7e"
+    },
+    "entry": false
+   },
+   {
+    "name": {
+     "#": "a743a43b1bba27e07f84"
+    },
+    "page": 228,
+    "kind": "miracle",
+    "lore": {
+     "#": "e6f985142b64143f141a"
+    },
+    "entry": false
+   }
+  ],
+  "tables": {
+   "203.1": {
+    "slug": {
+     "#slug": "937bc2860628ce3e0682"
+    },
+    "title": {
+     "#": "12033e377aad5ddd5498"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "a7eaffe4294f2db4540a"
+      },
+      " ",
+      {
+       "#": "5affdc2a03f5c75b6bd7"
+      },
+      " ",
+      {
+       "#": "f9f925a19fb5ef2766ee"
+      },
+      " ",
+      {
+       "#": "671f435626525b5a3c08"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "10eb26d7327bb3a0f883"
+      },
+      ":",
+      " ",
+      {
+       "#": "2b73aec4f9571ff1ff79"
+      },
+      ",",
+      " ",
+      {
+       "#": "7fea0dfa220c83de68af"
+      },
+      ",",
+      " ",
+      {
+       "#": "dae4c6f4f74020639fd0"
+      }
+     ]
+    }
+   },
+   "204.2": {
+    "slug": {
+     "#slug": "bc261fbdf79a4bd2501e"
+    },
+    "title": {
+     "#": "92a9d5f6421770a3b218"
+    }
+   },
+   "218.3": {
+    "slug": {
+     "#slug": "02a9f85df289a2f303be"
+    },
+    "title": {
+     "#": "18280b726071e0b79186"
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "continued_in": [
+     "219.1"
+    ]
+   },
+   "220.4": {
+    "title": {
+     "#": "09780b02a30c7c393191"
+    },
+    "columns": [
+     {
+      "#": "e5967e7f7bbdcf1cad9d"
+     },
+     {
+      "#w": [
+       {
+        "#": "537a43e96a9a2df836b7"
+       },
+       " ",
+       {
+        "#": "9ae400de3160f0133938"
+       }
+      ]
+     },
+     {
+      "#w": [
+       {
+        "#": "537a43e96a9a2df836b7"
+       },
+       " ",
+       {
+        "#": "5e545328f176f6d6ad63"
+       }
+      ]
+     },
+     {
+      "#w": [
+       {
+        "#": "537a43e96a9a2df836b7"
+       },
+       " ",
+       {
+        "#": "b60c01518988aa8c5e6c"
+       }
+      ]
+     },
+     {
+      "#w": [
+       {
+        "#": "537a43e96a9a2df836b7"
+       },
+       " ",
+       {
+        "#": "722b2ae08578e48ed475"
+       }
+      ]
+     },
+     {
+      "#w": [
+       {
+        "#": "537a43e96a9a2df836b7"
+       },
+       " ",
+       {
+        "#": "5f1e09be85b966aa4c2c"
+       }
+      ]
+     }
+    ]
+   },
+   "216.1.2": {
+    "columns": [
+     {
+      "#": "dc84cbaa0d306f94696a"
+     },
+     {
+      "#": "fc096d63d3cde2858713"
+     },
+     {
+      "#": "392f7827d7c66f7fe85d"
+     },
+     {
+      "#": "06440a0d4008b88f364a"
+     },
+     {
+      "#": "c8c79e275cccb518fcc5"
+     }
+    ]
+   }
+  },
+  "boxes": {
+   "220.1": {
+    "to": {
+     "#": "97a3d1c6b8e5ec3e8a9e"
+    }
+   },
+   "220.2": {
+    "to": {
+     "#": "97a3d1c6b8e5ec3e8a9e"
+    }
+   },
+   "222.1": {
+    "to": {
+     "#": "97a3d1c6b8e5ec3e8a9e"
+    }
+   },
+   "220.3": {
+    "to": {
+     "#": "44ed6e41cd76ddc2c396"
+    }
+   },
+   "216.1.1": {
+    "to": {
+     "#": "ea75ff10a49db5c85230"
+    }
+   },
+   "216.1.2": {
+    "to": {
+     "#": "83ad6e03d8551c176c06"
+    }
+   }
+  },
+  "relations": {
+   "#slug:spells/1dc241936d67fcaaecc7": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "1dc241936d67fcaaecc7",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:spells/1853adcd524c3a94c023": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "1853adcd524c3a94c023",
+      "in": "talents"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "tables/204.2/about",
+  "tables/218.3/about",
+  "tables/220.4/columns/5"
+ ],
+ "pdf_sha256": "87e0fa8089af48f35c3dca2fc8b91245a62f243342f0481a74cf2c14838e1af3",
+ "pdf_bytes": 66305786
+}

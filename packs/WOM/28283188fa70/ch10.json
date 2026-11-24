@@ -1,0 +1,256 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch10",
+ "name": "ch10",
+ "layout": {
+  "pages": "126-137",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch10",
+  "defaults": {
+   "category": "lore",
+   "kind": "other"
+  },
+  "level_icons": {
+   "1": {
+    "mark_font": "crossbat"
+   },
+   "2": {
+    "pts": 57
+   },
+   "3": {
+    "pts": 29
+   },
+   "4": {
+    "pts": 9
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "70b46a7aca6b0e86a568"
+   },
+   "category": "lore",
+   "kind": "other",
+   "slug": {
+    "#slug": "3c85c16e41ab91d05f78"
+   }
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "78f3eb701bfd39d4159d"
+    },
+    "page": 127,
+    "kind": "organisation",
+    "field_labels": [
+     {
+      "#": "cc807daab0d497ea3c2d"
+     },
+     {
+      "#": "c7e85d38e0822e73efac"
+     },
+     {
+      "#": "7edefebc00159eaab711"
+     },
+     {
+      "#": "2444b2a31caf387ce6d1"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "8d0ac054dcdaa4fa3e03"
+    },
+    "page": 128,
+    "career": {},
+    "category": "rules",
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "4b42d682780f6cd261df"
+    },
+    "page": 130
+   },
+   {
+    "name": {
+     "#": "acc5dc8a1526262adbe8"
+    },
+    "page": 132,
+    "category": "creatures",
+    "kind": "npc",
+    "stat_blocks": true,
+    "field_labels": [
+     {
+      "#": "8b83920277749ad4e62a"
+     },
+     {
+      "#": "c762230b42c9dcfb1790"
+     },
+     {
+      "#": "cfe2146c828d0e550952"
+     }
+    ],
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "cf19b79ec800625dceb8"
+    },
+    "page": 132,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "3fdcdd1852b7eb5a8d99"
+    },
+    "page": 132,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "54af9a3633219eba9306"
+    },
+    "page": 133,
+    "audience": "gm"
+   }
+  ],
+  "lists": [
+   {
+    "name": {
+     "#": "d20dff81fc36c5fc9061"
+    },
+    "page": 134,
+    "kind": "lore",
+    "lore": {
+     "#": "63f694a74058413eb0b0"
+    }
+   }
+  ],
+  "boxes": {
+   "127.1": {
+    "entry": {
+     "name": {
+      "#": "12111793bf0888687395"
+     },
+     "kind": "procedure"
+    }
+   },
+   "133.2": {
+    "profile": true,
+    "to": {
+     "#": "acc5dc8a1526262adbe8"
+    }
+   },
+   "132.1": {
+    "text": true
+   }
+  },
+  "tables": {
+   "130.1": {
+    "slug": {
+     "#slug": "bc5f0efb53819ed032e2"
+    },
+    "title": {
+     "#": "d7e4c28b5513b21301f0"
+    },
+    "roll": "d10",
+    "roll_column": 0,
+    "header_row": true
+   }
+  },
+  "relations": {
+   "#slug:rules/76fe88b3f4c41313dac7": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "47be6d1d76d36eb45ee0",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/ed579df63a086a2e8f15": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "342062b77e80afb0b00b",
+      "in": "creatures"
+     }
+    }
+   ],
+   "#slug:lore/5fc8ccec776c5b321b32": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "342062b77e80afb0b00b",
+      "in": "creatures"
+     }
+    }
+   ],
+   "#slug:lore/43f8d271d9995d7b50c5": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "342062b77e80afb0b00b",
+      "in": "creatures"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "entries/1/career/class",
+  "tables/130.1/about"
+ ],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

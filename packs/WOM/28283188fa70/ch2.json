@@ -1,0 +1,483 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch2",
+ "name": "ch2",
+ "layout": {
+  "pages": "19-34",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch2",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "intro": {
+   "name": {
+    "#": "8e4965596d781e18bb03"
+   },
+   "kind": "procedure",
+   "slug": {
+    "#slug": "401378ada07c1ca4eb57"
+   }
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "5764162c9a2216897d12"
+    },
+    "page": 19,
+    "slug": {
+     "#slug": "d1efe3f3577f7c6bf8c2"
+    }
+   },
+   {
+    "name": {
+     "#": "201ef1d49722f3f27a8e"
+    },
+    "page": 19
+   },
+   {
+    "name": {
+     "#": "ee0332f919b4aa0f0515"
+    },
+    "page": 19
+   },
+   {
+    "name": {
+     "#": "19e9486c8dabcfc96b87"
+    },
+    "page": 20
+   },
+   {
+    "name": {
+     "#": "f92dc401a80442a79ad6"
+    },
+    "page": 20
+   },
+   {
+    "name": {
+     "#": "7d966956e37d0d2cdf55"
+    },
+    "page": 20
+   },
+   {
+    "name": {
+     "#": "96e2f6ce58e677044a3f"
+    },
+    "page": 20
+   },
+   {
+    "name": {
+     "#": "18d9ccd84f4e7c37c484"
+    },
+    "page": 21
+   },
+   {
+    "name": {
+     "#": "56800bc04da0305a943f"
+    },
+    "page": 21
+   },
+   {
+    "name": {
+     "#": "1b4a639d998ebd635c9b"
+    },
+    "page": 21
+   },
+   {
+    "name": {
+     "#": "0c62f7e0b6c2cd1228f7"
+    },
+    "page": 21
+   },
+   {
+    "name": {
+     "#": "338a411c626e12871553"
+    },
+    "page": 22
+   },
+   {
+    "name": {
+     "#": "77838c09eff046242122"
+    },
+    "page": 22
+   },
+   {
+    "name": {
+     "#": "3a2958b7126742a1343a"
+    },
+    "page": 22
+   },
+   {
+    "name": {
+     "#": "dcd16cf291753d6046ba"
+    },
+    "page": 23
+   },
+   {
+    "name": {
+     "#": "90618817b910bb1d4621"
+    },
+    "page": 23
+   },
+   {
+    "name": {
+     "#": "a0e35bb2da44c2c96fb7"
+    },
+    "page": 23
+   },
+   {
+    "name": {
+     "#": "0a7a647388a77b32794f"
+    },
+    "page": 34
+   }
+  ],
+  "lists": [
+   {
+    "name": {
+     "#": "c12fdc03dd70abbcb6f4"
+    },
+    "page": 26,
+    "kind": "arcane"
+   },
+   {
+    "name": {
+     "#": "855b5f57079440f593ac"
+    },
+    "page": 27,
+    "kind": "ritual",
+    "not_spells": [
+     {
+      "#": "ecd6a2ba809cf41a01b2"
+     }
+    ]
+   }
+  ],
+  "boxes": {
+   "19.1": {
+    "text": true
+   },
+   "20.1": {
+    "to": {
+     "#": "19e9486c8dabcfc96b87"
+    }
+   },
+   "27.1": {
+    "to": {
+     "#": "855b5f57079440f593ac"
+    }
+   },
+   "29.1": {
+    "entry": {
+     "name": {
+      "#": "480a63c85835e2b8ea83"
+     },
+     "kind": "procedure"
+    }
+   },
+   "31.1": {
+    "entry": {
+     "name": {
+      "#": "b01858efedd23fb49a16"
+     },
+     "kind": "procedure"
+    }
+   },
+   "24.1": {
+    "to": {
+     "#": "19e9486c8dabcfc96b87"
+    }
+   },
+   "25.1": {
+    "to": {
+     "#": "19e9486c8dabcfc96b87"
+    }
+   },
+   "30.1": {
+    "profile": true
+   }
+  },
+  "tables": {
+   "21.1": {
+    "slug": {
+     "#slug": "698679eefabcde743f73"
+    },
+    "title": {
+     "#": "e197ad5e30f9193bf79a"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "484f5a497100b30cdd22"
+      },
+      " ",
+      {
+       "#": "31c1659ca4253e4fee8d"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "fa0fb34ee8ec82f1b7fb"
+      },
+      " ",
+      {
+       "#": "f6e6e21204f28864211d"
+      },
+      " ",
+      {
+       "#": "8cd9ae8000c6737fe05a"
+      },
+      " ",
+      {
+       "#": "323225c9d533ac36fa62"
+      },
+      " ",
+      {
+       "#": "a805a01d630d44ef04b7"
+      },
+      ",",
+      " ",
+      {
+       "#": "f21aa8e7a670e07aec34"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "08e31a754f8d71e06475"
+      },
+      " ",
+      {
+       "#": "01c7a6355324ebcd1769"
+      },
+      " ",
+      {
+       "#": "671f435626525b5a3c08"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "d144e50476feb8d78c9f"
+      },
+      ",",
+      " ",
+      {
+       "#": "8dc269787dcb43e8f72c"
+      },
+      " ",
+      {
+       "#": "f21aa8e7a670e07aec34"
+      },
+      " ",
+      {
+       "#": "bf9d33f6dccd139c7827"
+      }
+     ]
+    },
+    "roll": "d10",
+    "roll_column": 0
+   },
+   "23.1": {
+    "slug": {
+     "#slug": "5f03207268acd6986f8d"
+    },
+    "title": {
+     "#": "5a0dcd8813ca25481ec9"
+    },
+    "header_row": true
+   },
+   "24.1": {
+    "slug": {
+     "#slug": "47037da5cdca56ace34c"
+    },
+    "title": {
+     "#": "577cdd228bbee006dc27"
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "columns": [
+     "d100",
+     {
+      "#": "84193c2a3add9286ccbb"
+     }
+    ],
+    "relations": [
+     {
+      "role": "version-of",
+      "to": {
+       "#slug": "4b9467cc5649fb936b69",
+       "in": "tables"
+      }
+     }
+    ]
+   },
+   "25.1": {
+    "slug": {
+     "#slug": "a54d93bcd3c3635daee3"
+    },
+    "title": {
+     "#": "c1557872768168536e19"
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "columns": [
+     "d100",
+     {
+      "#": "84193c2a3add9286ccbb"
+     }
+    ],
+    "relations": [
+     {
+      "role": "version-of",
+      "to": {
+       "#slug": "1315a0514267f73d0432",
+       "in": "tables"
+      }
+     }
+    ]
+   },
+   "30.2": {
+    "slug": {
+     "#slug": "ed552087bba493f45190"
+    },
+    "title": {
+     "#": "406e0c43a561770fc142"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "b2a358eab1e531f919ed"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "f764832d14e55abb6eef"
+      },
+      " ",
+      {
+       "#": "8c02db9a9c7abcd9fece"
+      },
+      " ",
+      {
+       "#": "7391d9f4c7e1e6ebd9a7"
+      },
+      " ",
+      {
+       "#": "98dc425262be25105eaf"
+      },
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "98683e3ab5937241ccae"
+      },
+      " ",
+      {
+       "#": "3a15d99a2466eb0541e4"
+      },
+      " ",
+      {
+       "#": "c226f988b86bf8f56b8a"
+      },
+      ",",
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "15760f5a70e4db973c68"
+      },
+      " ",
+      {
+       "#": "323225c9d533ac36fa62"
+      },
+      " ",
+      {
+       "#": "a87f70259fddfaf1f1cd"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "42be32b09792d453142e"
+      },
+      " ",
+      {
+       "#": "6f334754d8ca07eb3a60"
+      }
+     ]
+    },
+    "header_row": true
+   },
+   "31.2": {
+    "slug": {
+     "#slug": "de176b1348f701352903"
+    },
+    "title": {
+     "#": "21932ff2c386e7d79f99"
+    },
+    "header_row": true
+   }
+  },
+  "relations": {
+   "#slug:rules/ec2a5d2179635ebd8cd6": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "2883c8d0ea0b5b5f2ac6",
+      "in": "rules"
+     }
+    },
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "f425628139d963df4f96",
+      "in": "talents"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "tables/23.1/about",
+  "tables/24.1/about",
+  "tables/25.1/about",
+  "tables/31.2/about"
+ ],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

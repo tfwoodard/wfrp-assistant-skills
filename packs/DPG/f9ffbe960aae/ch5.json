@@ -1,0 +1,326 @@
+{
+ "pack": 1,
+ "source": "DPG",
+ "chapter": "ch5",
+ "name": "ch5",
+ "layout": {
+  "pages": "119-130",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "DPG",
+  "chapter": "ch5",
+  "defaults": {
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "fd18711c98a5f5325d28"
+   },
+   "kind": "other"
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "c8c493f83ed9ed13a98f"
+    },
+    "page": 123,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "146de701ecd706526dbc"
+    },
+    "page": 125
+   },
+   {
+    "name": {
+     "#": "7cac1383f4f68fef4049"
+    },
+    "page": 125,
+    "split_headings": {
+     "category": "spells",
+     "kind": "rune",
+     "field_labels": [
+      {
+       "#": "3cc971c7f72f9d0c8002"
+      }
+     ],
+     "fields": {
+      "lore": {
+       "#": "7cac1383f4f68fef4049"
+      }
+     },
+     "name_flags": {
+      "master": {
+       "#w": [
+        "^",
+        {
+         "#": "f763f49a352828d0a320"
+        },
+        " ",
+        {
+         "#": "1f4849f9acea1ca01473"
+        }
+       ]
+      }
+     },
+     "rename": {
+      "#:14cdbda76a2b8cd980bd": {
+       "#w": [
+        {
+         "#": "1f4849f9acea1ca01473"
+        },
+        " ",
+        {
+         "#": "49ac464bd55bfe8062e8"
+        },
+        " ",
+        {
+         "#": "40eb457d6cc255d616a2"
+        },
+        " ",
+        "(",
+        {
+         "#": "ac36b9f289e1a5a8ab33"
+        },
+        ")"
+       ]
+      }
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "895601d7dd85e2276519"
+    },
+    "page": 126,
+    "split_headings": {
+     "category": "spells",
+     "kind": "rune",
+     "field_labels": [
+      {
+       "#": "3cc971c7f72f9d0c8002"
+      }
+     ],
+     "fields": {
+      "lore": {
+       "#": "895601d7dd85e2276519"
+      }
+     },
+     "name_flags": {
+      "master": {
+       "#w": [
+        "^",
+        {
+         "#": "f763f49a352828d0a320"
+        },
+        " ",
+        {
+         "#": "1f4849f9acea1ca01473"
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "52141eebf24a780d969b"
+    },
+    "page": 127,
+    "split_headings": {
+     "category": "spells",
+     "kind": "rune",
+     "field_labels": [
+      {
+       "#": "3cc971c7f72f9d0c8002"
+      }
+     ],
+     "fields": {
+      "lore": {
+       "#": "52141eebf24a780d969b"
+      }
+     },
+     "name_flags": {
+      "master": {
+       "#w": [
+        "^",
+        {
+         "#": "f763f49a352828d0a320"
+        },
+        " ",
+        {
+         "#": "1f4849f9acea1ca01473"
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "ba0b5bf0b6561ae02cf5"
+    },
+    "page": 128,
+    "split_headings": {
+     "category": "spells",
+     "kind": "rune",
+     "field_labels": [
+      {
+       "#": "3cc971c7f72f9d0c8002"
+      }
+     ],
+     "fields": {
+      "lore": {
+       "#": "ba0b5bf0b6561ae02cf5"
+      }
+     },
+     "name_flags": {
+      "master": {
+       "#w": [
+        "^",
+        {
+         "#": "f763f49a352828d0a320"
+        },
+        " ",
+        {
+         "#": "1f4849f9acea1ca01473"
+        }
+       ]
+      }
+     },
+     "rename": {
+      "#:14cdbda76a2b8cd980bd": {
+       "#w": [
+        {
+         "#": "1f4849f9acea1ca01473"
+        },
+        " ",
+        {
+         "#": "49ac464bd55bfe8062e8"
+        },
+        " ",
+        {
+         "#": "40eb457d6cc255d616a2"
+        },
+        " ",
+        "(",
+        {
+         "#": "64fb85864ec1dde6ce6b"
+        },
+        ")"
+       ]
+      }
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "19abad6b768667307817"
+    },
+    "page": 129,
+    "split_headings": {
+     "category": "spells",
+     "kind": "rune",
+     "field_labels": [
+      {
+       "#": "3cc971c7f72f9d0c8002"
+      }
+     ],
+     "fields": {
+      "lore": {
+       "#": "19abad6b768667307817"
+      }
+     },
+     "name_flags": {
+      "master": {
+       "#w": [
+        "^",
+        {
+         "#": "f763f49a352828d0a320"
+        },
+        " ",
+        {
+         "#": "1f4849f9acea1ca01473"
+        }
+       ]
+      }
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "1aed1255a92f680ac147"
+    },
+    "page": 130,
+    "split_headings": {
+     "category": "spells",
+     "kind": "rune",
+     "field_labels": [],
+     "fields": {
+      "lore": {
+       "#": "1aed1255a92f680ac147"
+      }
+     },
+     "name_flags": {
+      "master": {
+       "#w": [
+        "^",
+        {
+         "#": "f763f49a352828d0a320"
+        },
+        " ",
+        {
+         "#": "1f4849f9acea1ca01473"
+        }
+       ]
+      }
+     },
+     "sidebars": "entry"
+    }
+   }
+  ],
+  "boxes": {
+   "121.2": {
+    "entry": {
+     "name": {
+      "#": "5303537fe4426cd2e22a"
+     },
+     "kind": "procedure"
+    }
+   }
+  },
+  "tables": {
+   "124.1": {
+    "slug": {
+     "#slug": "02cd61b269e358b19cd5"
+    },
+    "title": {
+     "#": "557e248405596a3c4bb6"
+    },
+    "roll": "d10",
+    "roll_column": 0,
+    "header_row": true,
+    "banner": true
+   }
+  },
+  "relations": {}
+ },
+ "left_out": [
+  "tables/124.1/about"
+ ],
+ "pdf_sha256": "f9ffbe960aae459ff53d1ecc832298908f1f22cd7a223aab863d4ca14bea7e50",
+ "pdf_bytes": 71047654
+}

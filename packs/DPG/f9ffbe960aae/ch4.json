@@ -1,0 +1,705 @@
+{
+ "pack": 1,
+ "source": "DPG",
+ "chapter": "ch4",
+ "name": "ch4",
+ "layout": {
+  "pages": "85-118",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "DPG",
+  "chapter": "ch4",
+  "defaults": {
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "b4a620eeae88730cc2a8"
+   },
+   "kind": "other"
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "c1061b4abcf7f1556ed7"
+    },
+    "page": 88,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "33e7aefeb309462923ee"
+    },
+    "page": 90,
+    "split_headings": {
+     "category": "qualities",
+     "kind": "weapon-quality",
+     "name_flags": {
+      "rated": {
+       "#": "d18b6a576b44cf7cb504"
+      }
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "fed0111c11060e265a04"
+    },
+    "page": 90,
+    "describes_items": "headings"
+   },
+   {
+    "name": {
+     "#": "ad7b8dae36bd7bdc4657"
+    },
+    "page": 94,
+    "describes_items": "headings"
+   },
+   {
+    "name": {
+     "#": "1579b897a16517968ca9"
+    },
+    "page": 96,
+    "describes_items": "headings"
+   },
+   {
+    "name": {
+     "#": "a43193d0ff31979edeb9"
+    },
+    "page": 102,
+    "describes_items": "headings"
+   },
+   {
+    "name": {
+     "#": "49fc28548531c19fdae2"
+    },
+    "page": 105,
+    "describes_items": "headings"
+   },
+   {
+    "name": {
+     "#": "8741dc9c3c796aa8410c"
+    },
+    "page": 109,
+    "describes_items": "headings"
+   },
+   {
+    "name": {
+     "#": "3c35ddb657beab32b485"
+    },
+    "page": 115,
+    "split_headings": {
+     "category": "trappings",
+     "kind": "artefact"
+    },
+    "heading_only": true
+   }
+  ],
+  "boxes": {
+   "87.1": {
+    "entry": {
+     "name": {
+      "#": "845b20b049a64e13fe92"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "89.1": {
+    "entry": {
+     "name": {
+      "#": "0cd87ebbb9c9792f99d3"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "104.2": {
+    "entry": {
+     "name": {
+      "#": "668ef32769a7230f97f2"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "108.1": {
+    "entry": {
+     "name": {
+      "#": "f21148c6f21991d667c3"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "113.1": {
+    "entry": {
+     "name": {
+      "#": "616f61a35c1245cffcde"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "114.2": {
+    "entry": {
+     "name": {
+      "#w": [
+       {
+        "#": "bbd92678f1e1a8f926fd"
+       },
+       " ",
+       {
+        "#": "9c45d431af9f23d49f89"
+       },
+       " ",
+       {
+        "#": "49ac464bd55bfe8062e8"
+       },
+       " ",
+       {
+        "#": "7cf48aa471d71a04af0e"
+       }
+      ]
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "109.1": {
+    "text": true
+   }
+  },
+  "tables": {
+   "91.1": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "melee",
+     "fields": {
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     }
+    }
+   },
+   "92.1": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "ranged",
+     "fields": {
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:3fbbe28e783fc97c2ef8": {
+       "#": "7c8fb8e743e0f144318f"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     }
+    }
+   },
+   "97.1": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "ranged",
+     "fields": {
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:3fbbe28e783fc97c2ef8": {
+       "#": "7c8fb8e743e0f144318f"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     }
+    }
+   },
+   "101.1": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "ranged",
+     "fields": {
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:3fbbe28e783fc97c2ef8": {
+       "#": "7c8fb8e743e0f144318f"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     }
+    }
+   },
+   "93.1": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "armour",
+     "fields": {
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:fbf92fe5d03f515dd03a": {
+       "#": "285c579c0d156ef00560"
+      },
+      "#:3be11c324060d1ab3408": {
+       "#": "af34d131f8a95899b64f"
+      },
+      "#:911d06d4a00d2d2c006a": {
+       "#": "353a7d1bae44b6fb9265"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     }
+    }
+   },
+   "93.2": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "item",
+     "fields": {
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:e089b5913fb385d5fc91": {
+       "#": "2d08771b1bfec04d4564"
+      }
+     }
+    }
+   },
+   "94.1": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "item",
+     "fields": {
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      }
+     }
+    }
+   },
+   "94.2": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "item",
+     "fields": {
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      }
+     }
+    }
+   },
+   "103.1": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "vehicle",
+     "fields": {
+      "#:3bd19418a66a89a8a140": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:d2d6f5776842c365797c": {
+       "#": "78d50e37597ab349b0be"
+      },
+      "#w:[{\"#\": \"568b9021bbd6113047ef\"}, \" \", {\"#\": \"ecc6dff1c6c85ba464b7\"}]": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:b08ca16206ee1fdf3e8a": {
+       "#": "49ded6a2523e233ab8c3"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:9e62678ed9044bc4ce50": {
+       "#": "90391f434326018b555e"
+      },
+      "#w:[{\"#\": \"6bbd3a09fbb72ce114ae\"}, \" \", {\"#\": \"57e90eff02281a57dacd\"}]": {
+       "#": "fde5625e68a71d1e1678"
+      },
+      "#:8176dd76832dae53bbb1": {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      "#w:[{\"#\": \"ab0ef97b077204673535\"}, \" \", \"(\", {\"#\": \"83cfebb72285b77aa21b\"}, \")\"]": {
+       "#": "d342c2cc405a9c0b8cdc"
+      }
+     }
+    }
+   },
+   "106.2": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "vehicle",
+     "fields": {
+      "#:3bd19418a66a89a8a140": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:d2d6f5776842c365797c": {
+       "#": "78d50e37597ab349b0be"
+      },
+      "#w:[{\"#\": \"568b9021bbd6113047ef\"}, \" \", {\"#\": \"ecc6dff1c6c85ba464b7\"}]": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:b08ca16206ee1fdf3e8a": {
+       "#": "49ded6a2523e233ab8c3"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:9e62678ed9044bc4ce50": {
+       "#": "90391f434326018b555e"
+      },
+      "#w:[{\"#\": \"6bbd3a09fbb72ce114ae\"}, \" \", {\"#\": \"57e90eff02281a57dacd\"}]": {
+       "#": "fde5625e68a71d1e1678"
+      },
+      "#:8176dd76832dae53bbb1": {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      "#w:[{\"#\": \"ab0ef97b077204673535\"}, \" \", \"(\", {\"#\": \"83cfebb72285b77aa21b\"}, \")\"]": {
+       "#": "d342c2cc405a9c0b8cdc"
+      }
+     }
+    }
+   },
+   "110.1": {
+    "banner": true,
+    "header_row": true,
+    "items": {
+     "kind": "vehicle",
+     "fields": {
+      "#:3bd19418a66a89a8a140": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:d2d6f5776842c365797c": {
+       "#": "78d50e37597ab349b0be"
+      },
+      "#w:[{\"#\": \"568b9021bbd6113047ef\"}, \" \", {\"#\": \"ecc6dff1c6c85ba464b7\"}]": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:b08ca16206ee1fdf3e8a": {
+       "#": "49ded6a2523e233ab8c3"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:9e62678ed9044bc4ce50": {
+       "#": "90391f434326018b555e"
+      },
+      "#w:[{\"#\": \"6bbd3a09fbb72ce114ae\"}, \" \", {\"#\": \"57e90eff02281a57dacd\"}]": {
+       "#": "fde5625e68a71d1e1678"
+      },
+      "#:8176dd76832dae53bbb1": {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      "#w:[{\"#\": \"ab0ef97b077204673535\"}, \" \", \"(\", {\"#\": \"83cfebb72285b77aa21b\"}, \")\"]": {
+       "#": "d342c2cc405a9c0b8cdc"
+      }
+     }
+    }
+   },
+   "96.1": {
+    "banner": true,
+    "header_row": true,
+    "slug": {
+     "#slug": "76b73ad0cc0a100bae48"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "7052e58487529dcff341"
+      },
+      " ",
+      {
+       "#": "371f96eb2f5bc19a3c4c"
+      },
+      " ",
+      {
+       "#": "24ffcc32d7740230a7b5"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "114.3.1": {
+    "banner": true,
+    "header_row": true,
+    "title": {
+     "#": "640b21384ef05a13cc85"
+    }
+   },
+   "114.3.2": {
+    "banner": true,
+    "header_row": true,
+    "slug": {
+     "#slug": "d27a8c8583ae738de3eb"
+    },
+    "title": {
+     "#": "cc3ab220c1426e3c57e6"
+    },
+    "roll": "d100",
+    "roll_column": 0
+   }
+  },
+  "relations": {
+   "#slug:trappings/f55433c06ba86884f46c": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "4a9bb52708d7ee80259a",
+      "in": "trappings"
+     }
+    }
+   ],
+   "#slug:qualities/d30a7b7f2afafa91ae7a": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "4d805e5944bc5e457d76",
+      "in": "qualities"
+     }
+    }
+   ],
+   "#slug:qualities/ebb23c5bcde309da8860": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "5c3ecd8da9e87a41eebe",
+      "in": "qualities"
+     }
+    }
+   ],
+   "#slug:trappings/9241d1e4c2e4dd5aad80": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "eb59134d5bfc36e1cde0",
+      "in": "trappings"
+     }
+    }
+   ]
+  },
+  "rename": {},
+  "shared_labels": {
+   "#:5643056a6457e5922d3d": [
+    {
+     "#w": [
+      {
+       "#": "7052e58487529dcff341"
+      },
+      " ",
+      {
+       "#": "5643056a6457e5922d3d"
+      }
+     ]
+    }
+   ],
+   "#:f664e0c2b3ba0b76f7e8": [
+    {
+     "#": "5514a7e26821a4d3bc8e"
+    }
+   ],
+   "#:040060824f7eece189c7": [
+    {
+     "#w": [
+      {
+       "#": "d552d5b5d809890cfea3"
+      },
+      " ",
+      {
+       "#": "1966625350b3a6d86449"
+      },
+      " ",
+      {
+       "#": "6f7fc1d6dc8e744e9e84"
+      }
+     ]
+    },
+    {
+     "#w": [
+      {
+       "#": "1966625350b3a6d86449"
+      },
+      " ",
+      {
+       "#": "d979da9b21b1f1d33cea"
+      },
+      " ",
+      {
+       "#": "3f585f81ebddb61f5ef5"
+      }
+     ]
+    }
+   ],
+   "#:0f3d3af1a6cc35d57524": [
+    {
+     "#": "23166d39c8b76fc66cbb"
+    }
+   ],
+   "#:5e24e924a98e543b0113": [
+    {
+     "#w": [
+      {
+       "#": "5e24e924a98e543b0113"
+      },
+      " ",
+      "(",
+      {
+       "#": "69b52cb32587dc77faa0"
+      },
+      ")"
+     ]
+    },
+    {
+     "#w": [
+      {
+       "#": "5e24e924a98e543b0113"
+      },
+      " ",
+      "(",
+      {
+       "#": "b88afa6bf567af11ba55"
+      },
+      ")"
+     ]
+    },
+    {
+     "#w": [
+      {
+       "#": "5e24e924a98e543b0113"
+      },
+      " ",
+      "(",
+      {
+       "#": "a84b597b7415a6a0a442"
+      },
+      ")"
+     ]
+    }
+   ],
+   "#:1c1022ec487734a2c56e": [
+    {
+     "#": "f57f9a99f8697fd4a4e2"
+    },
+    {
+     "#": "b714841bb34857721ba4"
+    }
+   ],
+   "#:640b21384ef05a13cc85": [
+    {
+     "#": "a835ed936c82d0ccf3fd"
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "tables/103.1/items/fields/#da455ca6e87149203e56",
+  "tables/106.2/items/fields/#da455ca6e87149203e56",
+  "tables/110.1/items/fields/#da455ca6e87149203e56",
+  "tables/96.1/about",
+  "tables/114.3.2/about",
+  "rename/#407574d14b0f9994490b",
+  "rename/#2a45ea5aee6cf6cbe341",
+  "rename/#edcd1795ccc38bea912f",
+  "rename/#cef897b797fd66c7d2b4",
+  "rename/#600e7d86adc42a432123"
+ ],
+ "pdf_sha256": "f9ffbe960aae459ff53d1ecc832298908f1f22cd7a223aab863d4ca14bea7e50",
+ "pdf_bytes": 71047654
+}

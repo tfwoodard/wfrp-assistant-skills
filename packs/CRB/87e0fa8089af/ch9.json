@@ -1,0 +1,127 @@
+{
+ "pack": 1,
+ "source": "CRB",
+ "chapter": "ch9",
+ "name": "ch9",
+ "layout": {
+  "pages": "258-265",
+  "page_offset": 0,
+  "icon_fonts": [],
+  "boxes": true,
+  "icon_text": {},
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "CRB",
+  "chapter": "ch9",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "intro": {
+   "name": {
+    "#": "2834fe28255a0c17224b"
+   },
+   "kind": "glossary",
+   "slug": {
+    "#slug": "183fca68270a6b50ebc5"
+   }
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "540e56714a25bc15f763"
+    },
+    "page": 259,
+    "kind": "glossary",
+    "slug": {
+     "#slug": "c5c92fc5234e0000e611"
+    }
+   },
+   {
+    "name": {
+     "#": "f0c732cf66fe2500e592"
+    },
+    "page": 259,
+    "slug": {
+     "#slug": "3a772d84261bbb1d64d6"
+    }
+   }
+  ],
+  "tables": {
+   "262.1": {
+    "slug": {
+     "#slug": "b402a64e041b3d4917b3"
+    },
+    "title": {
+     "#": "0142240d6b01f40d7f23"
+    }
+   },
+   "263.1": {
+    "slug": {
+     "#slug": "d619c116750a96941cfa"
+    },
+    "title": {
+     "#": "2be090e7370d5f0129af"
+    },
+    "roll": "d10",
+    "roll_column": 0
+   },
+   "264.1": {
+    "slug": {
+     "#slug": "b8b0d3ee8c36145993b8"
+    },
+    "title": {
+     "#": "ed25ea150b7f1d6da0a2"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "02457aef17a0efc70dec"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "ebd81e7ff002c7f813d0"
+      },
+      " ",
+      {
+       "#": "8e526f7c3b36eefce3cb"
+      },
+      " ",
+      {
+       "#": "855de8e9a84049adf0c9"
+      },
+      ",",
+      " ",
+      {
+       "#": "05fdaee0991286bf9666"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "e1a2ee08b532f9b7b3da"
+      }
+     ]
+    },
+    "fold": 3,
+    "header_row": true,
+    "fold_join": true
+   }
+  }
+ },
+ "left_out": [
+  "tables/262.1/about",
+  "tables/263.1/about"
+ ],
+ "pdf_sha256": "87e0fa8089af48f35c3dca2fc8b91245a62f243342f0481a74cf2c14838e1af3",
+ "pdf_bytes": 66305786
+}

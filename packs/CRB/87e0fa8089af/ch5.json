@@ -1,0 +1,1297 @@
+{
+ "pack": 1,
+ "source": "CRB",
+ "chapter": "ch5",
+ "name": "ch5",
+ "layout": {
+  "pages": "148-191",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "crossbat": "✠",
+   "pts:57": "⚒",
+   "pts:29": "☠",
+   "pts:9": "⛨"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "CRB",
+  "chapter": "ch5",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull"
+  ],
+  "icon_text": {
+   "crossbat": "✠",
+   "pts:57": "⚒",
+   "pts:29": "☠",
+   "pts:9": "⛨"
+  },
+  "entry_levels": [
+   3
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "f592ee3a8182f8253bc7"
+    },
+    "page": 149
+   },
+   {
+    "name": {
+     "#": "e3a4ac477a096b83d4c6"
+    },
+    "page": 156
+   },
+   {
+    "name": {
+     "#": "b42af3ca5459cf7e39cd"
+    },
+    "page": 164
+   },
+   {
+    "name": {
+     "#": "61e489906845f6ac7971"
+    },
+    "page": 167
+   },
+   {
+    "name": {
+     "#": "08491ea88a6092e77700"
+    },
+    "page": 167,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "d1d7691ce28c5fdbd727"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "8d127873cd682ac65445"
+    },
+    "page": 168,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "8ef752f8f0578c3eb1dc"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "485acd7ec3dc910c6f6e"
+    },
+    "page": 168,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "afd5abd4dd66bcdc3d5a"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "d536bfd452ed066b746d"
+    },
+    "page": 168,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "725415e27b5103624f7e"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "54683fa2ec714c74f557"
+    },
+    "page": 168,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "b3169be81b3c57669547"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "bb2dd70b99cb7f30f817"
+    },
+    "page": 168,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "ffbb196a3f8e8dc2a308"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "ca17231cb3b12f07c537"
+    },
+    "page": 169,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "d4db40229d7c44ce5d80"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "d36255b1e2f45912e839"
+    },
+    "page": 169,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "6f089e5920c9306755e9"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "42481df37d755e3f4802"
+    },
+    "page": 169,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "479b3150970e4468d7a5"
+     }
+    ],
+    "fields": {
+     "stacks": false
+    }
+   },
+   {
+    "name": {
+     "#": "60cf37a9a8156308aebd"
+    },
+    "page": 169,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "45ec0d012b0c39f9ab1e"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "f32615bb6f44ca74a99c"
+    },
+    "page": 169,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "abc6f7c9c35c5c24a7ae"
+     }
+    ],
+    "fields": {
+     "stacks": false
+    }
+   },
+   {
+    "name": {
+     "#": "0b2bdcc82d361909a4c3"
+    },
+    "page": 169,
+    "kind": "condition",
+    "aliases": [
+     {
+      "#": "58adde626e3709ebbf16"
+     }
+    ],
+    "fields": {
+     "stacks": false
+    }
+   },
+   {
+    "name": {
+     "#": "e49c57261d443e7561ce"
+    },
+    "page": 170
+   },
+   {
+    "name": {
+     "#": "f3e4c001c9d488c7ccd9"
+    },
+    "page": 172
+   },
+   {
+    "name": {
+     "#": "94aa3de0be8105be660e"
+    },
+    "page": 179
+   },
+   {
+    "name": {
+     "#": "23ee2d0b6ee41c07bfcd"
+    },
+    "page": 182
+   },
+   {
+    "name": {
+     "#": "f31e646fc5a2d9fa8b68"
+    },
+    "page": 186
+   },
+   {
+    "name": {
+     "#": "b4ff54b1b60dad71d567"
+    },
+    "page": 186,
+    "category": "diseases",
+    "field_labels": [
+     {
+      "#": "9ab32d909554a987ba15"
+     },
+     {
+      "#": "756f20e47f960c6becb6"
+     },
+     {
+      "#": "f92dc401a80442a79ad6"
+     },
+     {
+      "#": "c55b9b12fdb099683060"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "b3182fc0293723259e39"
+    },
+    "page": 186,
+    "category": "diseases",
+    "field_labels": [
+     {
+      "#": "9ab32d909554a987ba15"
+     },
+     {
+      "#": "756f20e47f960c6becb6"
+     },
+     {
+      "#": "f92dc401a80442a79ad6"
+     },
+     {
+      "#": "c55b9b12fdb099683060"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "fd1b1716c5e8a1aba011"
+    },
+    "page": 186,
+    "category": "diseases",
+    "field_labels": [
+     {
+      "#": "9ab32d909554a987ba15"
+     },
+     {
+      "#": "756f20e47f960c6becb6"
+     },
+     {
+      "#": "f92dc401a80442a79ad6"
+     },
+     {
+      "#": "c55b9b12fdb099683060"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "5bc4457de3aa38fd6d7f"
+    },
+    "page": 187,
+    "category": "diseases",
+    "field_labels": [
+     {
+      "#": "9ab32d909554a987ba15"
+     },
+     {
+      "#": "756f20e47f960c6becb6"
+     },
+     {
+      "#": "f92dc401a80442a79ad6"
+     },
+     {
+      "#": "c55b9b12fdb099683060"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "318d4fce6cb41600c3c4"
+    },
+    "page": 187,
+    "category": "diseases",
+    "field_labels": [
+     {
+      "#": "9ab32d909554a987ba15"
+     },
+     {
+      "#": "756f20e47f960c6becb6"
+     },
+     {
+      "#": "f92dc401a80442a79ad6"
+     },
+     {
+      "#": "c55b9b12fdb099683060"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "21be0994b35b88bafdf7"
+    },
+    "page": 187,
+    "category": "diseases",
+    "field_labels": [
+     {
+      "#": "9ab32d909554a987ba15"
+     },
+     {
+      "#": "756f20e47f960c6becb6"
+     },
+     {
+      "#": "f92dc401a80442a79ad6"
+     },
+     {
+      "#": "c55b9b12fdb099683060"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "be0bd0c973671f4edd66"
+    },
+    "page": 187,
+    "category": "diseases",
+    "field_labels": [
+     {
+      "#": "9ab32d909554a987ba15"
+     },
+     {
+      "#": "756f20e47f960c6becb6"
+     },
+     {
+      "#": "f92dc401a80442a79ad6"
+     },
+     {
+      "#": "c55b9b12fdb099683060"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "36c705dd1c3683001a97"
+    },
+    "page": 187,
+    "category": "diseases",
+    "field_labels": [
+     {
+      "#": "9ab32d909554a987ba15"
+     },
+     {
+      "#": "756f20e47f960c6becb6"
+     },
+     {
+      "#": "f92dc401a80442a79ad6"
+     },
+     {
+      "#": "c55b9b12fdb099683060"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "2c341093f393989bfa1e"
+    },
+    "page": 187,
+    "category": "diseases",
+    "field_labels": [
+     {
+      "#": "9ab32d909554a987ba15"
+     },
+     {
+      "#": "756f20e47f960c6becb6"
+     },
+     {
+      "#": "f92dc401a80442a79ad6"
+     },
+     {
+      "#": "c55b9b12fdb099683060"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "4acb29e141ce3298aea8"
+    },
+    "page": 188,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "4acb29e141ce3298aea8"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "9d629705b4e793e510fc"
+    },
+    "page": 188,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "9d629705b4e793e510fc"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "cb3ded4516bbef623611"
+    },
+    "page": 188,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "cb3ded4516bbef623611"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "f826476af1068bdb00eb"
+    },
+    "page": 188,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "b81c238794884140abcc"
+       },
+       " ",
+       {
+        "#": "9d04b5e6bd58c2341598"
+       },
+       " ",
+       {
+        "#": "34f5981f90ba028575f2"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "6c8acf7b7e907ad1e7bb"
+    },
+    "page": 188,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "6c8acf7b7e907ad1e7bb"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "d7eea0a18855a0a79a69"
+    },
+    "page": 189,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "d7eea0a18855a0a79a69"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "bd05277418c1afcca4f1"
+    },
+    "page": 189,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "bd05277418c1afcca4f1"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "3612a88ec1c3fba10360"
+    },
+    "page": 189,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "3612a88ec1c3fba10360"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "4ffb05954d209fb0eb74"
+    },
+    "page": 189,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "4ffb05954d209fb0eb74"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "1e6f0d0dda8d842e30f4"
+    },
+    "page": 189,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "1e6f0d0dda8d842e30f4"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "1aacc665a3f5c8c0dfd1"
+    },
+    "page": 189,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "1aacc665a3f5c8c0dfd1"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "695b0603c74ff02fb41a"
+    },
+    "page": 189,
+    "kind": "glossary",
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "695b0603c74ff02fb41a"
+       },
+       " ",
+       "(",
+       {
+        "#": "9b7b18dd3b2b0e92a606"
+       },
+       ")"
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "c75826c0221487d0f2fa"
+    },
+    "page": 190
+   },
+   {
+    "name": {
+     "#": "2372c5ca59f246b53bd7"
+    },
+    "page": 190,
+    "kind": "psychology",
+    "heading": {
+     "#": "b58a6ced84309bab3d6d"
+    }
+   },
+   {
+    "name": {
+     "#": "4ba6810b747131a51d2f"
+    },
+    "page": 190,
+    "kind": "psychology",
+    "heading": {
+     "#": "46112e139f3f69a6b3c9"
+    }
+   },
+   {
+    "name": {
+     "#": "948112184abddc0c7e44"
+    },
+    "page": 190,
+    "kind": "psychology"
+   },
+   {
+    "name": {
+     "#": "6795f9a33f14ed453a9e"
+    },
+    "page": 190,
+    "kind": "psychology",
+    "heading": {
+     "#": "fca9dedaef1dddb8234b"
+    }
+   },
+   {
+    "name": {
+     "#": "3ed350ba554c9e05e139"
+    },
+    "page": 190,
+    "kind": "psychology",
+    "heading": {
+     "#": "f81fccd0b57ca8c2403b"
+    }
+   },
+   {
+    "name": {
+     "#": "89817a2286bcdcfa6617"
+    },
+    "page": 191,
+    "kind": "psychology",
+    "heading": {
+     "#": "539f175a086f38ca2420"
+    }
+   }
+  ],
+  "boxes": {
+   "150.3": {},
+   "161.1": {
+    "to": {
+     "#": "aaeca393dd0765981d81"
+    }
+   },
+   "168.2": {
+    "to": {
+     "#": "ca17231cb3b12f07c537"
+    }
+   },
+   "179.1": {
+    "to": {
+     "#": "756603d6fbbedb644f86"
+    }
+   },
+   "182.1": {
+    "to": {
+     "#": "23ee2d0b6ee41c07bfcd"
+    }
+   },
+   "184.1": {
+    "to": {
+     "#": "7eef2647d1fd6ae1dad1"
+    }
+   },
+   "184.2": {
+    "to": {
+     "#": "7eef2647d1fd6ae1dad1"
+    }
+   },
+   "185.1": {
+    "to": {
+     "#": "7eef2647d1fd6ae1dad1"
+    }
+   },
+   "185.2": {
+    "to": {
+     "#": "7eef2647d1fd6ae1dad1"
+    }
+   },
+   "186.2": {
+    "to": {
+     "#": "f31e646fc5a2d9fa8b68"
+    }
+   }
+  },
+  "tables": {
+   "152.2": {
+    "slug": {
+     "#slug": "fec929b76ef3a448dfaf"
+    },
+    "title": {
+     "#": "a85dcf5c03c903ac53f8"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "7017ab4d923b97674277"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "d596e3d153ae816816e5"
+      },
+      " ",
+      {
+       "#": "869ea2dc25b634c77f96"
+      },
+      " ",
+      {
+       "#": "a4f6624c6be00f3c744f"
+      },
+      " ",
+      {
+       "#": "e7e6638d45b19b3d5236"
+      },
+      ",",
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "0dcd14fa25cca1ebb1ae"
+      }
+     ]
+    }
+   },
+   "153.2": {
+    "slug": {
+     "#slug": "f7821bfb857823eadb38"
+    },
+    "title": {
+     "#": "c81a94c858a7cdbca2f6"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "869ea2dc25b634c77f96"
+      },
+      " ",
+      {
+       "#": "c7d29e3ce9271284be25"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "44ad206497c5cba5cd7c"
+      },
+      " ",
+      {
+       "#": "ecba4105b58e2271d051"
+      }
+     ]
+    }
+   },
+   "159.2": {
+    "slug": {
+     "#slug": "a75cfee6d1bf46d6efb6"
+    },
+    "title": {
+     "#": "58e445658e5114f8572d"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "734fedf519a168d4f94f"
+      },
+      " ",
+      {
+       "#": "797aa38977aaab6eea9a"
+      },
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "70dec163437e581fdfdf"
+      },
+      " ",
+      {
+       "#": "daa42075959c2a9f059b"
+      },
+      " ",
+      {
+       "#": "d3c7303cd84752a12b7c"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "160.1": {
+    "slug": {
+     "#slug": "52c3e1ed2dc21134ab7d"
+    },
+    "title": {
+     "#": "4f6f41bdf28cb9e57978"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "ffc8b5796b0aec075c13"
+      },
+      " ",
+      {
+       "#": "d0ddc14c31381e9a4d13"
+      },
+      " ",
+      {
+       "#": "b749bae78893b1fe7735"
+      },
+      " ",
+      {
+       "#": "33d21f52cf4e564fdaa4"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "161.1": {
+    "slug": {
+     "#slug": "93be56a58733c80c55f2"
+    },
+    "title": {
+     "#": "aaeca393dd0765981d81"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "04dbf1c1a99c338d56b8"
+      },
+      " ",
+      {
+       "#": "f92b023f4717f1627a01"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "74346c7e5b74a9f9d6a7"
+      },
+      " ",
+      {
+       "#": "381855fb8dcd9c8af791"
+      }
+     ]
+    }
+   },
+   "162.3": {
+    "slug": {
+     "#slug": "16501d5ae6e2fc65e1d6"
+    },
+    "title": {
+     "#": "b300e3cb38f9f968b4c5"
+    }
+   },
+   "165.1": {
+    "slug": {
+     "#slug": "0093116f664db1895a99"
+    },
+    "title": {
+     "#": "4f82891cc3f8ec2cb4c9"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "d341d74f02d41b143e6b"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "9954e6d208ae6c61bef7"
+      },
+      " ",
+      {
+       "#": "25e96027f69cd6a66f56"
+      },
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "f011e91b1b634cbff73e"
+      }
+     ]
+    }
+   },
+   "174.1": {
+    "slug": {
+     "#slug": "2b0d92a7af79e1ebfd0e"
+    },
+    "title": {
+     "#": "217069957c4985f1c54c"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "e2ec34e7a56ebcda2441"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "continued_in": [
+     "175.1"
+    ]
+   },
+   "175.2": {
+    "slug": {
+     "#slug": "3a6aa3f244edd3db7175"
+    },
+    "title": {
+     "#": "3c241e0b6544cd65d111"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "7bb18506499c7aabe33b"
+      },
+      " ",
+      {
+       "#": "dec78b359786d0e3abd9"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "continued_in": [
+     "176.1"
+    ]
+   },
+   "176.2": {
+    "slug": {
+     "#slug": "c5378565b3c6b5953e7e"
+    },
+    "title": {
+     "#": "7c2f5fdcf76ecba794d7"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "9718cd2f39569b060418"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "continued_in": [
+     "177.1"
+    ]
+   },
+   "177.2": {
+    "slug": {
+     "#slug": "a6e486e685007fd69ff2"
+    },
+    "title": {
+     "#": "f6e69a734df4475346a7"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "ec4ca1ded94b7dc32582"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "continued_in": [
+     "178.1"
+    ]
+   },
+   "183.1": {
+    "slug": {
+     "#slug": "8138fdb475c521a44a87"
+    },
+    "title": {
+     "#": "0b368e465a40eea782ea"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "23ee2d0b6ee41c07bfcd"
+      },
+      " ",
+      {
+       "#": "292fb4924181bf252f47"
+      },
+      " ",
+      {
+       "#": "ecba4105b58e2271d051"
+      },
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "07aab1a8fee621b4f835"
+      }
+     ]
+    }
+   },
+   "184.2": {
+    "slug": {
+     "#slug": "c7d2ed7727acb41c215c"
+    },
+    "title": {
+     "#": "aeb7196ce206783a3188"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "8331c44d5051eada1d06"
+      },
+      " ",
+      {
+       "#": "fcd294286ad3dd6010d1"
+      },
+      " ",
+      {
+       "#": "3032387c5935accc2d7d"
+      },
+      " ",
+      {
+       "#": "c3f6b3f2a9978e58456f"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "185.1": {
+    "slug": {
+     "#slug": "f59fbd18e930267ca723"
+    },
+    "title": {
+     "#": "914d4d49fdd67e18af86"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "680784743201644b4563"
+      },
+      " ",
+      {
+       "#": "c3f6b3f2a9978e58456f"
+      },
+      " ",
+      {
+       "#": "c30f4d720400ca383ee7"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "8b423ce582dcc2f8dcfe"
+   },
+   "kind": "procedure",
+   "slug": {
+    "#slug": "37ca6684c44dd238ea49"
+   }
+  },
+  "relations": {
+   "#slug:tables/93be56a58733c80c55f2": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "93be56a58733c80c55f2",
+      "in": "rules"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "boxes/150.3/diagram",
+  "tables/162.3/about"
+ ],
+ "pdf_sha256": "87e0fa8089af48f35c3dca2fc8b91245a62f243342f0481a74cf2c14838e1af3",
+ "pdf_bytes": 66305786
+}

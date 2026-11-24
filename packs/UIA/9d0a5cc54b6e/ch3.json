@@ -1,0 +1,229 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch3",
+ "name": "ch3",
+ "layout": {
+  "pages": "24-39",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch3",
+  "level_icons": {
+   "1": {
+    "mark_font": "crossbat"
+   },
+   "2": {
+    "pts": 57
+   },
+   "3": {
+    "pts": 29
+   },
+   "4": {
+    "pts": 9
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "abecc1f875300524401c"
+   },
+   "category": "lore",
+   "kind": "organisation"
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "5758e1808c21f69ba7bf"
+    },
+    "page": 24,
+    "category": "lore",
+    "kind": "organisation"
+   },
+   {
+    "name": {
+     "#": "95f2483d93207437319a"
+    },
+    "page": 25,
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "15b11f32c24603ca32b5"
+    },
+    "page": 31,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "b3dd12c136bcc6dbe41d"
+    },
+    "page": 32,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "e2f88d45a12b5d370db0"
+    },
+    "page": 34,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "bbc7930ab39cbf2c20d0"
+    },
+    "page": 36,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "3c5c2f97f578b00cf995"
+    },
+    "page": 38,
+    "category": "lore",
+    "kind": "other"
+   }
+  ],
+  "boxes": {
+   "29.1": {
+    "entry": {
+     "name": {
+      "#": "437347c3ebff19b66e34"
+     },
+     "category": "creatures",
+     "kind": "creature",
+     "stat_blocks": true
+    },
+    "profile": true
+   },
+   "29.2": {
+    "entry": {
+     "name": {
+      "#": "42a18c3b161e483250e2"
+     },
+     "category": "creatures",
+     "kind": "creature",
+     "stat_blocks": true
+    },
+    "profile": true
+   },
+   "30.1": {
+    "entry": {
+     "name": {
+      "#": "7172ca7a81492459b70f"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "37.1": {
+    "text_lines": 1,
+    "entry": {
+     "name": {
+      "#": "ec4da14aca0ca42fa8e5"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   }
+  },
+  "tables": {
+   "26.1": {
+    "title": {
+     "#": "f5714249c2e6ffa3cfa2"
+    },
+    "continued_in": [
+     "27.1",
+     "28.1"
+    ]
+   }
+  },
+  "relations": {
+   "#slug:creatures/693d0c570f504b320ae1": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "69aaed48d63ca9e9c12d",
+      "in": "creatures"
+     }
+    }
+   ],
+   "#slug:creatures/a77f56c446b29a399440": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "69aaed48d63ca9e9c12d",
+      "in": "creatures"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

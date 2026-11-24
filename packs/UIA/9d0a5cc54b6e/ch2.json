@@ -1,0 +1,260 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch2",
+ "name": "ch2",
+ "layout": {
+  "pages": "6-23",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch2",
+  "level_icons": {
+   "1": {
+    "mark_font": "crossbat"
+   },
+   "2": {
+    "pts": 57
+   },
+   "3": {
+    "pts": 29
+   },
+   "4": {
+    "pts": 9
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "b64996034e7435254753"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "da3ae86b6d2b0fb56c5c"
+    },
+    "page": 6,
+    "category": "lore",
+    "kind": "organisation"
+   },
+   {
+    "name": {
+     "#": "42abf735773e1e3f4fa5"
+    },
+    "page": 9,
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "ac5b42bc1c1c08c5288d"
+    },
+    "page": 10,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "061880183a3797215534"
+    },
+    "page": 12,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "5e3058689caaf73137f7"
+    },
+    "page": 14,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "6de572fbaa3372cc86a4"
+    },
+    "page": 16,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "19224f9e901a49123063"
+    },
+    "page": 18,
+    "career": {
+     "class": {
+      "#": "e70dac5a8855fa26e600"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "0d1c5944a0e27d8c965a"
+    },
+    "page": 20,
+    "career": {
+     "class": {
+      "#": "cf7736ce57442891b4ed"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "626599624193eef6cdac"
+    },
+    "page": 22,
+    "career": {
+     "class": {
+      "#": "e70dac5a8855fa26e600"
+     }
+    }
+   }
+  ],
+  "boxes": {
+   "9.1": {
+    "to": {
+     "#": "42abf735773e1e3f4fa5"
+    }
+   },
+   "9.2": {
+    "to": {
+     "#": "42abf735773e1e3f4fa5"
+    }
+   },
+   "21.1": {
+    "entry": {
+     "name": {
+      "#": "87f75bcf86d68368aff7"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "23.1": {
+    "entry": {
+     "name": {
+      "#": "93d1e8aee2a21a9ef9bf"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   }
+  },
+  "tables": {},
+  "relations": {
+   "#slug:rules/69e23d494f2df38e730e": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "94d07c3b378afdf6ed7a",
+      "in": "rules"
+     }
+    }
+   ]
+  },
+  "not_headings": [
+   {
+    "page": 6,
+    "text": {
+     "#": "9cec0b99e26c7f5879e4"
+    }
+   },
+   {
+    "page": 6,
+    "text": {
+     "#": "e90ed5920deeb09666f2"
+    }
+   },
+   {
+    "page": 6,
+    "text": {
+     "#": "8729742d3b601043b9d5"
+    }
+   },
+   {
+    "page": 6,
+    "text": {
+     "#": "36727cae2b50d900dab7"
+    }
+   },
+   {
+    "page": 6,
+    "text": {
+     "#": "6f8ea4a07edd71f42b5b"
+    }
+   },
+   {
+    "page": 6,
+    "text": {
+     "#": "19b54c04b045dc6909ce"
+    }
+   }
+  ]
+ },
+ "left_out": [],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

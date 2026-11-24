@@ -1,0 +1,93 @@
+{
+ "source": "WOM",
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695,
+ "title": "Winds of Magic",
+ "chapters": {
+  "ch1": {
+   "chapter": "ch1",
+   "pages": "6-18",
+   "left_out": 0
+  },
+  "ch1-p5": {
+   "chapter": "ch1",
+   "pages": "4-5",
+   "left_out": 0
+  },
+  "ch2": {
+   "chapter": "ch2",
+   "pages": "19-34",
+   "left_out": 4
+  },
+  "ch3": {
+   "chapter": "ch3",
+   "pages": "35-53",
+   "left_out": 4
+  },
+  "ch4": {
+   "chapter": "ch4",
+   "pages": "54-65",
+   "left_out": 2
+  },
+  "ch5": {
+   "chapter": "ch5",
+   "pages": "66-77",
+   "left_out": 1
+  },
+  "ch6": {
+   "chapter": "ch6",
+   "pages": "78-89",
+   "left_out": 2
+  },
+  "ch7": {
+   "chapter": "ch7",
+   "pages": "90-101",
+   "left_out": 2
+  },
+  "ch8": {
+   "chapter": "ch8",
+   "pages": "102-113",
+   "left_out": 1
+  },
+  "ch9": {
+   "chapter": "ch9",
+   "pages": "114-125",
+   "left_out": 2
+  },
+  "ch10": {
+   "chapter": "ch10",
+   "pages": "126-137",
+   "left_out": 2
+  },
+  "ch11": {
+   "chapter": "ch11",
+   "pages": "138-150",
+   "left_out": 2
+  },
+  "ch12": {
+   "chapter": "ch12",
+   "pages": "151-172",
+   "left_out": 6
+  },
+  "ch13": {
+   "chapter": "ch13",
+   "pages": "173-188",
+   "left_out": 1
+  },
+  "ch14": {
+   "chapter": "ch14",
+   "pages": "189-207",
+   "left_out": 4
+  },
+  "ch15": {
+   "chapter": "ch15",
+   "pages": "208-219",
+   "left_out": 0
+  },
+  "ch15-licence": {
+   "chapter": "ch15",
+   "pages": "222-222",
+   "left_out": 0
+  }
+ }
+}

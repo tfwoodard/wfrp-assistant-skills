@@ -1,0 +1,263 @@
+{
+ "pack": 1,
+ "source": "CRB",
+ "chapter": "ch10",
+ "name": "ch10",
+ "layout": {
+  "pages": "266-287",
+  "page_offset": 0,
+  "icon_fonts": [],
+  "boxes": true,
+  "icon_text": {},
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "CRB",
+  "chapter": "ch10",
+  "defaults": {
+   "category": "lore",
+   "kind": "place"
+  },
+  "intro": {
+   "name": {
+    "#": "ff91e49a796fa28b89a2"
+   },
+   "category": "lore",
+   "kind": "place",
+   "slug": {
+    "#slug": "b8d4860bbac5e96c2891"
+   }
+  },
+  "entry_levels": [
+   2,
+   3,
+   7
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "a00fe3108ef94109ebd3"
+    },
+    "page": 267,
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "139b0bfa6affe038b6f3"
+    },
+    "page": 272,
+    "kind": "history",
+    "headings_as_rows": [
+     {
+      "#": "a66afd958936af2f5eab"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "cac4876c109ad7795a39"
+    },
+    "page": 276,
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "c3aac8a3c82dd0e2b7ff"
+    },
+    "page": 276,
+    "kind": "organisation"
+   },
+   {
+    "name": {
+     "#": "58c56f2659d96d98cd5c"
+    },
+    "page": 276,
+    "kind": "organisation"
+   },
+   {
+    "name": {
+     "#": "26e5c2692a2a69be44b5"
+    },
+    "page": 277,
+    "kind": "organisation"
+   },
+   {
+    "name": {
+     "#": "563bfa6adbd783a2d085"
+    },
+    "page": 277,
+    "kind": "organisation"
+   },
+   {
+    "name": {
+     "#": "2042a0f685c8a13f0567"
+    },
+    "page": 278,
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "a82f14d12ec03f1d2d05"
+    },
+    "page": 286,
+    "kind": "other"
+   }
+  ],
+  "boxes": {
+   "272.1": {
+    "text": true
+   },
+   "278.1": {
+    "to": {
+     "#": "563bfa6adbd783a2d085"
+    }
+   },
+   "271.1": {
+    "entry": {
+     "name": {
+      "#": "50bfd5b1513f6fff771d"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "279.1": {
+    "entry": {
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "280.1": {
+    "entry": {
+     "name": {
+      "#": "660dc36acd0945c235af"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "281.1": {
+    "entry": {
+     "name": {
+      "#": "28b4cc80dde34304bc26"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "282.1": {
+    "entry": {
+     "name": {
+      "#": "49c6bebb165baa421000"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "286.1": {
+    "entry": {
+     "name": {
+      "#": "076a29ec5c0a5a61863a"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "286.2": {
+    "entry": {
+     "name": {
+      "#": "49cbf66561098772c9f7"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   }
+  },
+  "relations": {
+   "#slug:lore/a3e7f22ab65f69b9defa": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "1318a2151a85e3d5a8fd",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/d035da89107f70f79d33": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "07554891264858a7943d",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/5f8b9cd36792a0743673": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "2e05e45b45f68a4d0bb5",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/4f7ffd4f8b2da4cc909b": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "a83298256ea9f9272c1f",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/45288a45ca92b9bce3d0": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "1475dcdaffb5a79d91a4",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/ed2904db7e65e22bf776": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "1528ef8ad22068817a1b",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/46ebd863c23f5ddbf5b1": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "33b2f53ab412edc1d846",
+      "in": "spells"
+     }
+    }
+   ]
+  },
+  "not_headings": [
+   {
+    "page": 272,
+    "text": {
+     "#": "785dc1e1fcd752451858"
+    }
+   }
+  ]
+ },
+ "left_out": [
+  "entries/1/headings_as_rows/1",
+  "boxes/279.1/entry/name"
+ ],
+ "pdf_sha256": "87e0fa8089af48f35c3dca2fc8b91245a62f243342f0481a74cf2c14838e1af3",
+ "pdf_bytes": 66305786
+}

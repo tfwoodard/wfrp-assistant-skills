@@ -1,0 +1,464 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch8",
+ "name": "ch8",
+ "layout": {
+  "pages": "87-104",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch8",
+  "defaults": {
+   "kind": "other",
+   "describes_items": true
+  },
+  "intro": {
+   "name": {
+    "#": "26450354c078c78a52f2"
+   },
+   "kind": "other"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [
+   {
+    "describes_items": false,
+    "name": {
+     "#": "a5049b67d1027ca92700"
+    },
+    "page": 89,
+    "split_labels": {
+     "category": "qualities",
+     "name_flags": {
+      "rated": {
+       "#": "d18b6a576b44cf7cb504"
+      }
+     },
+     "names": {
+      "#:2ec2e79b0816332e20a5": "weapon-flaw",
+      "#:f7c96d264e9d3e2867e3": "weapon-quality",
+      "#:c4228dba596c60047f55": "weapon-quality",
+      "#:11f128dc3cecf47484fb": "weapon-quality",
+      "#:10900fd7fd85aae641b7": "weapon-quality"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "a7b9a796d3eedeae74aa"
+    },
+    "page": 97
+   }
+  ],
+  "boxes": {
+   "93.2": {
+    "to": {
+     "#": "a1c7848c9758d639b681"
+    }
+   },
+   "95.2": {
+    "to": {
+     "#": "4140efe0fa8a3feb37ca"
+    }
+   },
+   "96.1": {
+    "to": {
+     "#": "b05ec7cbe21b7650ef75"
+    }
+   },
+   "98.2": {
+    "to": {
+     "#": "b7684a70aeb0701a88b0"
+    }
+   },
+   "102.1": {
+    "to": {
+     "#": "8da0897dc08c4d564f81"
+    }
+   }
+  },
+  "tables": {
+   "88.1": {
+    "items": {
+     "kind": "item",
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:3bd19418a66a89a8a140": {
+       "#": "2a8db618c99ea2da7b69"
+      }
+     }
+    }
+   },
+   "91.1": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "melee"
+    }
+   },
+   "92.1": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "melee"
+    }
+   },
+   "93.1": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "melee"
+    }
+   },
+   "93.2": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "melee"
+    }
+   },
+   "94.1": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "melee"
+    }
+   },
+   "95.1": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "melee"
+    }
+   },
+   "95.2": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "melee"
+    }
+   },
+   "96.1": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "melee"
+    }
+   },
+   "98.1": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:2f582620ba8f343831fe": {
+       "#": "900cd4a5b740bc267f17"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "melee"
+    }
+   },
+   "98.2": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:3fbbe28e783fc97c2ef8": {
+       "#": "7c8fb8e743e0f144318f"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "ammunition"
+    }
+   },
+   "101.1": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:3fbbe28e783fc97c2ef8": {
+       "#": "7c8fb8e743e0f144318f"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "ranged",
+     "marks_without_notes": [
+      {
+       "#": "ff3b94620fb83c5be38d"
+      }
+     ]
+    }
+   },
+   "102.1": {
+    "items": {
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:3fbbe28e783fc97c2ef8": {
+       "#": "7c8fb8e743e0f144318f"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "kind": "ammunition"
+    }
+   }
+  },
+  "relations": {},
+  "rename": {},
+  "shared_labels": {
+   "#:762bdfe413c6db566c5e": [
+    {
+     "#": "5e8a44bd5d250e17b9fa"
+    },
+    {
+     "#": "214ee971a459dbb71afe"
+    }
+   ],
+   "#:4a4712cfecd58b58282a": [
+    {
+     "#": "79865504d31cd73b4c89"
+    },
+    {
+     "#": "89d4ba631eae32ddbe89"
+    }
+   ],
+   "#:084e09a0f1eb05931a6c": [
+    {
+     "#": "92a6630c74775877169c"
+    }
+   ],
+   "#:89852032fa77d534fca8": [
+    {
+     "#": "5b8580b848a340eb5a1e"
+    },
+    {
+     "#": "39dd35584f15e0361d08"
+    }
+   ],
+   "#:d0a4f7c402bf216c65bc": [
+    {
+     "#": "f91546a3237b478168c0"
+    },
+    {
+     "#": "b16e8b8d7b64dd40bcda"
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "rename/#002876497bf4c9bb0028"
+ ],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

@@ -1,0 +1,220 @@
+{
+ "pack": 1,
+ "source": "CRB",
+ "chapter": "ch1",
+ "name": "ch1",
+ "layout": {
+  "pages": "6-23",
+  "page_offset": 0,
+  "icon_fonts": [],
+  "boxes": true,
+  "icon_text": {},
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "CRB",
+  "chapter": "ch1",
+  "defaults": {
+   "kind": "glossary"
+  },
+  "intro": {
+   "name": {
+    "#": "b6b17859ad5d20b0dc78"
+   },
+   "kind": "glossary",
+   "slug": {
+    "#slug": "ef9b63a711604d38e485"
+   }
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "4f9a3f3148af094d9b35"
+    },
+    "page": 7,
+    "subheadings": [
+     {
+      "#": "30d796a7e207b37ebb6b"
+     },
+     {
+      "#": "b1d37e4c45c64e2df4f8"
+     },
+     {
+      "#": "fedbb67d572b02459d9c"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "d87a60ad027d76b4e66a"
+      },
+      " ",
+      {
+       "#": "f476b663d3ddea3b20a9"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "69aa34a554a860e77af9"
+      }
+     ]
+    },
+    "page": 20,
+    "category": "lore",
+    "kind": "other",
+    "slug": {
+     "#slug": "cb2efd7d35827cd1ed32"
+    },
+    "starts_at": {
+     "#": "3b6476b275db076f7519"
+    },
+    "subheadings": [
+     {
+      "#": "61d9034561dace63f071"
+     },
+     {
+      "#": "46c7686d8da8af10b6b9"
+     },
+     {
+      "#": "64e1f620ba4ccda72a34"
+     },
+     {
+      "#": "0e3e227e9edfa54b382e"
+     },
+     {
+      "#": "563c32898664175d2a71"
+     },
+     {
+      "#": "7fefbd381c861e5fd69a"
+     },
+     {
+      "#": "989d8c849b8be7d506be"
+     },
+     {
+      "#": "aa137678da88623e8e5f"
+     },
+     {
+      "#": "629063259c49adcece8c"
+     },
+     {
+      "#": "ed73dde042af0dfb6165"
+     },
+     {
+      "#": "8cc7e1d0d88fb75b394e"
+     },
+     {
+      "#": "88b50a32091ae621c46b"
+     }
+    ]
+   }
+  ],
+  "boxes": {
+   "9.1": {},
+   "10.1": {},
+   "11.1": {},
+   "12.1": {},
+   "13.1": {},
+   "14.1": {},
+   "15.1": {},
+   "16.1": {},
+   "17.1": {},
+   "18.1": {},
+   "19.1": {},
+   "8.1": {
+    "entry": {
+     "category": "lore",
+     "kind": "other",
+     "slug": {
+      "#slug": "f1ae920bf08a7aa32afc"
+     }
+    }
+   },
+   "6.1": {
+    "entry": {
+     "name": {
+      "#": "cb6194f834a7487231e9"
+     },
+     "kind": "procedure"
+    }
+   },
+   "7.1": {
+    "text": true
+   }
+  },
+  "not_headings": [
+   {
+    "page": 6,
+    "text": {
+     "#": "7643fdf9e49ddae1483d"
+    }
+   },
+   {
+    "page": 6,
+    "text": {
+     "#": "9a7b19612c019a5ddbe2"
+    }
+   },
+   {
+    "page": 6,
+    "text": {
+     "#": "327704647b4c4141abc9"
+    }
+   },
+   {
+    "page": 6,
+    "text": {
+     "#": "3001102fa2609436ed72"
+    }
+   },
+   {
+    "page": 6,
+    "text": {
+     "#": "65fa10fa2f2a7f0a4bfd"
+    }
+   },
+   {
+    "page": 23,
+    "text": {
+     "#": "401af49e30e9e51291c1"
+    }
+   },
+   {
+    "page": 23,
+    "text": {
+     "#": "df6670ec992431b335b8"
+    }
+   },
+   {
+    "page": 23,
+    "text": {
+     "#": "f98b7e59952c0d7284b1"
+    }
+   }
+  ]
+ },
+ "left_out": [
+  "boxes/9.1/to",
+  "boxes/10.1/to",
+  "boxes/11.1/to",
+  "boxes/12.1/to",
+  "boxes/13.1/to",
+  "boxes/14.1/to",
+  "boxes/15.1/to",
+  "boxes/16.1/to",
+  "boxes/17.1/to",
+  "boxes/18.1/to",
+  "boxes/19.1/to",
+  "boxes/8.1/entry/name"
+ ],
+ "pdf_sha256": "87e0fa8089af48f35c3dca2fc8b91245a62f243342f0481a74cf2c14838e1af3",
+ "pdf_bytes": 66305786
+}

@@ -1,0 +1,38 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch1",
+ "name": "ch1-p5",
+ "layout": {
+  "pages": "4-5",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull"
+  ],
+  "boxes": true,
+  "icon_text": {},
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch1",
+  "entries": [
+   {
+    "name": {
+     "#": "c53e8b390e32df7e85af"
+    },
+    "page": 5,
+    "category": "lore",
+    "kind": "history",
+    "starts_at": {
+     "#": "bf72df54620970a1f82f"
+    }
+   }
+  ]
+ },
+ "left_out": [],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

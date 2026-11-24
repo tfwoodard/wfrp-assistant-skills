@@ -1,0 +1,81 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch15",
+ "name": "ch15-licence",
+ "layout": {
+  "pages": "222-222",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": [
+   {
+    "#": "39b253686fbc15c2c528"
+   },
+   {
+    "#": "f16484d7602a2ca47643"
+   }
+  ]
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch15",
+  "intro": {
+   "name": {
+    "#": "79b8a087fbb365c7a3bd"
+   },
+   "category": "lore",
+   "kind": "handout",
+   "aliases": [
+    {
+     "#w": [
+      {
+       "#": "4685cb8c90b6c8dd3735"
+      },
+      " ",
+      {
+       "#": "1bbdea73654b482d3166"
+      }
+     ]
+    },
+    {
+     "#": "c7b47e00781d6b72f754"
+    }
+   ]
+  },
+  "entries": [],
+  "not_headings": [
+   {
+    "page": 222,
+    "text": {
+     "#": "79fe81415e19a04a1e1b"
+    }
+   },
+   {
+    "page": 222,
+    "text": {
+     "#": "26ba9935bf7e8c339543"
+    }
+   },
+   {
+    "page": 222,
+    "text": {
+     "#": "f16484d7602a2ca47643"
+    }
+   }
+  ],
+  "boxes": {},
+  "relations": {}
+ },
+ "left_out": [],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

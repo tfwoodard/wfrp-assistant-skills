@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 """Plan packs: a chapter plan with no book text in it, to share with other groups who own the book.
 
-    plan_pack.py export PLAN.json LAYOUT.json --out PACK.json [--pdf BOOK.pdf] [--library-data DIR]
+    plan_pack.py export PLAN.json LAYOUT.json --pdf BOOK.pdf --into packs/ [--title TITLE] [--library-data DIR]
+    plan_pack.py find BOOK.pdf --packs packs/ [--source CRB]
     plan_pack.py install PACK.json LAYOUT.json --out PLAN.json [--pdf BOOK.pdf] [--library-data DIR]
+
+Packs are kept by the PDF they were made from, since a corrected or reprinted PDF can move
+headings and pages: packs/<source>/<the first 12 characters of the PDF's SHA-256>/ holds that
+PDF's edition.json (its SHA-256, size, title, and each chapter's pack) and a <chapter>.json for
+each chapter. A new PDF of a source gets a folder of its own beside the old one. `find` says which
+folder fits a group's PDF, or which other PDFs of that source have packs. A pack says how its
+layout was made ("layout": pages, page offset, icon fonts and symbols, boxes), so the installer
+makes the same layout of their copy first: `layout_command` prints it.
 
 A plan names entries, headings, tables and table cells in the book's own words, so it can't be
 shared. A pack keeps the plan's shape, its page numbers, the tool's own words (kinds,
-categories, relation roles, dice) and the PDF's icon fonts and symbols, and puts a fingerprint (a hash) in place of every other string
+categories, relation roles, dice) and the PDF's icon fonts and symbols and a career scheme's column codes, and puts a fingerprint (a hash) in place of every other string
 and every other dictionary key: {"#": ...} for text, {"#slug": ...} for a slug, which is made from
 a name. Install rebuilds each fingerprint from the installer's own copy of the book: every line,
 heading and run of words in their layout of the chapter, and the slugs of their own library. So a
@@ -28,7 +37,9 @@ SALT = 'wfrp-plan-pack:'
 TOOL_WORD = re.compile(r'^[a-z0-9][a-z0-9_.+-]*$')         # kinds, categories, roles, dice, field names
 SLUG_PATH = re.compile(r'^[a-z][a-z-]*/[a-z0-9][a-z0-9-]*$')  # "trappings/dagger-elven"
 PLAIN_KEYS = {'source', 'chapter'}                          # which book and chapter: said as they are
-PLAIN_TREES = {'icon_fonts', 'icon_text', 'level_icons'}    # the PDF's fonts and symbols, for its layout
+PLAIN_TREES = {'icon_fonts', 'icon_text', 'level_icons',    # the PDF's fonts and symbols, for its layout
+               'scheme_columns'}                            # a career scheme's columns: characteristic codes
+PACK_KEYS = {'pack', 'source', 'chapter', 'name', 'layout', 'plan', 'left_out', 'pdf_sha256', 'pdf_bytes'}
 SLUG_MAPS = {'relations'}                                   # dictionaries keyed by slugs
 CONTENT_KEYS = {'fields', 'rows', 'footnotes', 'added'}     # numbers here are the book's, not the plan's
 NGRAM = 12                                                  # the longest run of words looked for
@@ -345,14 +356,22 @@ def without(plan, text, slugs):
     return can(plan, [], False), gone
 
 
-def export(plan, layout, library_data, pdf=None):
+def export(plan, layout, library_data, pdf=None, name=None):
+    """NAME is the plan's own name (its file name: "ch15-licence" beside "ch15"), the pack's too."""
     text, slugs = books_words(layout, library_data, [plan.get('source', '')])
     kept, gone = without(plan, text, slugs)
+    options = layout_options(layout, plan)
+    if options.get('margin_lines'):
+        lines = [text_value(s, text) for s in options['margin_lines']]
+        if None in lines:
+            raise SystemExit('a margin line is not in the layout: nothing written')
+        options['margin_lines'] = lines
     pack = {'pack': 1, 'source': plan.get('source'), 'chapter': plan.get('chapter'),
-            'pages': layout.get('pages'), 'plan': pack_value(kept, [], False, text),
+            'name': name or plan.get('chapter'), 'layout': options, 'plan': pack_value(kept, [], False, text),
             'left_out': ['/'.join(step(x) for x in p) for p in gone]}
     if pdf:
         pack['pdf_sha256'] = pdf_sha256(pdf)
+        pack['pdf_bytes'] = os.path.getsize(pdf)
     rebuilt, left = install(pack, layout, library_data)
     if rebuilt != kept or left:
         raise SystemExit('the pack does not rebuild the plan: nothing written'
@@ -385,6 +404,117 @@ def strings(v):
             yield from strings(x)
 
 
+def layout_options(layout, plan):
+    """How LAYOUT was made: what pdf_layout.py recorded, or, for a layout made before it recorded
+    that, its pages, offset and icon fonts, the plan's icon symbols, and boxes on (a page with no
+    boxes reads the same either way)."""
+    if layout.get('options'):
+        return dict(layout['options'])
+    return {'pages': layout['pages'], 'page_offset': layout.get('page_offset', 0),
+            'icon_fonts': layout.get('icon_fonts', []), 'boxes': True,
+            'icon_text': plan.get('icon_text', {}), 'margin_lines': plan.get('margin_lines', [])}
+
+
+def margin_lines(pack, pdf):
+    """The pack's margin lines in words, from a first layout of PDF made without them (a margin
+    line is page furniture there, but its words are in the layout); None for any not found."""
+    import subprocess, tempfile
+    o = dict(pack['layout'], margin_lines=[])
+    with tempfile.TemporaryDirectory() as d:
+        first = os.path.join(d, 'first.json')
+        cmd = layout_command({'layout': o}, pdf, first)
+        cmd[0] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pdf_layout.py')
+        r = subprocess.run([sys.executable] + cmd, capture_output=True, text=True)
+        if r.returncode:
+            raise SystemExit(r.stderr)
+        with open(first, encoding='utf-8') as f:
+            text, _ = books_words(json.load(f), None)
+    out = []
+    for line in pack['layout']['margin_lines']:
+        try:
+            out.append(unpack_value(line, text, {}, ['layout', 'margin_lines'], []))
+        except Missing:
+            out.append(None)
+    return out
+
+
+def layout_command(pack, pdf='BOOK.pdf', out='layout.json', margins=None):
+    o = pack['layout']
+    cmd = ['pdf_layout.py', pdf, '--pages', str(o['pages'])]
+    if o.get('page_offset'):
+        cmd += ['--page-offset', str(o['page_offset'])]
+    if o.get('icon_fonts'):
+        cmd += ['--icon-fonts'] + list(o['icon_fonts'])
+    if o.get('boxes'):
+        cmd += ['--boxes']
+    if o.get('icon_text'):
+        cmd += ['--icon-text'] + [f'{k}={v}' for k, v in o['icon_text'].items()]
+    if o.get('margin_lines'):
+        lines = margins if margins is not None else o['margin_lines']
+        if all(isinstance(x, str) for x in lines):
+            cmd += ['--margin-lines'] + list(lines)
+        else:
+            cmd += ['--margin-lines', '<run layout_command with --pdf: it reads them from a first layout>']
+    return cmd + ['--out', out]
+
+
+def edition_dir(packs, source, sha):
+    return os.path.join(packs, source, sha[:12])
+
+
+def into(pack, packs, title=None):
+    """Write PACK to its PDF's folder under PACKS and bring that folder's edition.json up to date."""
+    if not pack.get('pdf_sha256'):
+        raise SystemExit('--into needs --pdf: packs are kept by the PDF they were made from')
+    d = edition_dir(packs, pack['source'], pack['pdf_sha256'])
+    os.makedirs(d, exist_ok=True)
+    path = os.path.join(d, pack['name'] + '.json')
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(pack, ensure_ascii=False, indent=1) + '\n')
+    ed_path = os.path.join(d, 'edition.json')
+    ed = {}
+    if os.path.exists(ed_path):
+        with open(ed_path, encoding='utf-8') as f:
+            ed = json.load(f)
+    if ed.get('pdf_sha256', pack['pdf_sha256']) != pack['pdf_sha256']:
+        raise SystemExit(f'{ed_path} is for another PDF')
+    ed.update({'source': pack['source'], 'pdf_sha256': pack['pdf_sha256'], 'pdf_bytes': pack['pdf_bytes']})
+    if title:
+        ed['title'] = title
+    chapters = ed.setdefault('chapters', {})
+    chapters[pack['name']] = {'chapter': pack['chapter'], 'pages': pack['layout']['pages'],
+                              'left_out': len(pack['left_out'])}
+    ed['chapters'] = dict(sorted(chapters.items(), key=lambda kv: chapter_order(kv[0])))
+    with open(ed_path, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(ed, ensure_ascii=False, indent=1) + '\n')
+    return path
+
+
+def chapter_order(c):
+    m = re.match(r'([a-z]+)(\d+)(.*)', c)
+    return (m.group(1) != 'ch', int(m.group(2)), m.group(3)) if m else (True, 0, c)
+
+
+def find(pdf, packs, source=None):
+    """(the folder made from this PDF or None, [(source, folder, edition)] of every other PDF)."""
+    sha = pdf_sha256(pdf)
+    exact, others = None, []
+    for src in sorted(os.listdir(packs)) if os.path.isdir(packs) else []:
+        if source and src != source or not os.path.isdir(os.path.join(packs, src)):
+            continue
+        for v in sorted(os.listdir(os.path.join(packs, src))):
+            ed_path = os.path.join(packs, src, v, 'edition.json')
+            if not os.path.exists(ed_path):
+                continue
+            with open(ed_path, encoding='utf-8') as f:
+                ed = json.load(f)
+            if ed.get('pdf_sha256') == sha:
+                exact = os.path.join(packs, src, v)
+            else:
+                others.append((src, os.path.join(packs, src, v), ed))
+    return exact, others
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
@@ -392,19 +522,61 @@ def main(argv=None):
         p = sub.add_parser(name)
         p.add_argument('src', help='the plan (export) or the pack (install)')
         p.add_argument('layout')
-        p.add_argument('--out', required=True)
-        p.add_argument('--pdf', help="the book's PDF: export records its SHA-256, install compares it")
+        p.add_argument('--out', help='where to write the pack (export) or the plan (install)')
+        p.add_argument('--pdf', help="the book's PDF: export records its SHA-256 and size, install compares them")
         p.add_argument('--library-data', help='the library, whose slugs relations point at')
+        if name == 'export':
+            p.add_argument('--into', help="a packs folder: write the pack in its PDF's folder there, with edition.json")
+            p.add_argument('--title', help="the book's title, for edition.json")
+    p = sub.add_parser('find')
+    p.add_argument('pdf')
+    p.add_argument('--packs', required=True)
+    p.add_argument('--source')
+    p = sub.add_parser('layout_command')
+    p.add_argument('pack')
+    p.add_argument('--pdf', default='BOOK.pdf')
     a = ap.parse_args(argv)
+    if a.cmd == 'find':
+        exact, others = find(a.pdf, a.packs, a.source)
+        if exact:
+            print(f'packs made from this PDF: {exact}')
+        else:
+            print('no packs were made from this PDF' + ('; packs for other PDFs of it:' if others else ''))
+        for src, d, ed in others if not exact else []:
+            print(f'  {d}: {ed.get("title", src)}, {ed.get("pdf_bytes")} bytes, {len(ed.get("chapters", {}))} chapters')
+        return 0 if exact else 1
+    if a.cmd == 'layout_command':
+        with open(a.pack, encoding='utf-8') as f:
+            pack = json.load(f)
+        margins = None
+        if pack['layout'].get('margin_lines') and os.path.exists(a.pdf):
+            margins = margin_lines(pack, a.pdf)
+            if None in margins:
+                print(f'{margins.count(None)} margin lines are not in this PDF: the layout will treat them as '
+                      'page furniture', file=sys.stderr)
+                margins = [m for m in margins if m]
+        import shlex
+        print(' '.join(shlex.quote(x) for x in layout_command(pack, a.pdf, margins=margins)))
+        return 0
+    if not a.out and not (a.cmd == 'export' and a.into):
+        ap.error('--out is needed' + (' (or --into)' if a.cmd == 'export' else ''))
     with open(a.src, encoding='utf-8') as f:
         src = json.load(f)
     with open(a.layout, encoding='utf-8') as f:
         layout = json.load(f)
     if a.cmd == 'export':
-        pack, kept = export(src, layout, a.library_data, a.pdf)
+        pack, kept = export(src, layout, a.library_data, a.pdf, os.path.splitext(os.path.basename(a.src))[0])
+        if a.into:
+            path = into(pack, a.into, a.title)
+            print(f'{path}: {len(pack["left_out"])} values left out, the rest rebuilds from the book', file=sys.stderr)
+            if not a.out:
+                return 0
         out = json.dumps(pack, ensure_ascii=False, indent=1) + '\n'
         print(f'{a.out}: {len(pack["left_out"])} values left out, the rest rebuilds from the book', file=sys.stderr)
     else:
+        if src.get('layout') and (src['layout'].get('pages') != (layout.get('options') or layout).get('pages')):
+            print(f'this layout is of pages {layout.get("pages")}, the pack\'s of {src["layout"]["pages"]}: '
+                  f'make it with  {" ".join(layout_command(src, a.pdf or "BOOK.pdf"))}', file=sys.stderr)
         if a.pdf and src.get('pdf_sha256') and pdf_sha256(a.pdf) != src['pdf_sha256']:
             print('this PDF is not the one the pack was made from: pages may differ, check what is left out', file=sys.stderr)
         plan, left = install(src, layout, a.library_data)

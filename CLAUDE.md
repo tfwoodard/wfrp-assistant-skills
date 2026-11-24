@@ -8,6 +8,10 @@ Google Drive library imported from the group's own PDFs.
 - Never commit copyrighted or private content: sources (PDFs, homebrew),
   anything imported from them, chapter plans, campaign files, character
   records, session notes, or transcripts. They live in Drive only.
+- Plan packs are the exception: `packs/` holds packs made by `plan_pack.py
+  export --into packs/`, which carry no book text (fingerprints, page numbers,
+  tool words). Never edit one by hand, and never put a plan there.
+  `tests/test_packs_tree.py` fails on any readable text in a pack.
 - Test fixtures must be invented. Never commit real book text, even a line, even
   in a test or a commit message. Generate fixture PDFs in the test itself
   (reportlab) from invented words.
