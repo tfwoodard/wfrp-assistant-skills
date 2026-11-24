@@ -439,6 +439,44 @@ written:** the last one may have reached Drive unrecorded; look for it first.
 **Phase `merged`:** check each bookkeeping file's current ID and size before
 writing. Tell the Librarian you resumed an interrupted import and what was left.
 
+## Plan packs
+
+A plan names entries, headings, table titles and cells in the book's words, so
+it never leaves the library. To give another group (who own the book) a head
+start on a chapter, make a **pack**:
+
+```
+plan_pack.py export sources/CRB/plans/ch5.json scratch/ch5-layout.json \
+    --out sources/CRB/packs/ch5.json --pdf <the book's PDF> --library-data <library-data>
+```
+
+The pack keeps the plan's shape, page numbers and the tool's own words (kinds,
+categories, relation roles, dice), and puts a fingerprint in place of every
+other string: whole, or word by word for a name the Librarian wrote around a
+printed heading ("Endeavour: Banking"). Anything the book itself can't give back,
+such as a table's one-line description, a heading renamed in other words, or a
+hand-typed table row, is left out and listed in the pack's `left_out` by position
+only; an entry whose name is left out goes whole. Export installs the pack
+again on the same layout and writes nothing unless that rebuilds the plan,
+less exactly what's listed, and unless none of the plan's own strings is left
+in the pack.
+
+The other group installs it on a layout of their own copy:
+
+```
+plan_pack.py install CRB-ch5-pack.json scratch/ch5-layout.json --out sources/CRB/plans/ch5.json \
+    --pdf <their PDF> --library-data <their library-data>
+```
+
+Install says when their PDF isn't the one the pack was made from (pages may
+differ) and lists what it couldn't rebuild. Then convert as usual: a heading the
+rebuilt plan no longer places is an error, which is how they find what's left
+to do. Formulas and summaries live on library entries, not in plans, so a pack
+never carries them: each group writes its own (**Formulas**, in section 4).
+
+Don't publish a pack, or say a pack may be published, without the Librarian:
+sharing one beyond the group is their decision.
+
 ## 6. Report
 
 Give counts (added, updated, skipped, failed), list every failure with its
