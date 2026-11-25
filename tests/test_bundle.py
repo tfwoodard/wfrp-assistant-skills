@@ -51,6 +51,12 @@ class BundleTest(unittest.TestCase):
         self.assertNotIn('campaigns/', said)
         lib = json.loads(self.read(self.root, 'library.json'))
         self.assertEqual(lib['bundle'], stamp)                       # the stamp, in the library's library.json
+        before = FILES['library.json'].split('\n')
+        after = self.read(self.root, 'library.json').split('\n')
+        self.assertEqual([l for l in after if not l.startswith('  "bundle": ')], before)  # one line added, no other change
+        bundle.make(self.root)
+        again = self.read(self.root, 'library.json').split('\n')
+        self.assertEqual(len(again), len(after))                      # a second make replaces that line
         dest = os.path.join(self.tmp.name, 'lib')
         n = bundle.unpack(out, dest)
         self.assertEqual(n, stamp['files'])
