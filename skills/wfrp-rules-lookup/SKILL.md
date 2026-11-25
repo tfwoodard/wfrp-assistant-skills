@@ -26,8 +26,9 @@ Read `references/library-layout.md` for where data lives and how to cite it.
    relations mean for the answer, the entries in play that add to it ("added
    to by": read those too, they change or extend it), and, apart, the entries
    the campaign doesn't use with the rule that removes each. `--gm` only when the user is the
-   campaign's GM. Without a folder, read the indexes through the connector and
-   apply the same rules.
+   campaign's GM. Without a folder, unpack the library bundle and run
+   the script on it (layout §1), or read the indexes through a Drive connection
+   and apply the same rules.
 3. If nothing matches, check the chapter lists (layout §3). If the relevant
    chapter of a source in play isn't imported yet, say so and suggest the
    Librarian import it (with `wfrp-import`). Don't read source PDFs yourself to

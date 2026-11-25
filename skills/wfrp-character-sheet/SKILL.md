@@ -176,8 +176,10 @@ and status, movement, Wounds, Fate and Resilience, the Corruption threshold,
 Encumbrance, every basic skill and the advanced ones taken, talents with their
 maximum, spells in the character's own numbers, trappings with weapon damage
 and armour by location, and XP. Without `--md` it prints the same as JSON.
-When the library is reached through the Drive connector, run
-`scripts/needs.py` first: it lists the library files to fetch, all at once.
+Without the local folder, unpack the library bundle (layout §1) and run the
+scripts on it, with the campaign's files read from Drive; or, through a Drive
+connection, run `scripts/needs.py` first: it lists the library files to fetch,
+all at once.
 
 The sheet has three lists to go through with the player, and to mention every
 time they aren't empty:
@@ -209,7 +211,8 @@ Advantage, what the campaign notebook says to **Remember** now (the party's
 notes and this character's own: layout §10), and every condition in play with
 boxes to count it (one box for a condition whose entry says `"stacks": false`,
 such as Prone), under the summary of how Conditions add up (the Multiple
-Conditions rule's). Upload all three beside the record. When a note is added to
+Conditions rule's). Save all three beside the record (layout §1, **Saving**:
+where the agent can't write to the library, hand them back, with the folder). When a note is added to
 or retired from the notebook, print the party's sheets again.
 
 Each spell and talent prints with a one-line summary of what it does, from its entry's

@@ -14,18 +14,26 @@ defined in the repo's `CONTEXT.md`.
 
 ## 1. Locating the library
 
+These skills follow the open Agent Skills format, so they run in any agent that
+reads it: Claude (claude.ai, the desktop and phone apps, Claude Code), ChatGPT,
+the Gemini app, and agents that run on a computer (Codex, Gemini CLI, GitHub
+Copilot, Cursor). What differs between them is how they reach the library and
+whether they can save to it; this section says how for each.
+
 Resolve the library root folder in this order and stop at the first hit:
 
 1. **Config file.** `wfrp-library.config.json` in the current working directory
-   or plugin root (Claude Code). Use `drive_folder_id`, and `drive_local_path`
-   if it's set (below).
-2. **Conversation / Project context.** A Drive folder ID or URL the user gave in
-   this conversation, or in the Project's instructions or docs. A folder URL
-   looks like `https://drive.google.com/drive/folders/<FOLDER_ID>` (an account
-   segment such as `/u/2/` may come before `folders`).
-3. **Drive search.** Search Google Drive for a file named `library.json` whose
-   contents contain `"wfrp_library": true`. Its parent folder is the root. If
-   several match, list them and ask which to use.
+   or the skills' folder (an agent running on a computer). Use
+   `drive_folder_id`, and `drive_local_path` if it's set (below).
+2. **Conversation or standing instructions.** A Drive folder ID or URL the user
+   gave in this conversation, or in the agent's standing instructions for this
+   work (a Claude Project's instructions or docs, a ChatGPT project's
+   instructions, a Gemini skill's or custom instructions). A folder URL looks
+   like `https://drive.google.com/drive/folders/<FOLDER_ID>` (an account segment
+   such as `/u/2/` may come before `folders`).
+3. **Drive search.** With the agent's Google Drive access, search for a file
+   named `library.json` whose contents contain `"wfrp_library": true`. Its
+   parent folder is the root. If several match, list them and ask which to use.
 
 If none resolve, stop and tell the user how to configure it (README >
 Configuration). Do not guess.
@@ -37,23 +45,75 @@ date. If it is lower, suggest running `wfrp-library-setup` to upgrade it.
 Then resolve the **active campaign** (§8) when the task involves one: building
 characters, session notes, or rules questions at the table.
 
-### Local folder or connector
+### Three ways to reach it
 
-Google Drive for desktop can show the library as a folder on a computer
-(`drive_local_path`: in the config file, or a line in the Project's
-instructions such as "WFRP library folder: I:\My Drive\WFRP Assistant"). When
-the session can reach that folder, read and write library files there
-directly; Drive syncs them. A session can reach it when it is Claude Code on
-that computer, or a cloud session linked to that computer through the Claude
-desktop app with the folder connected (ask for access to the folder once, if it
-isn't). Before using the folder, check that it holds `library.json` with
-`"wfrp_library": true`.
+- **The local folder.** Google Drive for desktop can show the library as a
+  folder on a computer (`drive_local_path`: in the config file, or a line in the
+  standing instructions such as "WFRP library folder: I:\My Drive\WFRP
+  Assistant"). An agent running on that computer reads and writes library files
+  there directly, and Drive syncs them: Claude Code, Codex, Gemini CLI, Copilot,
+  Cursor, or a Claude cloud session linked to the computer through the Claude
+  desktop app with the folder connected (ask for access to the folder once, if
+  it isn't). Before using the folder, check that it holds `library.json` with
+  `"wfrp_library": true`. The scripts take the folder as `--library`.
+- **A Drive connection.** The agent's own link to the user's Google Drive:
+  Claude's Google Drive connector, ChatGPT's Google Drive app, or Gemini's
+  Google Workspace access. It reads any library file the user can open, on any
+  device. What it can write varies: Claude's connector creates and updates
+  files; ChatGPT's and Gemini's may only create Google Docs, Sheets and Slides,
+  not the library's `.json` and `.md` files (see **Saving**). It doesn't give
+  the scripts a folder: for those, use the bundle.
+- **The library bundle** (below), for running the scripts in an agent whose
+  scripts can't see Drive (ChatGPT, the Gemini app).
 
-Otherwise, and on phones, use the Google Drive connector. Both reach the same
-files, so a skill can switch between them at any time.
+The local folder and a Drive connection reach the same files, so a skill can
+switch between them at any time.
+
+### The library bundle
+
+`library-bundle.json` at the library root holds the library's rules data in one
+plain-text file: `library.json` and every file under `library-data/` (each
+entry's `.json` and `.md`, each category's `_index.json`, the import log). It
+holds nothing from `campaigns/`. The Librarian makes it after every import with
+`bundle.py make <root>`, which also writes the bundle's stamp (`"bundle":
+{"made", "imports", "files"}`) into `library.json`; both files go to Drive.
+
+To run the scripts without the local folder:
+
+1. Get the bundle into the session: attach `library-bundle.json` from Drive, or
+   ask the user to (from Drive, or downloaded and uploaded).
+2. `scripts/bundle.py check library-bundle.json <library.json>`, with
+   `library.json` as read from Drive just now: if the bundle is out of date, say
+   so, and ask for the current one before answering from it.
+3. `scripts/bundle.py unpack library-bundle.json lib/`, then pass `--library
+   lib` to the scripts.
+4. Read the campaign's files the task needs from Drive (`campaign.json`, the
+   character's record, `notes.json`, session files) and write each under
+   `lib/campaigns/<slug>/` at its own path. Files from `gm/` only when the user
+   is the campaign's GM (§7).
+
+### Saving
+
+Write to the library only where the session can write that file: the local
+folder, or a Drive connection that creates and updates `.json` and `.md` files.
+Otherwise **hand the files back**: give the user every new or changed file as a
+download, and for each one say
+
+- the folder it goes in, from the library root
+  (`campaigns/the-enemy-within/characters/`), and
+- whether it is new or replaces a file of the same name.
+
+Tell them how to replace a file without making a second copy: in a Drive folder
+on a computer, copy it over the old one; in Drive on the web, open the old
+file's menu → **File information → Manage versions → Upload new version**; in
+the Drive phone app, delete the old file first, then upload the new one. Make
+each changed file from the copy just read from Drive, and say if a file changed
+by someone else since then would be overwritten. Never hand back a `gm/` file to
+someone who isn't the campaign's GM.
 
 Never copy library content into the repo, a public artifact, or any shared
-location outside the library.
+location outside the library. A session's own working copy (the unpacked
+bundle, a file being handed back) stays in that session.
 
 ## 2. Folder structure
 
@@ -347,9 +407,8 @@ without asking first, and its reply paraphrases and cites:
   citation, and prints only what it wrote. Several refs go in one file.
 - Without one, the entry's own `.md` file from the library is the file.
 
-Send it with the surface's file tool so it shows in the conversation. Where a
-surface has no way to send a file, give the file's link from the Drive
-connector. The same holds for GM-only entries, sent only to the GM.
+Send it with the agent's own way of giving a file, so it shows in the
+conversation. Where the agent has none, give the file's link in Drive. The same holds for GM-only entries, sent only to the GM.
 
 ## 6. Importing
 
@@ -438,9 +497,11 @@ No versions are kept; Drive's revision history covers the rare need.
 Skills never move GM-only material out of `gm/`, and never include it in
 answers unless the user is that campaign's GM.
 
-The skills themselves are shared the same way, as zips to upload in claude.ai
-(Settings → Capabilities → Skills), each folder with a `README.md` and a
-`manifest.json` (version and each zip's SHA-256):
+The skills themselves are shared the same way, as zips, each folder with a
+`README.md` (how to install them in each agent) and a `manifest.json` (version
+and each zip's SHA-256). Each zip holds one skill folder with its `SKILL.md`,
+plain text only, which claude.ai, the Gemini app, ChatGPT's desktop app and the
+agents on a computer all read:
 
 - **`skills/`** at the library root: the player skills (rules lookup, character
   sheets, session notes). Everyone who can view the library can download them.
@@ -704,6 +765,7 @@ folder is missing, create it rather than failing.
 Files in `sessions/raw/` and `gm/sessions/raw/` are never edited after they're
 saved. Update an `_index.json` in the same pass as the files it describes, so
 it never points at missing files. In the local folder (§1), change a file by
-writing over it; Drive keeps its revision history. The connector can't edit
-file contents in place: to change a file through it, write the new version and
-move the old one to the Drive trash.
+writing over it; Drive keeps its revision history. A Drive connection that can't
+edit file contents in place (Claude's connector) writes the new version and
+moves the old one to the Drive trash. Where the session can't write the file at
+all, hand it back (§1, **Saving**).

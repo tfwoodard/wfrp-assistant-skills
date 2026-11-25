@@ -384,6 +384,14 @@ ready.
    `library.json` last.
 4. For a re-import, overwrite each entry, and trash entry files the merge says
    the chapter no longer has.
+5. Make the library bundle again (layout §1), from a library folder that holds
+   every file of `library-data/` as it is in Drive now:
+   `python3 scripts/bundle.py make <library root>`. It writes
+   `library-bundle.json` and the bundle's stamp in `library.json`: upload both,
+   `library.json` last. Players whose agent can't run the scripts on Drive
+   (ChatGPT, the Gemini app) use the bundle, and their agent says when it is
+   older than the stamp. This also applies after any other library change, such
+   as a summary or a formula set on an entry.
 
 ### Writing to the library
 
