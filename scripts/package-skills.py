@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Package the skills for the group to upload to claude.ai (Settings > Capabilities > Skills).
+"""Package the skills for the group to install in their agents (claude.ai, ChatGPT, Gemini, agents on a computer).
 
     dist/players/<skill>.zip   player skills: uploaded to the library's skills/ folder
     dist/gm/<skill>.zip        GM-only skills: uploaded to each campaign's gm/skills/ folder
@@ -54,11 +54,24 @@ def build_zip(skill, out):
 
 
 def readme(who, skills, version):
-    lines = [f"# WFRP Assistant skills for {who} (version {version})", "",
-             "Upload each zip in claude.ai under **Settings → Capabilities → Skills → Upload skill**,",
-             "replacing an older copy of the same skill. You also need the **Google Drive** connector",
-             "(Settings → Connectors), since the skills read the group's library from Drive.", ""]
+    lines = [f"# WFRP Assistant skills for {who} (version {version})", ""]
     lines += [f"- `{s}.zip`" for s in skills]
+    lines += ["", "Each zip is one skill in the open Agent Skills format. Install it in the agent you use,",
+              "replacing an older copy of the same skill, and give that agent access to Google Drive,",
+              "since the skills read the group's library there.", "",
+              "- **Claude** (claude.ai, the desktop and phone apps): Settings → Capabilities → Skills →",
+              "  Upload skill. Turn on the Google Drive connector (Settings → Connectors).",
+              "- **ChatGPT**: in the desktop app, open Skills in the sidebar and add the zip; ChatGPT on",
+              "  the web and phone uses only skills that come in plugins. Connect the Google Drive app.",
+              "  ChatGPT can't save to the library: it hands back files to put in Drive yourself.",
+              "- **Gemini app** (gemini.google.com, the phone and Mac apps): Skills → Create → Upload,",
+              "  and choose the zip. Gemini can't save to the library either: it hands back files.",
+              "- **Agents on a computer** (Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor):",
+              "  unzip into the agent's skills folder (for example `~/.agents/skills/` for Codex and",
+              "  Gemini CLI, `~/.claude/skills/` for Claude Code). With Google Drive for desktop, tell",
+              "  it where the library folder is, and it reads and saves there directly.", "",
+              "Where an agent can't run the scripts on Drive (ChatGPT, Gemini), it uses",
+              "`library-bundle.json` from the library's root: attach it when the agent asks."]
     if who == "GMs":
         lines += ["", "GMs also use the player skills in the library's `skills/` folder."]
     return "\n".join(lines) + "\n"

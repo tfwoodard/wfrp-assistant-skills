@@ -112,10 +112,13 @@ python3 scripts/notebook.py <campaign folder> list --current
   prints.
 - After adding or retiring notes, rebuild the party's sheets
   (`wfrp-character-sheet`: `character_pdf.py --pdf`) so the play pages match,
-  and upload the notebook, the history and the sheets.
+  and save the notebook, the history and the sheets.
 
-The connector can't edit files in place. To change a file, write the new
-version and move the old one to the trash; in the local folder, write over it.
+Save as layout §1 (**Saving**) says: in the local folder, write over a file;
+through a Drive connection that can't edit a file in place, write the new
+version and move the old one to the trash; where the agent can't write to the
+library at all (ChatGPT, the Gemini app), hand the files back to the user with
+the folder each goes in.
 
 ## Search
 

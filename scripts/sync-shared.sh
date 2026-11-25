@@ -27,7 +27,8 @@ done
 # shared scripts: "<file>:<skill> <skill> ..."
 for spec in "library.py:wfrp-character-sheet wfrp-rules-lookup" \
             "excerpt.py:wfrp-character-sheet wfrp-rules-lookup" \
-            "notebook.py:wfrp-character-sheet wfrp-session-notes"; do
+            "notebook.py:wfrp-character-sheet wfrp-session-notes" \
+            "bundle.py:wfrp-character-sheet wfrp-rules-lookup wfrp-import"; do
   f="shared/scripts/${spec%%:*}"
   for skill in ${spec#*:}; do
     dest="skills/$skill/scripts/$(basename "$f")"

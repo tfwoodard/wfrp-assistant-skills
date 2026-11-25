@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read a character kept by hand in the group's spreadsheet into JSON, to find out what the sheet says.
 
-The output is not a character record and nothing in it is printed: Claude uses it to write a
+The output is not a character record and nothing in it is printed: the agent uses it to write a
 schema 2 record of choices and library refs (references/character-record.md), and
 build_character.py --shown compares the numbers it works out with the sheet's.
 

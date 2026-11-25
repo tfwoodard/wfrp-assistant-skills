@@ -74,10 +74,19 @@ One person can be both Librarian and GM.
 
 ### 1. Connect Google Drive
 
-In claude.ai, open **Settings → Connectors** and connect **Google Drive**.
-Everyone in the group who uses the skills needs this. The Librarian also
-needs **Google Drive for desktop**, so PDFs can be imported from the computer
+Everyone in the group connects their agent to Google Drive: in Claude, the
+**Google Drive** connector (**Settings → Connectors**); in ChatGPT, the
+**Google Drive** app; in the Gemini app, Google Workspace. An agent on a
+computer (Claude Code, Codex, Gemini CLI, Copilot, Cursor) reads the library
+folder that **Google Drive for desktop** shows instead. The Librarian needs
+Google Drive for desktop anyway, so PDFs can be imported from the computer
 (see [ADR 0001](docs/adr/0001-import-runs-where-the-whole-source-is-readable.md)).
+
+ChatGPT and the Gemini app can read the library but can't save to it: when a
+skill there changes a character or the session notes, it hands back the files,
+each with the library folder it goes in. Their scripts also can't see Drive, so
+they use the **library bundle**, `library-bundle.json` at the library's root,
+which the Librarian remakes after every import.
 
 ### 2. Install the skills
 
@@ -95,9 +104,13 @@ library's Drive:
 ./scripts/package-skills.sh     # writes dist/players/ (and dist/gm/ when there are GM skills)
 ```
 
-Players download the zips in the library's `skills/` folder and upload each
-under **Settings → Capabilities → Skills**. The Librarian uses library setup
-and import from this repo; they aren't packaged.
+Players download the zips in the library's `skills/` folder and install each in
+their agent. The folder's `README.md` says how for each one: claude.ai
+(**Settings → Capabilities → Skills**), the ChatGPT desktop app, the Gemini app
+(**Skills → Create → Upload**), or an agent on a computer (unzip into its skills
+folder). The skills follow the open [Agent Skills](https://agentskills.io)
+format. The Librarian uses library setup and import from this repo, in Claude;
+they aren't packaged.
 
 ### 3. Create or connect the library
 
@@ -152,7 +165,8 @@ folder, which players can't open.
 
 The skills look for the library in this order, and use the first one they find:
 
-1. **`wfrp-library.config.json`** (Claude Code). Copy the example and fill it in:
+1. **`wfrp-library.config.json`** (an agent on a computer: Claude Code, Codex,
+   Gemini CLI, Copilot, Cursor). Copy the example and fill it in:
 
    ```bash
    cp wfrp-library.config.example.json wfrp-library.config.json
@@ -177,8 +191,10 @@ The skills look for the library in this order, and use the first one they find:
 
    This file is **gitignored**. Don't commit it.
 
-2. **Project instructions** (claude.ai). Uploaded skills can't read a local
-   file, so put lines like these in your claude.ai Project's instructions:
+2. **Standing instructions** (claude.ai, ChatGPT, the Gemini app). Uploaded
+   skills can't read a local file, so put lines like these where your agent
+   keeps instructions for this work: a Claude Project's instructions, a ChatGPT
+   project's instructions, or Gemini's saved info:
 
    > WFRP library: https://drive.google.com/drive/folders/1AbC...xyz
    > WFRP library folder: I:\My Drive\WFRP Assistant
