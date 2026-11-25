@@ -1,0 +1,508 @@
+{
+ "pack": 1,
+ "source": "HEPG",
+ "chapter": "ch5",
+ "name": "ch5",
+ "layout": {
+  "pages": "91-114",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "HEPG",
+  "chapter": "ch5",
+  "defaults": {
+   "kind": "other"
+  },
+  "level_icons": {
+   "1": {
+    "pts": 40,
+    "letter": "E"
+   },
+   "2": {
+    "pts": 54,
+    "letter": "A"
+   },
+   "3": {
+    "pts": 46,
+    "letter": "C"
+   },
+   "4": {
+    "pts": 61,
+    "letter": "D"
+   },
+   "5": {
+    "pts": 78
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "3a96cd68f7a43e06a1c4"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entries": [
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "59b1eb29fbf924fb549a"
+      },
+      ",",
+      " ",
+      {
+       "#": "ea3fec1defc5aba28220"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "6e4955ca1f45e7a2f717"
+      }
+     ]
+    },
+    "page": 93,
+    "category": "lore",
+    "kind": "other",
+    "split_headings": {
+     "category": "lore",
+     "kind": "god"
+    }
+   },
+   {
+    "name": {
+     "#": "64aea8fbd031841a912c"
+    },
+    "page": 95,
+    "category": "lore",
+    "kind": "other",
+    "split_headings": {
+     "category": "lore",
+     "kind": "god"
+    }
+   },
+   {
+    "name": {
+     "#": "9a933d3220ccc11ba5ec"
+    },
+    "page": 97,
+    "category": "lore",
+    "kind": "other",
+    "split_headings": {
+     "category": "lore",
+     "kind": "god"
+    }
+   },
+   {
+    "name": {
+     "#": "ff891c70e81b86d35569"
+    },
+    "page": 98,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "b7aa130d37fd06e319eb"
+    },
+    "page": 99
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "f6320791dc94bf7ea230"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "e7c95b8f4d4bd2553cfa"
+      }
+     ]
+    },
+    "page": 100,
+    "career": {
+     "first_level": 3,
+     "levels": 3,
+     "scheme": {
+      "#": "5bdc182f288e18a96bad"
+     }
+    },
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "bdeeb8191effa4c9b920"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "e7c95b8f4d4bd2553cfa"
+      }
+     ]
+    },
+    "page": 101
+   },
+   {
+    "name": {
+     "#": "2e2ffd34beb43ab7959a"
+    },
+    "heading": {
+     "#": "62b2b087c52892b0e170"
+    },
+    "page": 101,
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "2b490255ffe3c62e0e16"
+    },
+    "heading": {
+     "#": "c8677f56c65ac8124fe4"
+    },
+    "page": 101,
+    "category": "talents",
+    "field_labels": []
+   },
+   {
+    "name": {
+     "#": "9441a9ce8ce58a034d5d"
+    },
+    "page": 102
+   },
+   {
+    "name": {
+     "#": "f7aa811edd1387ed90c8"
+    },
+    "page": 104,
+    "career": {
+     "first_level": 3,
+     "levels": 3
+    },
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "5233ed1667eb80aef87d"
+    },
+    "page": 105
+   },
+   {
+    "name": {
+     "#": "354a6a5ffdc56456abf4"
+    },
+    "heading": {
+     "#": "bb0ef19d64c5f7293a82"
+    },
+    "page": 105,
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "bbeb9470a92e1fd0a86e"
+    },
+    "page": 105
+   },
+   {
+    "name": {
+     "#": "9e35146a6c5aa18c1977"
+    },
+    "page": 108,
+    "career": {
+     "first_level": 3,
+     "levels": 3,
+     "scheme": {
+      "#": "b95a50f7040bc289f50e"
+     }
+    },
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "c466a96f54a677c126ba"
+    },
+    "page": 109
+   },
+   {
+    "name": {
+     "#": "78218e27cebeb1937238"
+    },
+    "heading": {
+     "#": "b210e7fa73d8a5eb692b"
+    },
+    "page": 109,
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "1d27b70baf57b03a26b9"
+    },
+    "page": 112,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "a0a2055dffc9156af043"
+    },
+    "page": 113,
+    "category": "lore",
+    "kind": "other"
+   }
+  ],
+  "lists": [
+   {
+    "name": {
+     "#": "f757ff8de3180f0141f3"
+    },
+    "page": 102,
+    "kind": "lore",
+    "lore": {
+     "#w": [
+      {
+       "#": "fa2ee377b06a17cfb146"
+      },
+      " ",
+      {
+       "#": "4685cb8c90b6c8dd3735"
+      },
+      " ",
+      "(",
+      {
+       "#": "e7c95b8f4d4bd2553cfa"
+      },
+      ")"
+     ]
+    }
+   },
+   {
+    "name": {
+     "#": "a21a4c8c6c3d7d4f8905"
+    },
+    "page": 106,
+    "kind": "lore",
+    "lore": {
+     "#w": [
+      {
+       "#": "fa2ee377b06a17cfb146"
+      },
+      " ",
+      {
+       "#": "4685cb8c90b6c8dd3735"
+      },
+      " ",
+      "(",
+      {
+       "#": "a404645be8290e5b62a9"
+      },
+      ")"
+     ]
+    }
+   },
+   {
+    "name": {
+     "#": "523852af860670bed915"
+    },
+    "page": 110,
+    "kind": "lore",
+    "lore": {
+     "#w": [
+      {
+       "#": "fa2ee377b06a17cfb146"
+      },
+      " ",
+      {
+       "#": "4685cb8c90b6c8dd3735"
+      },
+      " ",
+      "(",
+      {
+       "#": "fb6cbc49e7092374ead0"
+      },
+      ")"
+     ]
+    }
+   }
+  ],
+  "boxes": {
+   "93.1": {
+    "to": {
+     "#w": [
+      {
+       "#": "59b1eb29fbf924fb549a"
+      },
+      ",",
+      " ",
+      {
+       "#": "ea3fec1defc5aba28220"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "6e4955ca1f45e7a2f717"
+      }
+     ]
+    }
+   },
+   "94.1": {
+    "to": {
+     "#": "1f21215e389032cc148b"
+    }
+   },
+   "97.1": {
+    "to": {
+     "#": "fa9adde52df3af9b5c18"
+    }
+   },
+   "114.1": {
+    "to": {
+     "#": "a0a2055dffc9156af043"
+    }
+   },
+   "91.1": {
+    "text": true
+   },
+   "101.1": {
+    "to": {
+     "#w": [
+      {
+       "#": "bdeeb8191effa4c9b920"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "e7c95b8f4d4bd2553cfa"
+      }
+     ]
+    }
+   },
+   "113.1": {
+    "to": {
+     "#": "a0a2055dffc9156af043"
+    }
+   }
+  },
+  "tables": {},
+  "relations": {
+   "#slug:lore/beb8375477e5468385df": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "15c22666a21cdf529093",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/24ac16c4c961443eb186": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "15c22666a21cdf529093",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/099d0e0fa05ab2a8a8ae": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "15c22666a21cdf529093",
+      "in": "lore"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "entries/5/career/class",
+  "entries/10/career/class",
+  "entries/14/career/class"
+ ],
+ "pdf_sha256": "45e527e991a87cf48fb30af05277f6c849d72395079dcbbf100334270caf97cf",
+ "pdf_bytes": 66475581
+}

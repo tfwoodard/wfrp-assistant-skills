@@ -1,0 +1,515 @@
+{
+ "pack": 1,
+ "source": "CRB",
+ "chapter": "ch12",
+ "name": "ch12",
+ "layout": {
+  "pages": "310-343",
+  "page_offset": 0,
+  "icon_fonts": [],
+  "boxes": true,
+  "icon_text": {},
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "CRB",
+  "chapter": "ch12",
+  "defaults": {
+   "category": "creatures",
+   "kind": "creature",
+   "stat_blocks": true
+  },
+  "intro": {
+   "name": {
+    "#": "dbefc908e2aed70cc56f"
+   },
+   "kind": "other",
+   "slug": {
+    "#slug": "d414bfb2ee0e4e79d18c"
+   }
+  },
+  "entry_levels": [
+   2,
+   3,
+   4
+  ],
+  "entries": [
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "05559d12f58f5e432b80"
+    },
+    "page": 310,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "659aa079fb82672695ac"
+    },
+    "page": 311,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "6a3304495a97174f3184"
+    },
+    "page": 313,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "4b6c7020f73ff38b1268"
+    },
+    "page": 313,
+    "kind": "npc"
+   },
+   {
+    "name": {
+     "#": "6d8e5e4dc64ca50a8cd2"
+    },
+    "page": 313,
+    "kind": "npc"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "cccc0f77653e694c2ba8"
+    },
+    "page": 314,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "7a87a1f0b05b5f6d5788"
+    },
+    "page": 317,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "d6c2d48c8e18e8f26338"
+    },
+    "page": 325,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "d9143d8c54043f0d4bbe"
+    },
+    "page": 327,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "d42f0cebc341ddad02a5"
+    },
+    "page": 331,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "f94b013cd2c20a794fd0"
+    },
+    "page": 331,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "de9d51b2cea0a17ffc6c"
+    },
+    "page": 333,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "6dae02a3066f33313b6f"
+    },
+    "page": 335,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "4fba517638b5e7922799"
+    },
+    "page": 336,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "stat_blocks": false,
+    "name": {
+     "#": "17b9225af6affa7eb97a"
+    },
+    "page": 338,
+    "kind": "glossary",
+    "split_headings": {
+     "category": "traits",
+     "name_flags": {
+      "rated": {
+       "#": "d18b6a576b44cf7cb504"
+      }
+     }
+    },
+    "category": "rules"
+   }
+  ],
+  "boxes": {
+   "310.2": {
+    "entry": {
+     "name": {
+      "#": "53e6e0cde370395f576e"
+     },
+     "kind": "procedure"
+    }
+   },
+   "310.3": {
+    "entry": {
+     "name": {
+      "#": "6cc14eb10b4f897ad809"
+     },
+     "kind": "glossary"
+    }
+   },
+   "327.1": {
+    "entry": {
+     "name": {
+      "#": "e5d3e19f22cfd830dcbe"
+     },
+     "kind": "procedure"
+    }
+   },
+   "333.2": {
+    "entry": {
+     "name": {
+      "#": "0e0f68575b77829d5b4b"
+     },
+     "kind": "procedure"
+    }
+   },
+   "338.1": {
+    "entry": {
+     "name": {
+      "#": "098d72e4b5da5fa01082"
+     },
+     "kind": "procedure"
+    }
+   },
+   "341.1": {
+    "entry": {
+     "name": {
+      "#": "d83fcc38fba678c8cae9"
+     },
+     "kind": "procedure"
+    }
+   }
+  },
+  "tables": {
+   "341.2": {
+    "slug": {
+     "#slug": "68e041ed565113a0d4a6"
+    },
+    "title": {
+     "#": "d7d464d5c4faa34c5c3e"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "1fcb38fb860f649f2f03"
+      },
+      " ",
+      {
+       "#": "57ec23aebe4c9281ffc5"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "323225c9d533ac36fa62"
+      },
+      " ",
+      {
+       "#": "b300e3cb38f9f968b4c5"
+      }
+     ]
+    }
+   },
+   "341.3": {
+    "slug": {
+     "#slug": "46ab9c9aca52d7bb9bac"
+    },
+    "title": {
+     "#": "f09bacac61f9411f9248"
+    }
+   }
+  },
+  "relations": {
+   "#slug:creatures/100a7df20e6f1044cc8e": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "100a7df20e6f1044cc8e",
+      "in": "species"
+     }
+    }
+   ],
+   "#slug:creatures/f02db2fd196a59b3909e": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "f02db2fd196a59b3909e",
+      "in": "species"
+     }
+    }
+   ],
+   "#slug:creatures/d77fce5d614b7cf1f078": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "d77fce5d614b7cf1f078",
+      "in": "species"
+     }
+    }
+   ],
+   "#slug:traits/27b35bf300a33d5b45fb": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "e8ff8c245112bd863242",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:traits/9057dcde6ef08c88eedb": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "7d325c9f4019b3424342",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:traits/0c3b15ad434538e60469": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "89f9f68c72646ed0fbee",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:traits/735035d48d996d2f9ccc": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "735035d48d996d2f9ccc",
+      "in": "spells"
+     }
+    }
+   ],
+   "#slug:traits/2615478e0046fabe5025": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "972e13a9aadff53120c1",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:traits/e90d4b4345055b698349": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "e90d4b4345055b698349",
+      "in": "spells"
+     }
+    }
+   ],
+   "#slug:traits/d4b599cb3d5a6c1f6428": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "d4b599cb3d5a6c1f6428",
+      "in": "spells"
+     }
+    }
+   ],
+   "#slug:traits/5f6e28bd76d607ba9986": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "5f6e28bd76d607ba9986",
+      "in": "qualities"
+     }
+    }
+   ],
+   "#slug:traits/201ef54b15c686445c44": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "e4e472c900ce023c3f96",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:traits/0b746e0a2abce03c18a5": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "e7a28a9477155077a190",
+      "in": "spells"
+     }
+    }
+   ],
+   "#slug:traits/7c8e42eee85679a8c76a": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "7c8e42eee85679a8c76a",
+      "in": "rules"
+     }
+    },
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "7c8e42eee85679a8c76a",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:traits/02f1789f7031ca55e0ef": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "02f1789f7031ca55e0ef",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:traits/3acbf69b29de040307ea": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "1426eced42ec9e7978c9",
+      "in": "rules"
+     }
+    },
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "1426eced42ec9e7978c9",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:traits/59f55498272dda3afacd": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "9e9afbfb75e0e159c9bd",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:traits/b839117ec5e2d4f23f3c": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "4860acb4d3319a84933a",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:traits/7b8311db278a3ad2b933": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "7b8311db278a3ad2b933",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:traits/e7ce3c8bf96a67786bce": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "969c9a50109ff1b243e1",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:traits/e1c0bdaf540a73a3f544": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "e1c0bdaf540a73a3f544",
+      "in": "spells"
+     }
+    }
+   ],
+   "#slug:traits/5863bcf668ee81901e15": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "16501d5ae6e2fc65e1d6",
+      "in": "tables"
+     }
+    }
+   ],
+   "#slug:traits/1834da157b5d09c7078a": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "b033d9cf8514a9f3af18",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:traits/5eda4d90daeb32f7c7d2": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "412a893213702e6d00c4",
+      "in": "spells"
+     }
+    }
+   ],
+   "#slug:traits/ae807060915760c6c350": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "7589cc53c68cc6579e9b",
+      "in": "rules"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "tables/341.3/about"
+ ],
+ "pdf_sha256": "87e0fa8089af48f35c3dca2fc8b91245a62f243342f0481a74cf2c14838e1af3",
+ "pdf_bytes": 66305786
+}

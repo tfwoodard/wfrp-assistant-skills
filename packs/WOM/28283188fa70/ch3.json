@@ -1,0 +1,467 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch3",
+ "name": "ch3",
+ "layout": {
+  "pages": "35-53",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch3",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "level_icons": {
+   "1": {
+    "mark_font": "crossbat"
+   },
+   "2": {
+    "pts": 57
+   },
+   "3": {
+    "pts": 29
+   },
+   "4": {
+    "pts": 9
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "entry_levels": [
+   2,
+   3
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "42abf735773e1e3f4fa5"
+    },
+    "page": 35
+   },
+   {
+    "name": {
+     "#": "e7d106634a8381fde124"
+    },
+    "page": 36,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "1f818874df9966882c83"
+    },
+    "page": 38,
+    "career": {
+     "class": {
+      "#": "e70dac5a8855fa26e600"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "8c79fcbe01cd2740002b"
+    },
+    "page": 40,
+    "career": {
+     "class": {
+      "#": "e70dac5a8855fa26e600"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "10ed51cd2f88bf485023"
+    },
+    "page": 41,
+    "category": "lore",
+    "kind": "other",
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "66bfd3814b9179428d0b"
+    },
+    "page": 42,
+    "career": {
+     "class": {
+      "#": "2157aac4ea0b4b6027bc"
+     }
+    }
+   },
+   {
+    "name": {
+     "#": "c2c89d2693c8c2536fb0"
+    },
+    "page": 43,
+    "category": "lore",
+    "kind": "other",
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "4423dbb516d6d7ae12c2"
+    },
+    "page": 43,
+    "category": "lore",
+    "kind": "other",
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "08f34f723238b8ddaf48"
+    },
+    "page": 44,
+    "kind": "glossary"
+   },
+   {
+    "name": {
+     "#": "8900a779ed1a007a8f7e"
+    },
+    "heading": {
+     "#": "4828a5372a3308ae1f45"
+    },
+    "page": 44,
+    "category": "skills",
+    "fields": {
+     "characteristic": {
+      "#": "2ffb95323f4c46810fd5"
+     },
+     "advanced": true,
+     "grouped": false
+    }
+   },
+   {
+    "name": {
+     "#": "99513eef3985210af678"
+    },
+    "heading": {
+     "#": "f4f34422acf2090b2588"
+    },
+    "page": 47,
+    "category": "skills",
+    "fields": {
+     "characteristic": {
+      "#": "2ffb95323f4c46810fd5"
+     },
+     "advanced": true,
+     "grouped": false
+    }
+   }
+  ],
+  "boxes": {
+   "44.1": {
+    "text": true
+   },
+   "49.2": {
+    "text": true
+   },
+   "37.2": {
+    "entry": {
+     "name": {
+      "#": "f39790440bb71980dc17"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "39.2": {
+    "entry": {
+     "name": {
+      "#": "1afe172b4059e81e0943"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "43.2": {
+    "text": true
+   }
+  },
+  "tables": {
+   "35.1": {
+    "slug": {
+     "#slug": "212a85e3585fc9a01bfc"
+    },
+    "title": {
+     "#": "0e0d85f369f4f8aed3a6"
+    }
+   },
+   "45.1": {
+    "slug": {
+     "#slug": "b91c240a2b5829afcf88"
+    },
+    "title": {
+     "#": "3c9db6e54e1c8468e22c"
+    }
+   },
+   "45.2": {
+    "slug": {
+     "#slug": "4a19907d09ffb5a7afc1"
+    },
+    "title": {
+     "#": "6754efcda4d613efc735"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "a148dbac5e437ff6854f"
+      },
+      " ",
+      {
+       "#": "cd778e2cb5780127ed36"
+      },
+      " ",
+      {
+       "#": "671f435626525b5a3c08"
+      },
+      " ",
+      {
+       "#": "7bb18506499c7aabe33b"
+      },
+      " ",
+      {
+       "#": "fc07d9347bb32e83dee2"
+      },
+      ",",
+      " ",
+      {
+       "#": "44ad206497c5cba5cd7c"
+      },
+      " ",
+      {
+       "#": "ac67c333cee03079c9bc"
+      },
+      " ",
+      {
+       "#": "65a93c16757c7b03581a"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "df8298df71058443d878"
+      },
+      " ",
+      {
+       "#": "f592ee3a8182f8253bc7"
+      }
+     ]
+    },
+    "roll": "d10",
+    "roll_column": 0
+   },
+   "46.1": {
+    "slug": {
+     "#slug": "324699919c60f476e9fe"
+    },
+    "title": {
+     "#": "48f9485c77b4c767a7ed"
+    },
+    "header_row": true
+   },
+   "48.1": {
+    "slug": {
+     "#slug": "70c9354fe8833d78898b"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "99513eef3985210af678"
+      },
+      " ",
+      {
+       "#": "84193c2a3add9286ccbb"
+      },
+      " ",
+      {
+       "#": "b195451dbb1a57a53c28"
+      }
+     ]
+    }
+   },
+   "51.1": {
+    "slug": {
+     "#slug": "c42c645376e977c70d89"
+    },
+    "title": {
+     "#": "caf279cea9d0e0170e43"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "2f633808c7e765b0eaed"
+      },
+      " ",
+      {
+       "#": "90398c74e059fcf0098d"
+      },
+      " ",
+      {
+       "#": "aa15e47fccfe6bd913a9"
+      },
+      ":",
+      " ",
+      {
+       "#": "3d6d1822de035848ac90"
+      },
+      ",",
+      " ",
+      {
+       "#": "c7836d95da8c69fdbf37"
+      },
+      " ",
+      {
+       "#": "7704019f8c91d22d3e27"
+      },
+      " ",
+      {
+       "#": "3ac05438d36d0191209f"
+      },
+      ",",
+      " ",
+      {
+       "#": "424969c2abf18c684a05"
+      },
+      " ",
+      {
+       "#": "5b2e350d22a1ed91c8d3"
+      },
+      ",",
+      " ",
+      {
+       "#": "c201644ae79df0119bfc"
+      },
+      " ",
+      {
+       "#": "fad238fe924ba1182a97"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "eeb0af8d5673ce30eab0"
+      },
+      " ",
+      {
+       "#": "869ea2dc25b634c77f96"
+      },
+      " ",
+      {
+       "#": "f92b023f4717f1627a01"
+      }
+     ]
+    }
+   }
+  },
+  "relations": {
+   "#slug:lore/d88fbaaf3443d697c6d1": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "2acdbf7be1a18fb17357",
+      "in": "careers"
+     }
+    }
+   ],
+   "#slug:lore/a786c38f6cfcff6b893a": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "7c0e393cb0570eabd756",
+      "in": "careers"
+     }
+    }
+   ],
+   "#slug:lore/a0aba29d7c54c9478379": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "ca13110dd117aa79aa7e",
+      "in": "careers"
+     }
+    }
+   ],
+   "#slug:lore/a6f03c42ac5eec64bcf9": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "be5b19ca5140fb29043e",
+      "in": "careers"
+     }
+    }
+   ],
+   "#slug:lore/229f21e9a201715ed78b": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "be5b19ca5140fb29043e",
+      "in": "careers"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "tables/35.1/about",
+  "tables/45.1/about",
+  "tables/46.1/about",
+  "tables/48.1/about"
+ ],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

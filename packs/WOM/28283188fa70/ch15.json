@@ -1,0 +1,478 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch15",
+ "name": "ch15",
+ "layout": {
+  "pages": "208-219",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch15",
+  "defaults": {
+   "category": "lore",
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "fc1d4153e26931584b59"
+   },
+   "category": "lore",
+   "kind": "other",
+   "audience": "gm"
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "a17847bd23c0368f55a5"
+    },
+    "page": 209,
+    "category": "creatures",
+    "kind": "npc",
+    "audience": "gm",
+    "stat_blocks": true,
+    "field_labels": [
+     {
+      "#": "8b83920277749ad4e62a"
+     },
+     {
+      "#": "c762230b42c9dcfb1790"
+     },
+     {
+      "#": "cfe2146c828d0e550952"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "17296e76974a8fdb803a"
+    },
+    "page": 211,
+    "category": "trappings",
+    "kind": "item",
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "ebd4a40ed692ea68e0ac"
+    },
+    "page": 211,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "5ac8d9a799ff69ffc054"
+      },
+      " ",
+      {
+       "#": "f6d881b218fcacce7d85"
+      },
+      " ",
+      {
+       "#": "5ac8d9a799ff69ffc054"
+      }
+     ]
+    },
+    "page": 211,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "5e12fc37a09e7d4613ec"
+    },
+    "page": 211,
+    "category": "trappings",
+    "kind": "item",
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "5b14a029883a0cf87a8f"
+    },
+    "page": 212,
+    "audience": "gm",
+    "field_labels": [
+     {
+      "#": "8b83920277749ad4e62a"
+     },
+     {
+      "#": "c762230b42c9dcfb1790"
+     },
+     {
+      "#": "cfe2146c828d0e550952"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "b4f59c89c9072cfe5fa7"
+    },
+    "page": 215,
+    "category": "creatures",
+    "kind": "npc",
+    "audience": "gm",
+    "stat_blocks": true,
+    "field_labels": [
+     {
+      "#": "8b83920277749ad4e62a"
+     },
+     {
+      "#": "c762230b42c9dcfb1790"
+     },
+     {
+      "#": "cfe2146c828d0e550952"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "b234b133198a5b4fd0d6"
+    },
+    "page": 218,
+    "kind": "adventure",
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "2b2f669b6b96429bc531"
+    },
+    "page": 219,
+    "kind": "adventure",
+    "audience": "gm"
+   }
+  ],
+  "lists": [
+   {
+    "name": {
+     "#": "f68841bd2b7686db0586"
+    },
+    "page": 217,
+    "kind": "lore",
+    "lore": {
+     "#": "ec716c47177e291d3cfb"
+    },
+    "audience": "gm"
+   }
+  ],
+  "boxes": {
+   "209.1": {
+    "to": {
+     "#": "a17847bd23c0368f55a5"
+    }
+   },
+   "210.1": {
+    "profile": true,
+    "to": {
+     "#": "a17847bd23c0368f55a5"
+    }
+   },
+   "213.1": {
+    "entry": {
+     "name": {
+      "#w": [
+       {
+        "#": "4aa39f09b1d9f79eac5a"
+       },
+       " ",
+       "–",
+       " ",
+       {
+        "#": "bbd92678f1e1a8f926fd"
+       },
+       " ",
+       {
+        "#": "d58165a515adb411372c"
+       },
+       " ",
+       {
+        "#": "c19cd343d68952936dc7"
+       },
+       " ",
+       {
+        "#": "47c504cb524dd79335ca"
+       }
+      ]
+     },
+     "category": "creatures",
+     "kind": "npc",
+     "audience": "gm"
+    },
+    "profile": true
+   },
+   "213.2": {
+    "entry": {
+     "name": {
+      "#w": [
+       {
+        "#": "b7fc262021baca3af2a9"
+       },
+       " ",
+       "–",
+       " ",
+       {
+        "#": "bbd92678f1e1a8f926fd"
+       },
+       " ",
+       {
+        "#": "d58165a515adb411372c"
+       },
+       " ",
+       {
+        "#": "c19cd343d68952936dc7"
+       },
+       " ",
+       {
+        "#": "f13d58c1e6eaea41943e"
+       }
+      ]
+     },
+     "category": "creatures",
+     "kind": "npc",
+     "audience": "gm"
+    },
+    "profile": true
+   },
+   "213.3": {
+    "entry": {
+     "name": {
+      "#": "9f7ed7e3f8fb95aeecc1"
+     },
+     "category": "creatures",
+     "kind": "creature",
+     "audience": "gm"
+    },
+    "profile": true
+   },
+   "214.1": {
+    "entry": {
+     "name": {
+      "#": "9ce4413aa83484bd65ac"
+     },
+     "category": "traits",
+     "heading": {
+      "#": "b022352402733e7f9196"
+     },
+     "audience": "gm"
+    }
+   },
+   "214.2": {
+    "entry": {
+     "name": {
+      "#": "2e38663c1e8f5bb6a21d"
+     },
+     "category": "traits",
+     "heading": {
+      "#": "ad00c7b82275b0dfb0b0"
+     },
+     "audience": "gm"
+    }
+   },
+   "214.3": {
+    "entries": {
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "216.1": {
+    "profile": true,
+    "to": {
+     "#": "b4f59c89c9072cfe5fa7"
+    }
+   },
+   "218.1": {
+    "entry": {
+     "name": {
+      "#": "c050d7cff59a05450a51"
+     },
+     "category": "spells",
+     "kind": "lore",
+     "audience": "gm",
+     "field_labels": [
+      {
+       "#": "6f334754d8ca07eb3a60"
+      },
+      {
+       "#": "3fbbe28e783fc97c2ef8"
+      },
+      {
+       "#": "4fe6faf80ff2268b8f03"
+      },
+      {
+       "#": "f92dc401a80442a79ad6"
+      }
+     ],
+     "fields": {
+      "kind": {
+       "#": "4cbea7511e60812b8a96"
+      },
+      "lore": {
+       "#w": [
+        {
+         "#": "379aa00f7b0e97432796"
+        },
+        " ",
+        {
+         "#": "9d04b5e6bd58c2341598"
+        },
+        " ",
+        {
+         "#": "92e02b7b70ff0f77c0d6"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "219.1": {
+    "text": true
+   }
+  },
+  "tables": {
+   "214.1": {
+    "roll": "d10",
+    "roll_column": 0
+   },
+   "214.2": {
+    "roll": "d100",
+    "roll_column": 0
+   }
+  },
+  "relations": {
+   "#slug:lore/069c4f7e7b6745755a40": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "b46eb9de2ae9cb1ba8d6",
+      "in": "creatures"
+     }
+    }
+   ],
+   "#slug:lore/18f24b4b32a0c3b98ebd": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "b46eb9de2ae9cb1ba8d6",
+      "in": "creatures"
+     }
+    }
+   ],
+   "#slug:trappings/6a8235a590c3f8ace795": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "b46eb9de2ae9cb1ba8d6",
+      "in": "creatures"
+     }
+    }
+   ],
+   "#slug:trappings/28cb9c93014bcb1061f0": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "b46eb9de2ae9cb1ba8d6",
+      "in": "creatures"
+     }
+    }
+   ],
+   "#slug:lore/8f47c29ff4cb69458c48": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "879984b224af6f2f2689",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/bf7f1abcf95270f5f72d": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "879984b224af6f2f2689",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:creatures/b161b868682ff4192bd5": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "879984b224af6f2f2689",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:creatures/bae0ab348ce81d2fec78": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "879984b224af6f2f2689",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:creatures/d2ca57e449295e17263f": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "879984b224af6f2f2689",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:traits/217b42047d60dc816f7e": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "879984b224af6f2f2689",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:traits/1a3951d64588876cd4ba": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "879984b224af6f2f2689",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:rules/20a5ee6bf823b11ca22e": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "a6437396c45e7160acf1",
+      "in": "creatures"
+     }
+    }
+   ],
+   "#slug:spells/27a0011d92b1ab411fde": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "ff595a984e39d2bed3ae",
+      "in": "lore"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

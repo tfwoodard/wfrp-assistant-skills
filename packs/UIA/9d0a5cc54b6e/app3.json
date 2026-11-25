@@ -1,0 +1,151 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "app3",
+ "name": "app3",
+ "layout": {
+  "pages": "140-141",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "app3",
+  "talents": {
+   "pages": [
+    140,
+    141
+   ],
+   "section": {
+    "#": "863e234c18e946c677bb"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "863e234c18e946c677bb"
+   },
+   "kind": "other"
+  },
+  "entries": [],
+  "boxes": {
+   "141.1": {
+    "text": true
+   }
+  },
+  "tables": {},
+  "relations": {
+   "#slug:talents/fe91c2c1d33e9b8acd63": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "e851390817eb2eedb201",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/e0b21b1c9125d7a21439": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "2bcfec737bdf09c503af",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/1a6f527b3610659c7af1": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "6a0128de8fb627dcd59d",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/839cdeb0e89506575ff2": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "f00af5dc3dc231a66fde",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/4fab0fe07929faa4fdcd": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "83d54b5ca81ed02821d1",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/a1866f8b076c8aa27948": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "581f7d53209b9c2d2867",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/ab7ca20e94a9e43a2ea3": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "c1e51cef7c53b24f8839",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/53f1fb6bc9ae8954ffb8": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "4a23b8f988b47d8ae586",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/17c3fa294c43d3f0be05": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "7a7d354cab3e6afc97f4",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/9bbbca9705ffb12a04b1": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "bce3f49092cbb65ef134",
+      "in": "talents"
+     }
+    }
+   ],
+   "#slug:talents/fde22af8be7acacaa405": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "5279756fd3c4ffe26323",
+      "in": "talents"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

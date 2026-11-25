@@ -1,0 +1,434 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch7",
+ "name": "ch7",
+ "layout": {
+  "pages": "80-86",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch7",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "intro": {
+   "name": {
+    "#": "4dbcf701c375da206283"
+   },
+   "kind": "procedure"
+  },
+  "entries": [
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "8176dd76832dae53bbb1"
+      },
+      ",",
+      " ",
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "8176dd76832dae53bbb1"
+      },
+      ",",
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "52d37e3611402f44c231"
+      },
+      " ",
+      "(",
+      {
+       "#": "1cabf6c6a8ee37175bb6"
+      },
+      ")"
+     ]
+    },
+    "heading": {
+     "#": "6d3edbccfa9b8e1978f7"
+    },
+    "page": 80
+   }
+  ],
+  "boxes": {},
+  "tables": {
+   "83.1": {
+    "slug": {
+     "#slug": "34cda71ca79a12f140b5"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "9a67f90fc591122c27b4"
+      },
+      " ",
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "8176dd76832dae53bbb1"
+      },
+      " ",
+      "(",
+      {
+       "#": "1cabf6c6a8ee37175bb6"
+      },
+      ")"
+     ]
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "e2ec34e7a56ebcda2441"
+      },
+      ",",
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "5fb4fdebbb828a70e6af"
+      },
+      " ",
+      {
+       "#": "3cf3a4cc91382d31f775"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "5408dee99bf028fbcb1e"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "header_row": true
+   },
+   "84.1": {
+    "slug": {
+     "#slug": "959a4509786d4ff9079f"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "83673408d69e14e07fff"
+      },
+      " ",
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "8176dd76832dae53bbb1"
+      },
+      " ",
+      "(",
+      {
+       "#": "1cabf6c6a8ee37175bb6"
+      },
+      ")"
+     ]
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "7bb18506499c7aabe33b"
+      },
+      " ",
+      {
+       "#": "dec78b359786d0e3abd9"
+      },
+      ",",
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "5fb4fdebbb828a70e6af"
+      },
+      " ",
+      {
+       "#": "3cf3a4cc91382d31f775"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "5408dee99bf028fbcb1e"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "header_row": true
+   },
+   "85.1": {
+    "slug": {
+     "#slug": "dd5c465fbad4c8645607"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "2bbbfb14f82253f4e54a"
+      },
+      " ",
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "8176dd76832dae53bbb1"
+      },
+      " ",
+      "(",
+      {
+       "#": "1cabf6c6a8ee37175bb6"
+      },
+      ")"
+     ]
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "9718cd2f39569b060418"
+      },
+      ",",
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "5fb4fdebbb828a70e6af"
+      },
+      " ",
+      {
+       "#": "3cf3a4cc91382d31f775"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "5408dee99bf028fbcb1e"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "header_row": true
+   },
+   "86.1": {
+    "slug": {
+     "#slug": "c21d6126c5154a1876e6"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "339a3f226445914e1147"
+      },
+      " ",
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "8176dd76832dae53bbb1"
+      },
+      " ",
+      "(",
+      {
+       "#": "1cabf6c6a8ee37175bb6"
+      },
+      ")"
+     ]
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "a335cac2ae7e22dec0d5"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "ec4ca1ded94b7dc32582"
+      },
+      ",",
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "5fb4fdebbb828a70e6af"
+      },
+      " ",
+      {
+       "#": "3cf3a4cc91382d31f775"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "5408dee99bf028fbcb1e"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "header_row": true
+   }
+  },
+  "relations": {
+   "#slug:rules/6732513a374903fe9a7f": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "1919a0da113ee265e180",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:tables/34cda71ca79a12f140b5": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "2b0d92a7af79e1ebfd0e",
+      "in": "tables"
+     }
+    }
+   ],
+   "#slug:tables/959a4509786d4ff9079f": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "3a6aa3f244edd3db7175",
+      "in": "tables"
+     }
+    }
+   ],
+   "#slug:tables/dd5c465fbad4c8645607": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "c5378565b3c6b5953e7e",
+      "in": "tables"
+     }
+    }
+   ],
+   "#slug:tables/c21d6126c5154a1876e6": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "a6e486e685007fd69ff2",
+      "in": "tables"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

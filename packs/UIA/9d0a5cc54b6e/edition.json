@@ -1,0 +1,83 @@
+{
+ "source": "UIA",
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019,
+ "title": "Up in Arms",
+ "chapters": {
+  "ch1": {
+   "chapter": "ch1",
+   "pages": "4-5",
+   "left_out": 0
+  },
+  "ch2": {
+   "chapter": "ch2",
+   "pages": "6-23",
+   "left_out": 0
+  },
+  "ch3": {
+   "chapter": "ch3",
+   "pages": "24-39",
+   "left_out": 0
+  },
+  "ch4": {
+   "chapter": "ch4",
+   "pages": "40-49",
+   "left_out": 0
+  },
+  "ch5": {
+   "chapter": "ch5",
+   "pages": "50-60",
+   "left_out": 1
+  },
+  "ch6": {
+   "chapter": "ch6",
+   "pages": "61-79",
+   "left_out": 1
+  },
+  "ch7": {
+   "chapter": "ch7",
+   "pages": "80-86",
+   "left_out": 0
+  },
+  "ch8": {
+   "chapter": "ch8",
+   "pages": "87-104",
+   "left_out": 1
+  },
+  "ch9": {
+   "chapter": "ch9",
+   "pages": "105-109",
+   "left_out": 0
+  },
+  "ch10": {
+   "chapter": "ch10",
+   "pages": "110-117",
+   "left_out": 4
+  },
+  "ch11": {
+   "chapter": "ch11",
+   "pages": "118-126",
+   "left_out": 6
+  },
+  "ch12": {
+   "chapter": "ch12",
+   "pages": "127-132",
+   "left_out": 0
+  },
+  "app1": {
+   "chapter": "app1",
+   "pages": "133-136",
+   "left_out": 0
+  },
+  "app2": {
+   "chapter": "app2",
+   "pages": "137-139",
+   "left_out": 3
+  },
+  "app3": {
+   "chapter": "app3",
+   "pages": "140-141",
+   "left_out": 0
+  }
+ }
+}

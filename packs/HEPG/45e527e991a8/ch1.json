@@ -1,0 +1,99 @@
+{
+ "pack": 1,
+ "source": "HEPG",
+ "chapter": "ch1",
+ "name": "ch1",
+ "layout": {
+  "pages": "4-18",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "HEPG",
+  "chapter": "ch1",
+  "defaults": {
+   "category": "lore",
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "b76a8597ea2ce1906a67"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entry_levels": [
+   2,
+   3
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "d080136480bb3c054bd2"
+    },
+    "page": 8,
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "fa2ee377b06a17cfb146"
+       },
+       " ",
+       {
+        "#": "d015f9fc5a45e986c017"
+       },
+       " ",
+       {
+        "#": "d080136480bb3c054bd2"
+       }
+      ]
+     }
+    ],
+    "slug": {
+     "#slug": "bcac0d5d5dbdcc759531"
+    }
+   },
+   {
+    "name": {
+     "#": "2ca9285b8d08dbd7b2fe"
+    },
+    "page": 11
+   }
+  ],
+  "boxes": {
+   "8.1": {
+    "entry": {
+     "name": {
+      "#": "603ebf30cc3482ca263c"
+     },
+     "category": "lore",
+     "kind": "other"
+    }
+   },
+   "6.1": {
+    "to": {
+     "#": "35093227e5e869ae3b58"
+    }
+   }
+  },
+  "tables": {},
+  "relations": {}
+ },
+ "left_out": [
+  "entries/2/name",
+  "entries/2/aliases/0",
+  "entries/2/whole"
+ ],
+ "pdf_sha256": "45e527e991a87cf48fb30af05277f6c849d72395079dcbbf100334270caf97cf",
+ "pdf_bytes": 66475581
+}

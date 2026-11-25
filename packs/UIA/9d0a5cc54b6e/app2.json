@@ -1,0 +1,134 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "app2",
+ "name": "app2",
+ "layout": {
+  "pages": "137-139",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "app2",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "intro": {
+   "name": {
+    "#": "7516b86ff58c47ae6cc3"
+   },
+   "kind": "procedure"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [],
+  "boxes": {},
+  "tables": {
+   "139.1": {
+    "flowed": [
+     {
+      "slug": {
+       "#slug": "f747286ee8a7161e0445"
+      },
+      "title": {
+       "#w": [
+        {
+         "#": "903a6613ac25f73893e2"
+        },
+        " ",
+        {
+         "#": "eba774bd73fb804164b7"
+        },
+        ":",
+        " ",
+        {
+         "#": "dad1f6d23504029e289a"
+        },
+        " ",
+        {
+         "#": "b195451dbb1a57a53c28"
+        }
+       ]
+      },
+      "roll": "d100",
+      "roll_column": 0
+     },
+     {
+      "slug": {
+       "#slug": "e93366e664aadb5b5fbf"
+      },
+      "title": {
+       "#w": [
+        {
+         "#": "903a6613ac25f73893e2"
+        },
+        " ",
+        {
+         "#": "eba774bd73fb804164b7"
+        },
+        ":",
+        " ",
+        {
+         "#": "918a04286abb53876ac0"
+        },
+        " ",
+        {
+         "#": "b195451dbb1a57a53c28"
+        }
+       ]
+      },
+      "roll": "d100",
+      "roll_column": 0
+     },
+     {
+      "slug": {
+       "#slug": "e71fa7375cad4a2de471"
+      },
+      "title": {
+       "#w": [
+        {
+         "#": "903a6613ac25f73893e2"
+        },
+        " ",
+        {
+         "#": "eba774bd73fb804164b7"
+        },
+        ":",
+        " ",
+        {
+         "#": "fe7b07a02e871b52d4ec"
+        },
+        " ",
+        {
+         "#": "b195451dbb1a57a53c28"
+        }
+       ]
+      },
+      "roll": "d100",
+      "roll_column": 0
+     }
+    ]
+   }
+  },
+  "relations": {}
+ },
+ "left_out": [
+  "tables/139.1/flowed/0/about",
+  "tables/139.1/flowed/1/about",
+  "tables/139.1/flowed/2/about"
+ ],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

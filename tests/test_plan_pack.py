@@ -91,3 +91,38 @@ class PlanPackTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+@unittest.skipUnless(HAVE_LIBS, 'reportlab and Pillow are needed to draw the fixture PDF')
+class PacksFolderTest(PlanPackTest):
+    """Packs are filed by the PDF they were made from; a new PDF of a source gets its own folder."""
+    test_a_pack_holds_no_book_words_and_rebuilds_the_plan = None
+    test_another_printing_rebuilds_what_it_has_and_says_what_it_lacks = None
+    test_the_command_line_round_trip = None
+
+    def test_packs_are_kept_by_pdf(self):
+        packs = os.path.join(self.d, 'packs')
+        pack, kept = plan_pack.export(self.plan, self.layout, self.lib, self.pdf)
+        path = plan_pack.into(pack, packs, 'Lamplight Almanac')
+        sha = plan_pack.pdf_sha256(self.pdf)
+        self.assertEqual(path, os.path.join(packs, 'TEST', sha[:12], 'ch5.json'))
+        with open(os.path.join(packs, 'TEST', sha[:12], 'edition.json')) as f:
+            ed = json.load(f)
+        self.assertEqual((ed['pdf_sha256'], ed['pdf_bytes'], ed['title']), (sha, os.path.getsize(self.pdf), 'Lamplight Almanac'))
+        self.assertEqual(ed['chapters']['ch5'], {'chapter': 'ch5', 'pages': '1-2', 'left_out': len(pack['left_out'])})
+        self.assertEqual(pack['layout']['pages'], '1-2')
+        self.assertIn('--boxes', plan_pack.layout_command(pack))
+        # a corrected PDF of the same book: a folder of its own, beside the first
+        fixed = os.path.join(self.d, 'fixed.pdf')
+        with open(self.pdf, 'rb') as f, open(fixed, 'wb') as g:
+            g.write(f.read() + b'\n%corrected\n')
+        exact, others = plan_pack.find(fixed, packs)
+        self.assertIsNone(exact)
+        self.assertEqual([o[1] for o in others], [os.path.join(packs, 'TEST', sha[:12])])
+        pack2, _ = plan_pack.export(self.plan, self.layout, self.lib, fixed)
+        plan_pack.into(pack2, packs)
+        self.assertEqual(len(os.listdir(os.path.join(packs, 'TEST'))), 2)
+        exact, others = plan_pack.find(self.pdf, packs, 'TEST')
+        self.assertEqual(exact, os.path.join(packs, 'TEST', sha[:12]))
+        r = run('plan_pack.py', 'find', self.pdf, '--packs', packs)
+        self.assertIn('packs made from this PDF', r.stdout)

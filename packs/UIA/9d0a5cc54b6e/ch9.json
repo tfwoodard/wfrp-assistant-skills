@@ -1,0 +1,168 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch9",
+ "name": "ch9",
+ "layout": {
+  "pages": "105-109",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch9",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "intro": {
+   "name": {
+    "#": "77af225e8e37791c467d"
+   },
+   "kind": "procedure"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [
+   {
+    "category": "traits",
+    "name": {
+     "#": "33033afc2687fdec7bd8"
+    },
+    "heading": {
+     "#": "ee5fde5434ade6f8e9fc"
+    },
+    "page": 107,
+    "fields": {
+     "rated": false
+    }
+   },
+   {
+    "name": {
+     "#": "c6a0bdeae728ce87177a"
+    },
+    "page": 107
+   },
+   {
+    "name": {
+     "#": "e4d8eb08f67e2506be62"
+    },
+    "page": 108,
+    "kind": "other"
+   }
+  ],
+  "boxes": {
+   "109.1": {
+    "entry": {
+     "name": {
+      "#": "4c6e46286b7d88feb906"
+     },
+     "category": "creatures",
+     "kind": "creature",
+     "stat_blocks": true
+    },
+    "profile": true
+   }
+  },
+  "tables": {
+   "106.1": {
+    "title": {
+     "#": "cf74f9ff6f132ee983f9"
+    }
+   },
+   "107.1": {
+    "slug": {
+     "#slug": "3959f366fba303b91d5b"
+    },
+    "title": {
+     "#": "c6a0bdeae728ce87177a"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "734fedf519a168d4f94f"
+      },
+      " ",
+      {
+       "#": "af34d131f8a95899b64f"
+      },
+      " ",
+      {
+       "#": "b749bae78893b1fe7735"
+      },
+      " ",
+      {
+       "#": "7e6c2c97ad47467b5d4b"
+      },
+      " ",
+      {
+       "#": "f21aa8e7a670e07aec34"
+      },
+      " ",
+      {
+       "#": "7458856adceabb3af3e7"
+      },
+      " ",
+      {
+       "#": "57ec23aebe4c9281ffc5"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "header_row": true
+   }
+  },
+  "relations": {
+   "#slug:rules/6100f77ad69eba6222bc": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "48a702144c2d02abf39c",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:creatures/3d701c96d817eeeebd51": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "58c9b0081c84e6bf4926",
+      "in": "creatures"
+     }
+    }
+   ],
+   "#slug:traits/c9cb38aa43693b30d4d7": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "ec12137e17a3132665cd",
+      "in": "traits"
+     }
+    }
+   ],
+   "#slug:tables/3959f366fba303b91d5b": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "3959f366fba303b91d5b",
+      "in": "rules"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

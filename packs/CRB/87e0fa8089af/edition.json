@@ -1,0 +1,73 @@
+{
+ "source": "CRB",
+ "pdf_sha256": "87e0fa8089af48f35c3dca2fc8b91245a62f243342f0481a74cf2c14838e1af3",
+ "pdf_bytes": 66305786,
+ "title": "Warhammer Fantasy Roleplay Fourth Edition Rulebook",
+ "chapters": {
+  "ch1": {
+   "chapter": "ch1",
+   "pages": "6-23",
+   "left_out": 12
+  },
+  "ch2": {
+   "chapter": "ch2",
+   "pages": "24-45",
+   "left_out": 4
+  },
+  "ch3-careers": {
+   "chapter": "ch3",
+   "pages": "53-116",
+   "left_out": 0
+  },
+  "ch3-rules": {
+   "chapter": "ch3",
+   "pages": "46-52",
+   "left_out": 0
+  },
+  "ch4": {
+   "chapter": "ch4",
+   "pages": "117-147",
+   "left_out": 3
+  },
+  "ch5": {
+   "chapter": "ch5",
+   "pages": "148-191",
+   "left_out": 2
+  },
+  "ch6": {
+   "chapter": "ch6",
+   "pages": "192-201",
+   "left_out": 1
+  },
+  "ch7": {
+   "chapter": "ch7",
+   "pages": "202-228",
+   "left_out": 3
+  },
+  "ch8": {
+   "chapter": "ch8",
+   "pages": "229-257",
+   "left_out": 2
+  },
+  "ch9": {
+   "chapter": "ch9",
+   "pages": "258-265",
+   "left_out": 2
+  },
+  "ch10": {
+   "chapter": "ch10",
+   "pages": "266-287",
+   "left_out": 2
+  },
+  "ch11": {
+   "chapter": "ch11",
+   "pages": "288-309",
+   "left_out": 6
+  },
+  "ch12": {
+   "chapter": "ch12",
+   "pages": "310-343",
+   "left_out": 1
+  }
+ }
+}

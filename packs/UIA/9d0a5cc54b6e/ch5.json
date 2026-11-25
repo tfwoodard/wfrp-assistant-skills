@@ -1,0 +1,114 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch5",
+ "name": "ch5",
+ "layout": {
+  "pages": "50-60",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch5",
+  "defaults": {
+   "category": "lore",
+   "kind": "place"
+  },
+  "intro": {
+   "name": {
+    "#": "ea77ad918453db8aaa5a"
+   },
+   "category": "lore",
+   "kind": "place"
+  },
+  "entry_levels": [
+   2,
+   5
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "fde178dc158e895ff4ee"
+    },
+    "page": 55,
+    "kind": "organisation"
+   },
+   {
+    "name": {
+     "#": "6ae866f792b7f94c7916"
+    },
+    "page": 55,
+    "kind": "other",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "808ff8caebb2149c36b9"
+    },
+    "page": 57,
+    "kind": "history",
+    "headings_as_rows": [
+     {
+      "#": "a66afd958936af2f5eab"
+     }
+    ],
+    "row_bands": [
+     {
+      "#": "53164dcc7e605dc5bbef"
+     },
+     {
+      "#": "a3eda746280c879e7e6d"
+     },
+     {
+      "#": "79a3767897a8e4c619b7"
+     },
+     {
+      "#": "991be21e0a37ee38439f"
+     },
+     {
+      "#": "a28d87fd43fac70b0b7b"
+     },
+     {
+      "#": "fffab3a82e0bccb7ca9f"
+     }
+    ]
+   }
+  ],
+  "boxes": {},
+  "tables": {
+   "52.1": {
+    "title": {
+     "#": "62b8b9958aee7205c843"
+    },
+    "continued_in": [
+     "53.1",
+     "54.1"
+    ]
+   },
+   "54.2": {
+    "title": {
+     "#": "c68dc531fefada2e156d"
+    },
+    "banner": true,
+    "header_row": true
+   }
+  },
+  "relations": {}
+ },
+ "left_out": [
+  "entries/2/headings_as_rows/1"
+ ],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

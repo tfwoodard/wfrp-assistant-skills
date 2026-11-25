@@ -1,0 +1,38 @@
+{
+ "source": "HEPG",
+ "pdf_sha256": "45e527e991a87cf48fb30af05277f6c849d72395079dcbbf100334270caf97cf",
+ "pdf_bytes": 66475581,
+ "title": "High Elf Player’s Guide",
+ "chapters": {
+  "ch1": {
+   "chapter": "ch1",
+   "pages": "4-18",
+   "left_out": 3
+  },
+  "ch2": {
+   "chapter": "ch2",
+   "pages": "19-43",
+   "left_out": 20
+  },
+  "ch3": {
+   "chapter": "ch3",
+   "pages": "44-75",
+   "left_out": 0
+  },
+  "ch4": {
+   "chapter": "ch4",
+   "pages": "76-90",
+   "left_out": 1
+  },
+  "ch5": {
+   "chapter": "ch5",
+   "pages": "91-114",
+   "left_out": 3
+  },
+  "ch6": {
+   "chapter": "ch6",
+   "pages": "115-126",
+   "left_out": 0
+  }
+ }
+}

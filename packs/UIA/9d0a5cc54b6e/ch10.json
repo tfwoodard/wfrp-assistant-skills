@@ -1,0 +1,211 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch10",
+ "name": "ch10",
+ "layout": {
+  "pages": "110-117",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch10",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "intro": {
+   "name": {
+    "#": "a006325b40cc84fcf3c6"
+   },
+   "kind": "procedure"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [],
+  "boxes": {
+   "113.1": {
+    "entry": {
+     "name": {
+      "#": "965fcb3914a08a0f8a36"
+     },
+     "category": "creatures",
+     "kind": "npc",
+     "stat_blocks": true
+    },
+    "profile": true
+   },
+   "113.2": {
+    "entry": {
+     "name": {
+      "#": "66f2ac0b5516d0ab609e"
+     },
+     "category": "creatures",
+     "kind": "npc",
+     "stat_blocks": true
+    },
+    "profile": true
+   },
+   "114.1": {
+    "entry": {
+     "name": {
+      "#": "7175486bf9271af62ab9"
+     },
+     "category": "creatures",
+     "kind": "npc",
+     "stat_blocks": true
+    },
+    "profile": true
+   },
+   "114.2": {
+    "entry": {
+     "name": {
+      "#": "ecdb7886af837bccc6a9"
+     },
+     "category": "creatures",
+     "kind": "npc",
+     "stat_blocks": true
+    },
+    "profile": true
+   },
+   "114.3": {
+    "entry": {
+     "name": {
+      "#": "2d451bc9c63e8ad4c94a"
+     },
+     "category": "creatures",
+     "kind": "npc",
+     "stat_blocks": true
+    },
+    "profile": true
+   },
+   "114.4": {
+    "entry": {
+     "name": {
+      "#": "1ce8878c4e9b18bf38c6"
+     },
+     "category": "creatures",
+     "kind": "npc",
+     "stat_blocks": true
+    },
+    "profile": true
+   },
+   "115.2": {
+    "profile": true
+   },
+   "115.3": {
+    "profile": true
+   },
+   "115.4": {
+    "profile": true
+   },
+   "115.5": {
+    "profile": true
+   },
+   "115.6": {
+    "profile": true
+   },
+   "115.7": {
+    "profile": true
+   }
+  },
+  "tables": {
+   "115.1": {
+    "slug": {
+     "#slug": "9a9edd7fd53f96aa7e1c"
+    },
+    "title": {
+     "#": "077a59fdd8264efccb16"
+    },
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "116.1": {
+    "slug": {
+     "#slug": "f76437935f9bf8046599"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "4def18817729a501b3ea"
+      },
+      " ",
+      {
+       "#": "c370e79ef47e7a6cecb0"
+      },
+      " ",
+      {
+       "#": "1d870ab0faf3a2c0ed4a"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "116.2": {
+    "slug": {
+     "#slug": "db13a3af3833c790c28f"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "4def18817729a501b3ea"
+      },
+      " ",
+      {
+       "#": "8331c44d5051eada1d06"
+      },
+      " ",
+      {
+       "#": "9d63040279aee0a9c309"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "117.1": {
+    "slug": {
+     "#slug": "f6ffb409d4444887f59b"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "4def18817729a501b3ea"
+      },
+      " ",
+      {
+       "#": "fe7b07a02e871b52d4ec"
+      },
+      " ",
+      {
+       "#": "9d63040279aee0a9c309"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0
+   }
+  },
+  "relations": {}
+ },
+ "left_out": [
+  "tables/115.1/about",
+  "tables/116.1/about",
+  "tables/116.2/about",
+  "tables/117.1/about"
+ ],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

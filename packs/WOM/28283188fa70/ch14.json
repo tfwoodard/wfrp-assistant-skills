@@ -1,0 +1,493 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch14",
+ "name": "ch14",
+ "layout": {
+  "pages": "189-207",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch14",
+  "defaults": {
+   "category": "lore",
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "e9c3f9cf6200e833eb09"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "96534ccf474176dbf150"
+    },
+    "page": 189,
+    "category": "rules",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "f0e2c93bac7d81693e00"
+    },
+    "page": 189,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "f009d7a191056c7098a0"
+    },
+    "page": 191,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "a36ec45dd5b92a3898a8"
+    },
+    "page": 192,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "95908aa7035d8234d55d"
+    },
+    "page": 194,
+    "kind": "procedure",
+    "category": "rules"
+   },
+   {
+    "name": {
+     "#": "7c18808e2b403f74ed1d"
+    },
+    "page": 195
+   },
+   {
+    "name": {
+     "#": "06854f13d98c6fa5a8e8"
+    },
+    "page": 195
+   },
+   {
+    "name": {
+     "#": "9a0afb87a5c0d458567a"
+    },
+    "page": 197,
+    "category": "rules",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "d40fa16c21a317e0eb20"
+    },
+    "page": 197,
+    "category": "rules",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "40822dfd39f82afdf138"
+    },
+    "page": 198,
+    "category": "rules",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "0a84a9ae12d4d4edc230"
+    },
+    "page": 198,
+    "category": "rules",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "9b3422fac641c3155f3c"
+    },
+    "page": 200,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "b32e8f50b1b8a76cf54a"
+    },
+    "page": 201,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "53897af346b3447f6328"
+    },
+    "page": 202,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "931621fc9e546b1fbbac"
+    },
+    "page": 202,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "046f2ffe3b55ea407bd5"
+    },
+    "page": 202,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "57ffb823385b9cf80a4b"
+    },
+    "page": 204,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "451aee2b6db3a656c9a9"
+    },
+    "page": 205,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "99c5c86be854971a548f"
+    },
+    "page": 206,
+    "audience": "gm"
+   },
+   {
+    "name": {
+     "#": "699a9f66c6514f4be939"
+    },
+    "page": 207,
+    "audience": "gm"
+   }
+  ],
+  "boxes": {
+   "195.1": {
+    "text": true
+   },
+   "200.2": {
+    "text": true
+   },
+   "206.1": {
+    "text": true
+   },
+   "191.3": {
+    "entries": {
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "201.1": {
+    "entries": {
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "206.2": {
+    "entries": {
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "193.1": {
+    "to": {
+     "#": "c7982d4ee381ad0e8b22"
+    }
+   }
+  },
+  "tables": {
+   "190.1": {
+    "slug": {
+     "#slug": "04c5f9bf644df91a1754"
+    },
+    "title": {
+     "#": "c434549f08e41d841ff3"
+    },
+    "banner": true,
+    "header_row": true
+   },
+   "191.2": {
+    "slug": {
+     "#slug": "cb44ac0457270ef979d0"
+    },
+    "title": {
+     "#": "97422def2c29ee692f12"
+    },
+    "fold": 2,
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "191.1": {
+    "slug": {
+     "#slug": "1367cbaefe9cdad0d698"
+    },
+    "title": {
+     "#": "7ca29edd0bca3d943941"
+    },
+    "fold": 2,
+    "roll": "d100",
+    "roll_column": 0
+   },
+   "192.1": {
+    "slug": {
+     "#slug": "b81bd69a022ddd14f044"
+    },
+    "title": {
+     "#": "5b8e0e7f7eb7ef3d7213"
+    },
+    "roll": "d10",
+    "roll_column": 0
+   },
+   "199.1": {
+    "slug": {
+     "#slug": "b350b0acfaf2371fa867"
+    },
+    "title": {
+     "#": "a2606d8ed9cb81d6a78b"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "24a5fe8aeccd6ebda21e"
+      },
+      " ",
+      {
+       "#": "e96b569ec77157afb15a"
+      },
+      " ",
+      {
+       "#": "be01d9bf6c9d058a518f"
+      },
+      " ",
+      "(",
+      {
+       "#": "21b8d6b525ea36b860b6"
+      },
+      ",",
+      " ",
+      {
+       "#": "5288661a8e6355a6d41c"
+      },
+      ",",
+      " ",
+      {
+       "#": "4e2290ed74da43a5a047"
+      },
+      ",",
+      " ",
+      {
+       "#": "cc9c7c45422fb5e69472"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "98374eec3194146d6c57"
+      },
+      ")",
+      " ",
+      {
+       "#": "f0bba829b788ae13389b"
+      },
+      " ",
+      {
+       "#": "42be32b09792d453142e"
+      },
+      " ",
+      {
+       "#": "d2a932bb3dc413cb9b11"
+      },
+      " ",
+      {
+       "#": "f21aa8e7a670e07aec34"
+      },
+      " ",
+      {
+       "#": "adb8ea0a14947f35c9ff"
+      },
+      ",",
+      " ",
+      {
+       "#": "b9817bf055e53efff09c"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "3c66ca0c91f0a6857cec"
+      }
+     ]
+    },
+    "row_groups": [
+     [
+      {
+       "#": "7274dde1d563d894eeec"
+      },
+      2
+     ],
+     [
+      {
+       "#": "02b81eb86d85c0843251"
+      },
+      5
+     ],
+     [
+      {
+       "#": "f2014bb2c49ee4ad4789"
+      },
+      1
+     ],
+     [
+      {
+       "#": "df7270da0f489e17ef9c"
+      },
+      1
+     ],
+     [
+      {
+       "#": "a88c306769f3a1c960af"
+      },
+      2
+     ],
+     [
+      {
+       "#": "4b27d620420431b94d11"
+      },
+      3
+     ],
+     [
+      {
+       "#": "9785815fea7e6060db23"
+      },
+      1
+     ],
+     [
+      {
+       "#": "b4fd30f5353b972e5aea"
+      },
+      5
+     ]
+    ]
+   }
+  },
+  "relations": {
+   "#slug:lore/f5f3b98c98e1c6a1a8da": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "9870e66de007c6450611",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/dd23e5250065f1e7dda3": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "9870e66de007c6450611",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/0e533f88ab0104921d7d": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "69a7a32f9b70e97c963a",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:lore/8ec85c40c8bc69070c50": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "69a7a32f9b70e97c963a",
+      "in": "rules"
+     }
+    }
+   ],
+   "#slug:lore/3aa62f68a5e5aa6f133d": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "047013c726849a1881c0",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/799332651a1298cc0bd2": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "2a9cef3a636e2c77a5ff",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/e909cba97a2e4304c14a": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "2a9640b612a0514c4d13",
+      "in": "lore"
+     }
+    }
+   ],
+   "#slug:lore/8d3dd434d7d25c92bfc1": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "2a9640b612a0514c4d13",
+      "in": "lore"
+     }
+    }
+   ]
+  },
+  "whole_words": [
+   "heritage"
+  ]
+ },
+ "left_out": [
+  "tables/190.1/about",
+  "tables/191.2/about",
+  "tables/191.1/about",
+  "tables/192.1/about"
+ ],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

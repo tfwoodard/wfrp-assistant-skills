@@ -1,0 +1,58 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "app1",
+ "name": "app1",
+ "layout": {
+  "pages": "133-136",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "app1",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "intro": {
+   "name": {
+    "#": "e8849eac9871c7e2f620"
+   },
+   "kind": "procedure"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [],
+  "boxes": {
+   "133.1": {
+    "text": true
+   }
+  },
+  "tables": {},
+  "relations": {
+   "#slug:rules/032cb356ce3aeb9f94bd": [
+    {
+     "role": "distinct-from",
+     "to": {
+      "#slug": "03ba871879da84118e4e",
+      "in": "rules"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}

@@ -5,6 +5,10 @@
 > Fantasy Roleplay is a trademark of Games Workshop. The repository holds no
 > text, art, rules or stats from any book: it works on the books *you* own.
 
+`packs/` holds **plan packs**: how each chapter of the books splits into library
+entries, with every name and heading as a fingerprint that the import tool turns
+back into text from your own PDF. See [packs/README.md](packs/README.md).
+
 Claude skills for running **Warhammer Fantasy Roleplay, 4th edition** at the
 table. They import game material from **sources you own** (Cubicle 7 PDFs and
 your own homebrew) into a private library, then use it to:

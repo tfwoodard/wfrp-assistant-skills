@@ -1,0 +1,142 @@
+{
+ "pack": 1,
+ "source": "DPG",
+ "chapter": "ch6",
+ "name": "ch6",
+ "layout": {
+  "pages": "131-141",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "DPG",
+  "chapter": "ch6",
+  "defaults": {
+   "category": "lore",
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "5b2bea050396bd2222cf"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entries": [
+   {
+    "name": {
+     "#": "64beee15b330ce57c7bd"
+    },
+    "page": 131
+   },
+   {
+    "name": {
+     "#": "f0ae274fb2482d4c55b0"
+    },
+    "page": 132,
+    "heading": {
+     "#": "f0ae274fb2482d4c55b0"
+    }
+   },
+   {
+    "name": {
+     "#": "571334309d1ac8582803"
+    },
+    "page": 133
+   },
+   {
+    "name": {
+     "#": "e09e8d2e20aef0c00239"
+    },
+    "page": 134
+   },
+   {
+    "name": {
+     "#": "e9e6c770b6a92a9614c4"
+    },
+    "page": 134,
+    "split_headings": {
+     "category": "lore",
+     "kind": "god",
+     "field_labels": [
+      {
+       "#": "4212ba53c5e51a68fd9d"
+      },
+      {
+       "#": "8dd59a6c2aecf465724e"
+      },
+      {
+       "#": "317ca01b3eaaa213fd54"
+      }
+     ],
+     "sidebars": "placed"
+    }
+   },
+   {
+    "name": {
+     "#": "95c37924233c4eb55f8e"
+    },
+    "page": 140
+   }
+  ],
+  "boxes": {},
+  "tables": {
+   "133.1": {
+    "header_row": true,
+    "banner": true,
+    "title": {
+     "#w": [
+      {
+       "#": "7052e58487529dcff341"
+      },
+      " ",
+      {
+       "#": "d080136480bb3c054bd2"
+      },
+      ":",
+      " ",
+      {
+       "#": "39f9654fccc0f379a198"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "0dcdb03bc4b8d203773f"
+      },
+      " ",
+      {
+       "#": "ce4cdda3ea5343b60130"
+      }
+     ]
+    }
+   }
+  },
+  "relations": {
+   "#slug:lore/47cfeaffdbaab7d25d5f": [
+    {
+     "role": "adds-to",
+     "to": {
+      "#slug": "bd2c8dbadfd683bc1892",
+      "in": "lore"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [],
+ "pdf_sha256": "f9ffbe960aae459ff53d1ecc832298908f1f22cd7a223aab863d4ca14bea7e50",
+ "pdf_bytes": 71047654
+}

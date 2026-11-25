@@ -1,0 +1,117 @@
+{
+ "pack": 1,
+ "source": "CRB",
+ "chapter": "ch3",
+ "name": "ch3-rules",
+ "layout": {
+  "pages": "46-52",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "crossbat": "✠",
+   "pts:57": "⚒",
+   "pts:29": "☠",
+   "pts:9": "⛨"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "CRB",
+  "chapter": "ch3",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "entry_levels": [
+   2,
+   3
+  ],
+  "entries": [],
+  "intro": {
+   "name": {
+    "#": "4f28f89744dbdc883534"
+   },
+   "kind": "procedure"
+  },
+  "tables": {
+   "47.1": {
+    "title": {
+     "#": "1667c9e2d39b966fa009"
+    },
+    "banner": true,
+    "header_row": true
+   },
+   "48.3": {
+    "title": {
+     "#": "c21b636ad0a9106fe22a"
+    }
+   },
+   "49.2": {
+    "title": {
+     "#": "fc38403d7830bb5b873e"
+    }
+   },
+   "52.2": {
+    "title": {
+     "#w": [
+      {
+       "#": "75e8809c72c5db363267"
+      },
+      " ",
+      {
+       "#": "5a4f67c7a20cad3d95b9"
+      },
+      " ",
+      {
+       "#": "eb9d4ee4f81fb03e62bb"
+      },
+      " ",
+      {
+       "#": "890891292186f5317c8b"
+      }
+     ]
+    }
+   },
+   "50.1": {
+    "title": {
+     "#": "84c7b22aa4fd247eca83"
+    }
+   }
+  },
+  "boxes": {
+   "47.1": {
+    "to": {
+     "#": "d0b9a58da63febdf7037"
+    }
+   },
+   "52.3": {
+    "to": {
+     "#": "e4b3b44a807c5cce07ed"
+    }
+   },
+   "52.4": {
+    "to": {
+     "#": "e4b3b44a807c5cce07ed"
+    }
+   }
+  },
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull"
+  ],
+  "icon_text": {
+   "crossbat": "✠",
+   "pts:57": "⚒",
+   "pts:29": "☠",
+   "pts:9": "⛨"
+  }
+ },
+ "left_out": [],
+ "pdf_sha256": "87e0fa8089af48f35c3dca2fc8b91245a62f243342f0481a74cf2c14838e1af3",
+ "pdf_bytes": 66305786
+}

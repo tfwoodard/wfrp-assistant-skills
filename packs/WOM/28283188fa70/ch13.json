@@ -1,0 +1,594 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch13",
+ "name": "ch13",
+ "layout": {
+  "pages": "173-188",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch13",
+  "defaults": {
+   "kind": "other"
+  },
+  "level_icons": {
+   "1": {
+    "mark_font": "crossbat"
+   },
+   "2": {
+    "pts": 57
+   },
+   "3": {
+    "pts": 29
+   },
+   "4": {
+    "pts": 9
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "97210f851b6dea8824c5"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entry_levels": [
+   2,
+   3
+  ],
+  "not_entries": [
+   {
+    "text": {
+     "#": "4690dea705cb53dc716d"
+    },
+    "page": 177
+   },
+   {
+    "text": {
+     "#": "90d04f4e65b8dd207899"
+    },
+    "page": 177
+   },
+   {
+    "text": {
+     "#": "215936681fb291822265"
+    },
+    "page": 178
+   },
+   {
+    "text": {
+     "#": "6e1b2ba8451c8b27e6a9"
+    },
+    "page": 178
+   }
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "438abdb73beedd7b7fca"
+    },
+    "page": 173,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "c9a797fe8e8289895439"
+    },
+    "page": 174,
+    "category": "creatures",
+    "kind": "creature"
+   },
+   {
+    "name": {
+     "#": "5cdbee4f246296c1dea3"
+    },
+    "page": 175,
+    "category": "creatures",
+    "kind": "creature"
+   },
+   {
+    "name": {
+     "#": "bb1a0adcdd0401a1cba3"
+    },
+    "page": 176,
+    "category": "creatures",
+    "kind": "creature"
+   },
+   {
+    "name": {
+     "#": "bd166085f278205b94da"
+    },
+    "page": 177,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "b2aabadb078ef47ef4eb"
+    },
+    "page": 179,
+    "category": "creatures",
+    "kind": "creature"
+   },
+   {
+    "name": {
+     "#": "7548d57a58ea19369adf"
+    },
+    "page": 180,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "52f366d8d13b7aed3a95"
+    },
+    "page": 180,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "c2af35dec3c6a2a442a3"
+    },
+    "page": 182,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "18c10008fc01acc916fb"
+    },
+    "page": 182,
+    "category": "lore",
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "9d1bab0dba91ed0c6144"
+    },
+    "page": 185,
+    "kind": "procedure",
+    "slug": {
+     "#slug": "8a4a6d59986375e89d9f"
+    },
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "10e1d0c84cf9fbee3cc6"
+       },
+       " ",
+       {
+        "#": "9d1bab0dba91ed0c6144"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "36a9592cd6eab6e80be8"
+    },
+    "page": 185,
+    "slug": {
+     "#slug": "a1991879b0bc4157e87e"
+    },
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "10e1d0c84cf9fbee3cc6"
+       },
+       " ",
+       {
+        "#": "27c08779a2bb814b6744"
+       },
+       " ",
+       {
+        "#": "9d04b5e6bd58c2341598"
+       },
+       " ",
+       {
+        "#": "cb12a2c4345eac6242b2"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "3d0f0aa056987fb24601"
+    },
+    "heading": {
+     "#": "0422b224cc253147baee"
+    },
+    "page": 186,
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     },
+     {
+      "#": "f592ee3a8182f8253bc7"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "d8ffb07ac4c8c05e18ef"
+    },
+    "heading": {
+     "#": "4425227afbc9f258e5d7"
+    },
+    "page": 186,
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "80590fc6b7a3cba81545"
+    },
+    "page": 186,
+    "slug": {
+     "#slug": "d6cce283a4e8ca79fe27"
+    },
+    "aliases": [
+     {
+      "#w": [
+       {
+        "#": "10e1d0c84cf9fbee3cc6"
+       },
+       " ",
+       {
+        "#": "80590fc6b7a3cba81545"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": {
+     "#": "18b5645b235c1b8951c3"
+    },
+    "page": 187,
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "99d9f96243f5164a0ebe"
+    },
+    "page": 188,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     },
+     "bare": true,
+     "species": [
+      {
+       "#": "10e1d0c84cf9fbee3cc6"
+      }
+     ]
+    },
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "2afa3f908cdde22ff102"
+    },
+    "page": 188,
+    "career": {
+     "class": {
+      "#": "e70dac5a8855fa26e600"
+     },
+     "bare": true,
+     "species": [
+      {
+       "#": "10e1d0c84cf9fbee3cc6"
+      }
+     ]
+    },
+    "kind": "procedure"
+   }
+  ],
+  "boxes": {
+   "174.1": {
+    "profile": true,
+    "to": {
+     "#": "c9a797fe8e8289895439"
+    }
+   },
+   "175.1": {
+    "profile": true,
+    "to": {
+     "#": "5cdbee4f246296c1dea3"
+    }
+   },
+   "176.1": {
+    "profile": true
+   },
+   "176.2": {
+    "to": {
+     "#": "438abdb73beedd7b7fca"
+    }
+   },
+   "176.3": {
+    "entry": {
+     "name": {
+      "#": "df23c4d0b164efe4445a"
+     },
+     "category": "traits",
+     "heading": {
+      "#": "2c452e0c242ef34a0556"
+     }
+    }
+   },
+   "178.1": {
+    "to": {
+     "#": "bd166085f278205b94da"
+    }
+   },
+   "178.2": {
+    "text": true
+   },
+   "179.1": {
+    "profile": true
+   },
+   "182.1": {
+    "entry": {
+     "name": {
+      "#": "99d9f96243f5164a0ebe"
+     },
+     "category": "creatures",
+     "kind": "creature"
+    },
+    "profile": true
+   },
+   "182.2": {
+    "entry": {
+     "name": {
+      "#": "40b78db7aec07bae3385"
+     },
+     "category": "creatures",
+     "kind": "creature"
+    },
+    "profile": true
+   },
+   "182.3": {
+    "entry": {
+     "name": {
+      "#": "2afa3f908cdde22ff102"
+     },
+     "category": "creatures",
+     "kind": "creature"
+    },
+    "profile": true
+   },
+   "185.1": {
+    "to": {
+     "#": "36a9592cd6eab6e80be8"
+    }
+   },
+   "188.2": {
+    "text": true
+   }
+  },
+  "tables": {
+   "180.1": {
+    "slug": {
+     "#slug": "0a3076a50244d95ca713"
+    },
+    "title": {
+     "#": "5edfdd81442a43fea8c8"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "bbd92678f1e1a8f926fd"
+      },
+      " ",
+      {
+       "#": "4b3cbc064379c4f1f26a"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "44b03a17291a71505d8b"
+      },
+      " ",
+      {
+       "#": "3874abfa91b39ec2b751"
+      },
+      " ",
+      {
+       "#": "0ce69e1a11993bd1eb84"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "951e4896a5f1a4ad41c9"
+      },
+      " ",
+      {
+       "#": "07bc30400f2bad9e1e4e"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "44b03a17291a71505d8b"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "cce9f698d2844193113c"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "323225c9d533ac36fa62"
+      },
+      " ",
+      {
+       "#": "4cbea7511e60812b8a96"
+      },
+      " ",
+      {
+       "#": "8c02db9a9c7abcd9fece"
+      },
+      " ",
+      {
+       "#": "d253c06bf980ed1cecfd"
+      }
+     ]
+    }
+   },
+   "181.2": {
+    "slug": {
+     "#slug": "aa03ae3089f8c7d16d7b"
+    },
+    "title": {
+     "#": "8cfd554771a243b0cf46"
+    },
+    "roll": "d10",
+    "roll_column": 0
+   },
+   "185.2": {
+    "slug": {
+     "#slug": "8a4a6d59986375e89d9f"
+    },
+    "title": {
+     "#w": [
+      {
+       "#": "10e1d0c84cf9fbee3cc6"
+      },
+      " ",
+      {
+       "#": "9d1bab0dba91ed0c6144"
+      }
+     ]
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "bbd92678f1e1a8f926fd"
+      },
+      " ",
+      {
+       "#": "d14f5287b8281e55b172"
+      },
+      " ",
+      {
+       "#": "d2f96fd5ddd379e8990a"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "e3a4ac477a096b83d4c6"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "50acf0de7415879b1813"
+      },
+      " ",
+      {
+       "#": "10e1d0c84cf9fbee3cc6"
+      },
+      " ",
+      {
+       "#": "325e46825225881d4928"
+      }
+     ]
+    }
+   }
+  },
+  "relations": {
+   "#slug:creatures/6c32896896e74c8bbf68": [
+    {
+     "role": "version-of",
+     "to": {
+      "#slug": "0375f9cea2671f07b26f",
+      "in": "creatures"
+     }
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "tables/181.2/about"
+ ],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

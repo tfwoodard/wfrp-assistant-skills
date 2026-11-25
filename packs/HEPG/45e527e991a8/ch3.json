@@ -1,0 +1,445 @@
+{
+ "pack": 1,
+ "source": "HEPG",
+ "chapter": "ch3",
+ "name": "ch3",
+ "layout": {
+  "pages": "44-75",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "HEPG",
+  "chapter": "ch3",
+  "defaults": {
+   "kind": "other"
+  },
+  "level_icons": {
+   "1": {
+    "pts": 40,
+    "letter": "E"
+   },
+   "2": {
+    "pts": 54,
+    "letter": "A"
+   },
+   "3": {
+    "pts": 46,
+    "letter": "C"
+   },
+   "4": {
+    "pts": 61,
+    "letter": "D"
+   }
+  },
+  "scheme_columns": {
+   "ws": {
+    "#": "8e9f84e3371891eea752"
+   },
+   "bs": {
+    "#": "86a0dbbc317d712f19b5"
+   },
+   "s": {
+    "#": "cb23da2dfcfb7791e586"
+   },
+   "t": {
+    "#": "6c2752fb74c3388dcf60"
+   },
+   "i": {
+    "#": "f71d55cb5b35fb56a4e5"
+   },
+   "ag": {
+    "#": "018805d180072b32e382"
+   },
+   "agi": {
+    "#": "018805d180072b32e382"
+   },
+   "dex": {
+    "#": "209d3c19dc0fb7332a0d"
+   },
+   "int": {
+    "#": "2ffb95323f4c46810fd5"
+   },
+   "wp": {
+    "#": "9cdf652c9c7f4cc724a1"
+   },
+   "fel": {
+    "#": "255ebcff7000e4dbdedc"
+   }
+  },
+  "intro": {
+   "name": {
+    "#": "ce103179e0e158f562d0"
+   },
+   "kind": "other"
+  },
+  "entry_levels": [
+   2
+  ],
+  "entries": [
+   {
+    "category": "talents",
+    "name": {
+     "#": "54a7305e81a2a0ad01b7"
+    },
+    "heading": {
+     "#": "cbb1c592aa3052b38770"
+    },
+    "page": 51
+   },
+   {
+    "name": {
+     "#": "0a5b5524266df62a14d4"
+    },
+    "page": 56,
+    "kind": "other",
+    "category": "lore"
+   },
+   {
+    "name": {
+     "#": "2ff9a9147b5e76072bee"
+    },
+    "page": 64,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     },
+     "earning_skill": false
+    },
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "db34ccf6041d8ea959ea"
+    },
+    "page": 66,
+    "career": {
+     "class": {
+      "#": "a1431ab565cf9d5dbe1e"
+     }
+    },
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "fbf13fb56800e9b7301c"
+    },
+    "page": 67,
+    "category": "lore",
+    "kind": "other",
+    "audience": "gm"
+   },
+   {
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     }
+    ],
+    "name": {
+     "#": "72b33ffb6a782818cc6e"
+    },
+    "heading": {
+     "#": "437532a40119f6600a02"
+    },
+    "page": 68
+   },
+   {
+    "category": "talents",
+    "field_labels": [
+     {
+      "#": "099ac1a8feef00505061"
+     }
+    ],
+    "name": {
+     "#": "bd80efa93e85c2fbb15b"
+    },
+    "heading": {
+     "#": "23cf7b525a8fd0d060d6"
+    },
+    "page": 68
+   },
+   {
+    "name": {
+     "#": "2758fb24c77096ce7a1f"
+    },
+    "page": 68
+   },
+   {
+    "name": {
+     "#": "51e172f9babc3ba92261"
+    },
+    "page": 70,
+    "career": {
+     "class": {
+      "#": "cf7736ce57442891b4ed"
+     }
+    },
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "279cbdb73cb309f4ae26"
+    },
+    "page": 72,
+    "career": {
+     "class": {
+      "#": "dcbf4831bce13fb8eaa3"
+     },
+     "earning_skill": false
+    },
+    "kind": "procedure"
+   },
+   {
+    "name": {
+     "#": "eaefbfb531480f24faef"
+    },
+    "page": 74,
+    "career": {
+     "class": {
+      "#": "2a77c553ad0808d89f8d"
+     }
+    },
+    "kind": "procedure"
+   }
+  ],
+  "boxes": {
+   "57.1": {
+    "entry": {
+     "category": "talents",
+     "name": {
+      "#": "752e63647df164c3ceac"
+     }
+    }
+   },
+   "65.1": {
+    "entry": {
+     "name": {
+      "#": "c69058d71d0764ded66f"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "65.2": {
+    "entry": {
+     "name": {
+      "#": "c0b793400262078d593f"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "71.1": {
+    "entry": {
+     "name": {
+      "#": "e81b9aeb2904ab2bd331"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "73.2": {
+    "entry": {
+     "name": {
+      "#": "bcc624f3bf5e4a4cdc9e"
+     },
+     "category": "lore",
+     "kind": "other",
+     "audience": "gm"
+    }
+   },
+   "46.2": {
+    "text": true
+   },
+   "49.1": {
+    "text": true
+   },
+   "60.1": {
+    "text": true
+   },
+   "61.2": {
+    "text": true
+   },
+   "67.1": {
+    "text": true
+   },
+   "58.3": {
+    "to": {
+     "#": "d74f3e36eb80dc6ee027"
+    }
+   }
+  },
+  "tables": {
+   "46.1": {
+    "banner": true,
+    "header_row": true,
+    "title": {
+     "#": "bb49e12cca9be771130e"
+    }
+   },
+   "47.1": {
+    "banner": true,
+    "header_row": true,
+    "title": {
+     "#": "3a9adcf3d48af117b3eb"
+    }
+   },
+   "47.2": {
+    "banner": true,
+    "header_row": true,
+    "title": {
+     "#w": [
+      {
+       "#": "13073a981aaf337c779e"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "2b704c3d7a4272776915"
+      },
+      " ",
+      "(",
+      {
+       "#": "26596820145965e434b9"
+      },
+      " ",
+      {
+       "#": "7fb1a1ec55e25a64c19c"
+      },
+      " ",
+      {
+       "#": "800194655d79ec0b4546"
+      },
+      " ",
+      {
+       "#": "e967b67fb1b34589d1c2"
+      },
+      ")"
+     ]
+    }
+   },
+   "47.3": {
+    "banner": true,
+    "header_row": true,
+    "title": {
+     "#w": [
+      {
+       "#": "13073a981aaf337c779e"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "2b704c3d7a4272776915"
+      },
+      " ",
+      "(",
+      {
+       "#": "26596820145965e434b9"
+      },
+      " ",
+      {
+       "#": "7fb1a1ec55e25a64c19c"
+      },
+      " ",
+      {
+       "#": "7d73aaeacf2354a8432a"
+      },
+      " ",
+      {
+       "#": "e967b67fb1b34589d1c2"
+      },
+      ")"
+     ]
+    }
+   },
+   "51.1": {
+    "banner": true,
+    "header_row": true,
+    "title": {
+     "#": "f1fbe6396e4f8ea85575"
+    }
+   },
+   "59.1": {
+    "banner": true,
+    "header_row": true,
+    "title": {
+     "#": "373e1878285ba0e1b53b"
+    },
+    "row_groups": [
+     [
+      {
+       "#": "e70dac5a8855fa26e600"
+      },
+      5
+     ],
+     [
+      {
+       "#": "dcbf4831bce13fb8eaa3"
+      },
+      6
+     ],
+     [
+      {
+       "#": "2a77c553ad0808d89f8d"
+      },
+      9
+     ],
+     [
+      {
+       "#": "2157aac4ea0b4b6027bc"
+      },
+      4
+     ],
+     [
+      {
+       "#": "cf7736ce57442891b4ed"
+      },
+      4
+     ],
+     [
+      {
+       "#": "71eddd925f482be967fe"
+      },
+      5
+     ],
+     [
+      {
+       "#": "36bee82937f15239097b"
+      },
+      3
+     ],
+     [
+      {
+       "#": "a1431ab565cf9d5dbe1e"
+      },
+      8
+     ]
+    ]
+   }
+  },
+  "relations": {}
+ },
+ "left_out": [],
+ "pdf_sha256": "45e527e991a87cf48fb30af05277f6c849d72395079dcbbf100334270caf97cf",
+ "pdf_bytes": 66475581
+}

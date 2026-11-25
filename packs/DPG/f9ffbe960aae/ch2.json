@@ -1,0 +1,184 @@
+{
+ "pack": 1,
+ "source": "DPG",
+ "chapter": "ch2",
+ "name": "ch2",
+ "layout": {
+  "pages": "24-35",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "DPG",
+  "chapter": "ch2",
+  "defaults": {
+   "category": "lore",
+   "kind": "other"
+  },
+  "intro": {
+   "name": {
+    "#": "afec6b4bb3fb0380456b"
+   },
+   "category": "lore",
+   "kind": "other"
+  },
+  "entry_levels": [
+   2,
+   4,
+   5
+  ],
+  "entries": [
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "5682353d6ae8be44e195"
+      },
+      " ",
+      {
+       "#": "9e378432b323df378643"
+      },
+      " ",
+      "(",
+      {
+       "#": "7f24a3c393186b989940"
+      },
+      ")"
+     ]
+    },
+    "page": 24,
+    "heading": {
+     "#": "f29af58c6c83fc17cb02"
+    }
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "2109af52eee37bba49b5"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "83442079470168b2a1b5"
+      },
+      " ",
+      "(",
+      {
+       "#": "7f24a3c393186b989940"
+      },
+      ")"
+     ]
+    },
+    "page": 27,
+    "heading": {
+     "#": "164962a81605b917e713"
+    }
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "74aadeea8f5a1746df75"
+      },
+      " ",
+      {
+       "#": "d32e78152d8353a67d6b"
+      },
+      " ",
+      "(",
+      {
+       "#": "7f24a3c393186b989940"
+      },
+      ")"
+     ]
+    },
+    "page": 27,
+    "heading": {
+     "#": "07eefaf9295701e19ed8"
+    }
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "17bbdb8b09c0afb8e3b2"
+      },
+      " ",
+      {
+       "#": "49ac464bd55bfe8062e8"
+      },
+      " ",
+      {
+       "#": "379aa00f7b0e97432796"
+      },
+      " ",
+      "(",
+      {
+       "#": "7f24a3c393186b989940"
+      },
+      ")"
+     ]
+    },
+    "page": 29,
+    "heading": {
+     "#": "134ec6f5feebaa244dd4"
+    }
+   },
+   {
+    "name": {
+     "#w": [
+      {
+       "#": "52d37e3611402f44c231"
+      },
+      " ",
+      {
+       "#": "9d04b5e6bd58c2341598"
+      },
+      " ",
+      {
+       "#": "5620a6f823c763db6d50"
+      },
+      " ",
+      "(",
+      {
+       "#": "7f24a3c393186b989940"
+      },
+      ")"
+     ]
+    },
+    "page": 30,
+    "heading": {
+     "#": "13122323e9a5a7352fa7"
+    }
+   }
+  ],
+  "boxes": {
+   "25.2": {
+    "text": true
+   }
+  },
+  "tables": {
+   "31.1": {
+    "header_row": true
+   }
+  },
+  "relations": {}
+ },
+ "left_out": [],
+ "pdf_sha256": "f9ffbe960aae459ff53d1ecc832298908f1f22cd7a223aab863d4ca14bea7e50",
+ "pdf_bytes": 71047654
+}

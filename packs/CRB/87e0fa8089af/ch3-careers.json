@@ -1,0 +1,634 @@
+{
+ "pack": 1,
+ "source": "CRB",
+ "chapter": "ch3",
+ "name": "ch3-careers",
+ "layout": {
+  "pages": "53-116",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull"
+  ],
+  "boxes": false,
+  "icon_text": {},
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "CRB",
+  "chapter": "ch3",
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull"
+  ],
+  "level_icons": {
+   "1": {
+    "mark_font": "crossbat"
+   },
+   "2": {
+    "pts": 57
+   },
+   "3": {
+    "pts": 29
+   },
+   "4": {
+    "pts": 9
+   }
+  },
+  "scheme_columns": {
+   "ws": "WS",
+   "bs": "BS",
+   "s": "S",
+   "t": "T",
+   "i": "I",
+   "agi": "Ag",
+   "dex": "Dex",
+   "int": "Int",
+   "wp": "WP",
+   "fel": "Fel"
+  },
+  "careers": [
+   {
+    "name": {
+     "#": "de4c4b136ea589b8b5d0"
+    },
+    "page": 53,
+    "class": {
+     "#": "e70dac5a8855fa26e600"
+    }
+   },
+   {
+    "name": {
+     "#": "15d7e893b5a05faa7d1a"
+    },
+    "page": 54,
+    "class": {
+     "#": "e70dac5a8855fa26e600"
+    }
+   },
+   {
+    "name": {
+     "#": "7175486bf9271af62ab9"
+    },
+    "page": 55,
+    "class": {
+     "#": "e70dac5a8855fa26e600"
+    }
+   },
+   {
+    "name": {
+     "#": "d05d5b7ee2b773d648b5"
+    },
+    "page": 56,
+    "class": {
+     "#": "e70dac5a8855fa26e600"
+    }
+   },
+   {
+    "name": {
+     "#": "003cffb8c64a74eeed94"
+    },
+    "page": 57,
+    "class": {
+     "#": "e70dac5a8855fa26e600"
+    }
+   },
+   {
+    "name": {
+     "#": "232f7da794f852d39df0"
+    },
+    "page": 58,
+    "class": {
+     "#": "e70dac5a8855fa26e600"
+    }
+   },
+   {
+    "name": {
+     "#": "e93358ec148baf4a0227"
+    },
+    "page": 59,
+    "class": {
+     "#": "e70dac5a8855fa26e600"
+    }
+   },
+   {
+    "name": {
+     "#": "0552ed21adaada7eafc8"
+    },
+    "page": 60,
+    "class": {
+     "#": "e70dac5a8855fa26e600"
+    }
+   },
+   {
+    "name": {
+     "#": "af9570b8a379ba43ef24"
+    },
+    "page": 61,
+    "class": {
+     "#": "dcbf4831bce13fb8eaa3"
+    }
+   },
+   {
+    "name": {
+     "#": "87ebc51c42d08930cc14"
+    },
+    "page": 62,
+    "class": {
+     "#": "dcbf4831bce13fb8eaa3"
+    }
+   },
+   {
+    "name": {
+     "#": "226547ba652a251e232b"
+    },
+    "page": 63,
+    "class": {
+     "#": "dcbf4831bce13fb8eaa3"
+    }
+   },
+   {
+    "name": {
+     "#": "ee707c634a680df9b1df"
+    },
+    "page": 64,
+    "class": {
+     "#": "dcbf4831bce13fb8eaa3"
+    }
+   },
+   {
+    "name": {
+     "#": "1d71df43764c075c77ce"
+    },
+    "page": 65,
+    "class": {
+     "#": "dcbf4831bce13fb8eaa3"
+    }
+   },
+   {
+    "name": {
+     "#": "598c181e965cedf30279"
+    },
+    "page": 66,
+    "class": {
+     "#": "dcbf4831bce13fb8eaa3"
+    }
+   },
+   {
+    "name": {
+     "#": "77f8fd66d0f50f9a590a"
+    },
+    "page": 67,
+    "class": {
+     "#": "dcbf4831bce13fb8eaa3"
+    }
+   },
+   {
+    "name": {
+     "#": "ae1c23e74eb421fed753"
+    },
+    "page": 68,
+    "class": {
+     "#": "dcbf4831bce13fb8eaa3"
+    }
+   },
+   {
+    "name": {
+     "#": "4751786daffc503f9f53"
+    },
+    "page": 69,
+    "class": {
+     "#": "2a77c553ad0808d89f8d"
+    }
+   },
+   {
+    "name": {
+     "#": "cd284a99faa59270d45e"
+    },
+    "page": 70,
+    "class": {
+     "#": "2a77c553ad0808d89f8d"
+    }
+   },
+   {
+    "name": {
+     "#": "8aa97c7e9061576cbfc2"
+    },
+    "page": 71,
+    "class": {
+     "#": "2a77c553ad0808d89f8d"
+    }
+   },
+   {
+    "name": {
+     "#": "78d433e5e92c948a9c58"
+    },
+    "page": 72,
+    "class": {
+     "#": "2a77c553ad0808d89f8d"
+    }
+   },
+   {
+    "name": {
+     "#": "c60fb3d0248731059a02"
+    },
+    "page": 73,
+    "class": {
+     "#": "2a77c553ad0808d89f8d"
+    }
+   },
+   {
+    "name": {
+     "#": "9735783a73aeda9dd754"
+    },
+    "page": 74,
+    "class": {
+     "#": "2a77c553ad0808d89f8d"
+    }
+   },
+   {
+    "name": {
+     "#": "14e138da0c167d87e920"
+    },
+    "page": 75,
+    "class": {
+     "#": "2a77c553ad0808d89f8d"
+    }
+   },
+   {
+    "name": {
+     "#": "27773d1772b9563a7ea1"
+    },
+    "page": 76,
+    "class": {
+     "#": "2a77c553ad0808d89f8d"
+    }
+   },
+   {
+    "name": {
+     "#": "ad4fce14215e77ebd15b"
+    },
+    "page": 77,
+    "class": {
+     "#": "2157aac4ea0b4b6027bc"
+    }
+   },
+   {
+    "name": {
+     "#": "9d7268f92ab59cbe2981"
+    },
+    "page": 78,
+    "class": {
+     "#": "2157aac4ea0b4b6027bc"
+    }
+   },
+   {
+    "name": {
+     "#": "ff22988bca942a600b78"
+    },
+    "page": 79,
+    "class": {
+     "#": "2157aac4ea0b4b6027bc"
+    }
+   },
+   {
+    "name": {
+     "#": "3c20ce147995dc24c978"
+    },
+    "page": 80,
+    "class": {
+     "#": "2157aac4ea0b4b6027bc"
+    }
+   },
+   {
+    "name": {
+     "#": "c11d6a78a8af2aee44d3"
+    },
+    "page": 81,
+    "class": {
+     "#": "2157aac4ea0b4b6027bc"
+    }
+   },
+   {
+    "name": {
+     "#": "a0ab1a12f9d07dc365f2"
+    },
+    "page": 82,
+    "class": {
+     "#": "2157aac4ea0b4b6027bc"
+    }
+   },
+   {
+    "name": {
+     "#": "5bab8b6212716dc6c6af"
+    },
+    "page": 83,
+    "class": {
+     "#": "2157aac4ea0b4b6027bc"
+    }
+   },
+   {
+    "name": {
+     "#": "4cc236a5c7ca96f0bce7"
+    },
+    "page": 84,
+    "class": {
+     "#": "2157aac4ea0b4b6027bc"
+    }
+   },
+   {
+    "name": {
+     "#": "fe64a1e85946fd1e99b7"
+    },
+    "page": 85,
+    "class": {
+     "#": "cf7736ce57442891b4ed"
+    }
+   },
+   {
+    "name": {
+     "#": "bcce759376addcb781aa"
+    },
+    "page": 86,
+    "class": {
+     "#": "cf7736ce57442891b4ed"
+    }
+   },
+   {
+    "name": {
+     "#": "a073c1e724d611341a8b"
+    },
+    "page": 87,
+    "class": {
+     "#": "cf7736ce57442891b4ed"
+    }
+   },
+   {
+    "name": {
+     "#": "6aaeb1bf413bad8dc1bc"
+    },
+    "page": 88,
+    "class": {
+     "#": "cf7736ce57442891b4ed"
+    }
+   },
+   {
+    "name": {
+     "#": "3f21c7b89880fe863e1b"
+    },
+    "page": 89,
+    "class": {
+     "#": "cf7736ce57442891b4ed"
+    }
+   },
+   {
+    "name": {
+     "#": "1d563ef8d1c619f52631"
+    },
+    "page": 90,
+    "class": {
+     "#": "cf7736ce57442891b4ed"
+    }
+   },
+   {
+    "name": {
+     "#": "a37aa0b1f31b0506f4bb"
+    },
+    "page": 91,
+    "class": {
+     "#": "cf7736ce57442891b4ed"
+    }
+   },
+   {
+    "name": {
+     "#": "809fe89c33e71aa48304"
+    },
+    "page": 92,
+    "class": {
+     "#": "cf7736ce57442891b4ed"
+    }
+   },
+   {
+    "name": {
+     "#": "c484e36dde0361567174"
+    },
+    "page": 93,
+    "class": {
+     "#": "71eddd925f482be967fe"
+    }
+   },
+   {
+    "name": {
+     "#": "a3d2e986ea1d7d7106db"
+    },
+    "page": 94,
+    "class": {
+     "#": "71eddd925f482be967fe"
+    }
+   },
+   {
+    "name": {
+     "#": "f932158862403eddeb60"
+    },
+    "page": 95,
+    "class": {
+     "#": "71eddd925f482be967fe"
+    }
+   },
+   {
+    "name": {
+     "#": "566654b1fbb12dba5f11"
+    },
+    "page": 96,
+    "class": {
+     "#": "71eddd925f482be967fe"
+    }
+   },
+   {
+    "name": {
+     "#": "d8f31d9f946e71176ecb"
+    },
+    "page": 97,
+    "class": {
+     "#": "71eddd925f482be967fe"
+    }
+   },
+   {
+    "name": {
+     "#": "ea06cc023498119adf6c"
+    },
+    "page": 98,
+    "class": {
+     "#": "71eddd925f482be967fe"
+    }
+   },
+   {
+    "name": {
+     "#": "22dcf9807d2bd2e48611"
+    },
+    "page": 99,
+    "class": {
+     "#": "71eddd925f482be967fe"
+    }
+   },
+   {
+    "name": {
+     "#": "c366bf44649dda867d88"
+    },
+    "page": 100,
+    "class": {
+     "#": "71eddd925f482be967fe"
+    }
+   },
+   {
+    "name": {
+     "#": "0cc1cc4a9687f067d9e7"
+    },
+    "page": 101,
+    "class": {
+     "#": "36bee82937f15239097b"
+    }
+   },
+   {
+    "name": {
+     "#": "b5e94cb6f8f56038ade0"
+    },
+    "page": 102,
+    "class": {
+     "#": "36bee82937f15239097b"
+    }
+   },
+   {
+    "name": {
+     "#": "29d41acbcd2be497a089"
+    },
+    "page": 103,
+    "class": {
+     "#": "36bee82937f15239097b"
+    }
+   },
+   {
+    "name": {
+     "#": "4d005e0a7c3482e638ea"
+    },
+    "page": 104,
+    "class": {
+     "#": "36bee82937f15239097b"
+    }
+   },
+   {
+    "name": {
+     "#": "bf46e094d239e0bc7255"
+    },
+    "page": 105,
+    "class": {
+     "#": "36bee82937f15239097b"
+    }
+   },
+   {
+    "name": {
+     "#": "7ae7ef812c5d9420b115"
+    },
+    "page": 106,
+    "class": {
+     "#": "36bee82937f15239097b"
+    }
+   },
+   {
+    "name": {
+     "#": "a7e83a4bab72d084921a"
+    },
+    "page": 107,
+    "class": {
+     "#": "36bee82937f15239097b"
+    }
+   },
+   {
+    "name": {
+     "#": "d1f9105a0265f98271bc"
+    },
+    "page": 108,
+    "class": {
+     "#": "36bee82937f15239097b"
+    }
+   },
+   {
+    "name": {
+     "#": "a5c0ad9fa438ac2e313d"
+    },
+    "page": 109,
+    "class": {
+     "#": "a1431ab565cf9d5dbe1e"
+    }
+   },
+   {
+    "name": {
+     "#": "25c56f0a59c6abd59848"
+    },
+    "page": 110,
+    "class": {
+     "#": "a1431ab565cf9d5dbe1e"
+    }
+   },
+   {
+    "name": {
+     "#": "e0038027de1d5bbc4141"
+    },
+    "page": 111,
+    "class": {
+     "#": "a1431ab565cf9d5dbe1e"
+    }
+   },
+   {
+    "name": {
+     "#": "f27e41c7f88824347fc4"
+    },
+    "page": 112,
+    "class": {
+     "#": "a1431ab565cf9d5dbe1e"
+    }
+   },
+   {
+    "name": {
+     "#": "554b1e0ea7581a53f4c3"
+    },
+    "page": 113,
+    "class": {
+     "#": "a1431ab565cf9d5dbe1e"
+    }
+   },
+   {
+    "name": {
+     "#": "07a41c4a20e58a84f8ee"
+    },
+    "page": 114,
+    "class": {
+     "#": "a1431ab565cf9d5dbe1e"
+    }
+   },
+   {
+    "name": {
+     "#": "2ed44c3cfe3ed1e5339f"
+    },
+    "page": 115,
+    "class": {
+     "#": "a1431ab565cf9d5dbe1e"
+    }
+   },
+   {
+    "name": {
+     "#": "72d44ea3421224316bef"
+    },
+    "page": 116,
+    "class": {
+     "#": "a1431ab565cf9d5dbe1e"
+    }
+   }
+  ]
+ },
+ "left_out": [],
+ "pdf_sha256": "87e0fa8089af48f35c3dca2fc8b91245a62f243342f0481a74cf2c14838e1af3",
+ "pdf_bytes": 66305786
+}

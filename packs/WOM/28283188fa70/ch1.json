@@ -1,0 +1,70 @@
+{
+ "pack": 1,
+ "source": "WOM",
+ "chapter": "ch1",
+ "name": "ch1",
+ "layout": {
+  "pages": "6-18",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull"
+  ],
+  "boxes": true,
+  "icon_text": {},
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "WOM",
+  "chapter": "ch1",
+  "defaults": {
+   "category": "lore",
+   "kind": "history"
+  },
+  "entry_levels": [
+   2,
+   3
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "4494190d698978fa2fc6"
+    },
+    "page": 14,
+    "kind": "other"
+   },
+   {
+    "name": {
+     "#": "8dbbefe0e44ded124f9b"
+    },
+    "page": 18,
+    "kind": "other"
+   }
+  ],
+  "boxes": {
+   "6.1": {
+    "text": true
+   },
+   "17.1": {
+    "entry": {
+     "name": {
+      "#": "a52c18cd00c01977c083"
+     },
+     "kind": "procedure"
+    }
+   }
+  },
+  "not_headings": [
+   {
+    "page": 18,
+    "text": {
+     "#": "eb3fb50f7475eca18262"
+    }
+   }
+  ]
+ },
+ "left_out": [],
+ "pdf_sha256": "28283188fa70d51b8f1efe3e8c3214da7be885d2a444321744ead66d1ea2a150",
+ "pdf_bytes": 38702695
+}

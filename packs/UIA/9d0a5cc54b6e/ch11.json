@@ -1,0 +1,261 @@
+{
+ "pack": 1,
+ "source": "UIA",
+ "chapter": "ch11",
+ "name": "ch11",
+ "layout": {
+  "pages": "118-126",
+  "page_offset": 0,
+  "icon_fonts": [
+   "crossbat",
+   "DwarvenAxe",
+   "OldSkull",
+   "onlyskulls"
+  ],
+  "boxes": true,
+  "icon_text": {
+   "onlyskulls": "•"
+  },
+  "margin_lines": []
+ },
+ "plan": {
+  "source": "UIA",
+  "chapter": "ch11",
+  "defaults": {
+   "kind": "procedure"
+  },
+  "intro": {
+   "name": {
+    "#": "c6a3b8207efff6b57640"
+   },
+   "kind": "procedure"
+  },
+  "entry_levels": [
+   2,
+   3
+  ],
+  "entries": [
+   {
+    "name": {
+     "#": "091a524064272acbe6a8"
+    },
+    "page": 122,
+    "kind": "other",
+    "describes_items": true
+   },
+   {
+    "name": {
+     "#": "d73522ea08cb765682dd"
+    },
+    "page": 125,
+    "kind": "other",
+    "split_headings": {
+     "category": "qualities",
+     "kind": "weapon-quality"
+    },
+    "heading_only": true
+   }
+  ],
+  "boxes": {},
+  "tables": {
+   "121.2": {
+    "slug": {
+     "#slug": "ec5b1f4edd4a46a57966"
+    },
+    "title": {
+     "#": "795438b8d8478ada98ed"
+    },
+    "about": {
+     "#w": [
+      {
+       "#": "db6d7cea0fbab5a0dcb4"
+      },
+      " ",
+      {
+       "#": "e3e13d878e490c1730a7"
+      },
+      " ",
+      {
+       "#": "018ea27d6d5ea23a08bf"
+      },
+      " ",
+      {
+       "#": "4924c34b9078e10565bb"
+      },
+      " ",
+      {
+       "#": "57dd7ffa188abc7068fd"
+      },
+      " ",
+      {
+       "#": "01c7a6355324ebcd1769"
+      },
+      " ",
+      {
+       "#": "dabe86e93f39f360ef8e"
+      },
+      ",",
+      " ",
+      {
+       "#": "8dc269787dcb43e8f72c"
+      },
+      " ",
+      {
+       "#": "f21aa8e7a670e07aec34"
+      },
+      " ",
+      {
+       "#": "0f017b269fa3a33f0867"
+      }
+     ]
+    },
+    "roll": "d100",
+    "roll_column": 0,
+    "header_row": true
+   },
+   "123.1": {
+    "items": {
+     "kind": "ranged",
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:3fbbe28e783fc97c2ef8": {
+       "#": "7c8fb8e743e0f144318f"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     }
+    }
+   },
+   "124.1": {
+    "items": {
+     "kind": "ammunition",
+     "fields": {
+      "#:5cd471a7e276e07c08b5": {
+       "#": "075b4b0db2a61eb888dd"
+      },
+      "#:f1366b3ec070b5ee15c2": {
+       "#": "1798fe0ef8b2c5e43ba6"
+      },
+      "#:5b25781edbc22b5fd323": {
+       "#": "2a8db618c99ea2da7b69"
+      },
+      "#:3fbbe28e783fc97c2ef8": {
+       "#": "7c8fb8e743e0f144318f"
+      },
+      "#:ec44ee02f9272bf6ba69": {
+       "#": "e3e13d878e490c1730a7"
+      },
+      "#:fda479c9dffd673b9d64": {
+       "#": "da15d912ea50c45fc56b"
+      }
+     },
+     "listed_again": [
+      {
+       "#w": [
+        {
+         "#": "e070b8eb38e6544ed6ba"
+        },
+        " ",
+        {
+         "#": "bec87dd5f2552e5e9287"
+        },
+        " ",
+        {
+         "#": "cdb31a76adec2656eaa2"
+        },
+        "/",
+        {
+         "#": "3b8d10614a135c2b09fa"
+        },
+        " ",
+        {
+         "#": "9d04b5e6bd58c2341598"
+        },
+        " ",
+        {
+         "#": "8948ea47f01f8b01e832"
+        }
+       ]
+      },
+      {
+       "#w": [
+        {
+         "#": "5643056a6457e5922d3d"
+        },
+        "/",
+        {
+         "#": "b16e8b8d7b64dd40bcda"
+        }
+       ]
+      }
+     ],
+     "listed_elsewhere": []
+    }
+   },
+   "126.1": {
+    "slug": {
+     "#slug": "6f80fc5faf02e937248f"
+    },
+    "title": {
+     "#": "c4dde2fc19396b206ab1"
+    },
+    "roll": "d10",
+    "roll_column": 0,
+    "header_row": true
+   }
+  },
+  "relations": {},
+  "rename": {},
+  "shared_labels": {
+   "#:d220d0064085c2bad1f0": [
+    {
+     "#": "91a0304024031b0f27b5"
+    }
+   ],
+   "#:ca0c58939cce65389c18": [
+    {
+     "#": "e54c208a7b4681890f58"
+    },
+    {
+     "#": "6ad3d6d66adcb916951b"
+    },
+    {
+     "#": "f8af622941aec92c47b2"
+    }
+   ],
+   "#:3d7a59213903a009d76b": [
+    {
+     "#": "e30b0c07f6054df2dd0c"
+    },
+    {
+     "#": "72c90a88bc325fc4f841"
+    },
+    {
+     "#": "ac37c438f6313efb75ac"
+    }
+   ]
+  }
+ },
+ "left_out": [
+  "tables/124.1/items/listed_elsewhere/0",
+  "tables/126.1/about",
+  "rename/#1658d9f9f8382e468860",
+  "rename/#e437b66b66fc0eb64b37",
+  "rename/#e2de8d453270c0b7a8a6",
+  "rename/#52715bccd8fa73e0b8eb"
+ ],
+ "pdf_sha256": "9d0a5cc54b6e2a81076c4e227204540ff14b4916225f2b84c705de37e902fdfd",
+ "pdf_bytes": 24741019
+}
