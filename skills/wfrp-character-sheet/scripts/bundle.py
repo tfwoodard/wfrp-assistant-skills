@@ -55,8 +55,7 @@ def make(root, out=None, now=None):
                 files[f'library-data/{name}'] = f.read()
     stamp = {'made': (now or datetime.datetime.now(datetime.timezone.utc)).strftime('%Y-%m-%dT%H:%M:%SZ'),
              'imports': stamp_of(root), 'files': len(files) + 1}
-    library['bundle'] = stamp
-    text = json.dumps(library, ensure_ascii=False, indent=2) + '\n'
+    text = stamped(raw, stamp)
     files['library.json'] = text
     out = out or os.path.join(root, 'library-bundle.json')
     with open(out, 'w', encoding='utf-8') as f:
@@ -66,6 +65,27 @@ def make(root, out=None, now=None):
     with open(os.path.join(root, 'library.json'), 'w', encoding='utf-8') as f:
         f.write(text)
     return out, stamp
+
+
+def stamped(raw, stamp):
+    """library.json's text with its "bundle" line set to STAMP and every other byte as it was (as
+    merge_import.py changes one chapter line): the line replaced if there is one, else added after
+    the opening brace."""
+    line = '  "bundle": ' + json.dumps(stamp, ensure_ascii=False) + ','
+    lines = raw.split('\n')
+    at = [i for i, l in enumerate(lines) if l.startswith('  "bundle": ')]
+    if at:
+        lines[at[0]] = line if lines[at[0]].rstrip().endswith(',') else line[:-1]
+    elif lines and lines[0].strip() == '{':
+        lines.insert(1, line)
+    else:
+        raise SystemExit('library.json is not in the usual layout (an opening brace on its own line): '
+                         'add the bundle stamp by hand')
+    text = '\n'.join(lines)
+    want = dict(json.loads(raw), bundle=stamp)
+    if json.loads(text) != want:
+        raise SystemExit('the bundle stamp would change more of library.json than its own line: nothing written')
+    return text
 
 
 def load(path):

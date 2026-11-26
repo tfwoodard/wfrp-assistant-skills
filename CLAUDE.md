@@ -60,9 +60,10 @@ Google Drive library imported from the group's own PDFs.
   `device_commit_files` list with every file's `expectedMtimeMs` (it waits until
   the bridge can read the copies), then download the batch again and `verify`.
   Never commit from memory of a file's time.
-- Prefer the library's local folder (layout §1) over the connector whenever it
-  can be reached: PDFs need it, and a chapter's hundreds of files go through it
-  in seconds.
+- Always use a local file system when one is provided (the library's local
+  folder, layout §1), unless the Librarian says otherwise: read, update and
+  check library files there, never through the Google Drive connector. PDFs need
+  it, and a chapter's hundreds of files go through it in seconds.
 - During an import, these are expected and authorized by the Librarian; don't
   stop to ask about them:
   - uploading or writing files to the library's Drive folders;
